@@ -1,8 +1,10 @@
+require "httparty"
+
 module GooglePlaces
-  class Search
+  class BusinessSearch
     include HTTParty
 
-    base_uri "https://places.googleapis.com/v1"
+    BASE_URL = "https://places.googleapis.com/v1/places:searchText"
 
     def initialize(query:)
       @query = query
@@ -10,21 +12,31 @@ module GooglePlaces
 
     def call
       response = self.class.post(
-        "/places:searchText",
-        headers: {
-          "Content-Type" => "application/json",
-          "X-Goog-Api-Key" => ENV.fetch("GOOGLE_PLACES_API_KEY"),
-          "X-Goog-FieldMask" => field_mask
-        },
-        body: {
-          textQuery: @query
-        }.to_json
+        BASE_URL,
+        headers: headers,
+        body: request_body.to_json
       )
 
-      JSON.parse(response.body)
+      handle_response(response)
     end
 
     private
+
+    attr_reader :query
+
+    def headers
+      {
+        "Content-Type" => "application/json",
+        "X-Goog-Api-Key" => ENV.fetch("GOOGLE_MAPS_API_KEY"),
+        "X-Goog-FieldMask" => field_mask
+      }
+    end
+
+    def request_body
+      {
+        textQuery: query
+      }
+    end
 
     def field_mask
       [
@@ -34,9 +46,18 @@ module GooglePlaces
         "places.location",
         "places.rating",
         "places.userRatingCount",
-        "places.types",
         "places.googleMapsUri"
       ].join(",")
+    end
+
+    def handle_response(response)
+      return JSON.parse(response.body) if response.success?
+
+      {
+        error: "Google Places API request failed",
+        status: response.code,
+        message: response.body
+      }
     end
   end
 end
