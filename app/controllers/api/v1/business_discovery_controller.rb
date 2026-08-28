@@ -1,20 +1,27 @@
+# frozen_string_literal: true
+
 module Api
   module V1
     class BusinessDiscoveryController < ApplicationController
       def search
-        query = params[:query]
-
-        if query.blank?
-          return render json: {
-            error: "query is required"
-          }, status: :bad_request
-        end
-
         result = GooglePlaces::BusinessSearch.new(
-          query: query
+          search_params
         ).call
 
-        render json: result
+        success(result, 'Businesses retrieved successfully')
+      end
+
+      private
+
+      def search_params
+        params.permit(
+          :query,
+          :location,
+          :business_type,
+          :min_rating,
+          :has_phone,
+          :has_website
+        )
       end
     end
   end
