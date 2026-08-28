@@ -1,3 +1,5 @@
+# app/services/google_places/business_search.rb
+
 # frozen_string_literal: true
 
 module GooglePlaces
@@ -32,7 +34,11 @@ module GooglePlaces
 
     private
 
-    attr_reader :business_type, :country, :region, :city, :area
+    attr_reader :business_type,
+                :country,
+                :region,
+                :city,
+                :area
 
     def request_body
       {
@@ -74,7 +80,8 @@ module GooglePlaces
     def handle_response(response)
       return response.parsed_response if response.success?
 
-      raise StandardError, response.parsed_response.dig('error', 'message')
+      raise StandardError,
+            response.parsed_response.dig('error', 'message')
     end
   end
 end

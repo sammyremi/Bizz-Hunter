@@ -1,3 +1,5 @@
+# app/services/application_service.rb
+
 # frozen_string_literal: true
 
 class ApplicationService

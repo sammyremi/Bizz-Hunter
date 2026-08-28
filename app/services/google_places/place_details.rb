@@ -1,3 +1,5 @@
+# app/services/google_places/place_details.rb
+
 # frozen_string_literal: true
 
 module GooglePlaces
@@ -50,7 +52,8 @@ module GooglePlaces
     def handle_response(response)
       return response.parsed_response if response.success?
 
-      raise StandardError, response.parsed_response.dig('error', 'message')
+      raise StandardError,
+            response.parsed_response.dig('error', 'message')
     end
   end
 end
