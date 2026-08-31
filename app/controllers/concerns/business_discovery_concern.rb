@@ -8,6 +8,8 @@ module BusinessDiscoveryConcern
   def business_discovery_params
     params.permit(
       :business_type,
+      :place_id,
+      :location_name,
       :country,
       :state,
       :city,

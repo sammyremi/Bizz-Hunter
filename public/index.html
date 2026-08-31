@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bizz-Hunter — Find Businesses & Prospecting Opportunities</title>
+  <meta name="description" content="Discover, evaluate, and contact high-value business prospects lacking websites or needing your services.">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-icon">🎯</div>
+        <div>
+          <div class="brand-title">Bizz-Hunter</div>
+        </div>
+        <span class="brand-badge">MVP</span>
+      </div>
+
+      <ul class="nav-menu">
+        <li>
+          <a href="#" class="nav-item active" data-tab="find-businesses">
+            <span class="icon">🔍</span>
+            <span>Find Businesses</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-tab="dashboard">
+            <span class="icon">📊</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-tab="saved-businesses">
+            <span class="icon">❤️</span>
+            <span>Saved Businesses</span>
+            <span class="coming-soon" id="saved-badge">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-tab="leads">
+            <span class="icon">💼</span>
+            <span>Leads</span>
+            <span class="coming-soon">Soon</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-tab="analytics">
+            <span class="icon">📈</span>
+            <span>Analytics</span>
+            <span class="coming-soon">Soon</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-tab="settings">
+            <span class="icon">⚙️</span>
+            <span>Settings</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">BH</div>
+        <div class="user-info">
+          <div class="user-name">Pro Hunter</div>
+          <div class="user-role">Connected to Google Places</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="top-header">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle">☰</button>
+        <div class="header-title" id="current-nav-title">Find Businesses</div>
+      </div>
+
+      <div class="header-actions">
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span>Google Places API Ready</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Body -->
+    <main class="content-body">
+
+      <!-- ================= SECTION 1: FIND BUSINESSES (PRIMARY MVP FOCUS) ================= -->
+      <section id="view-find-businesses" class="view-section active">
+        <div class="page-intro">
+          <h1 class="page-title">Find Businesses</h1>
+          <p class="page-subtitle">Discover businesses that could become your next customers. Identify missing websites & direct contacts.</p>
+        </div>
+
+        <!-- Search Form Panel -->
+        <div class="search-panel">
+          <div class="panel-header">
+            <span>🎯 Search & Location Parameters</span>
+          </div>
+
+          <form id="search-form">
+            <!-- Smart Location Search Bar -->
+            <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
+              <label class="form-label" for="location-search-input">📍 Where do you want to find businesses?</label>
+              <div style="position: relative;">
+                <input type="text" id="location-search-input" class="form-control" placeholder="Search for a city, area, region or place (e.g. Wuse 2, Lagos, London, Tokyo)..." autocomplete="off">
+                <div id="location-suggestions-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
+              </div>
+              <div id="selected-location-badge" class="selected-location-badge" style="display: none; margin-top: 0.75rem;"></div>
+            </div>
+
+            <!-- Business Category & Filters -->
+            <div class="filter-grid">
+              <div class="form-group">
+                <label class="form-label" for="category-select">🏢 Business Category</label>
+                <select id="category-select" class="form-select">
+                  <option value="restaurant">Restaurant</option>
+                  <option value="hotel">Hotel</option>
+                  <option value="hospital">Hospital / Clinic</option>
+                  <option value="pharmacy">Pharmacy</option>
+                  <option value="school">School / College</option>
+                  <option value="gym">Gym / Fitness Center</option>
+                  <option value="beauty_salon">Salon / Spa</option>
+                  <option value="real_estate_agency">Real Estate</option>
+                  <option value="lawyer">Law Firm</option>
+                  <option value="car_dealer">Car Dealer</option>
+                  <option value="construction">Construction</option>
+                  <option value="supermarket">Supermarket</option>
+                  <option value="clothing_store">Clothing Store</option>
+                  <option value="accounting">Accounting / Finance</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="min-rating-select">⭐ Minimum Rating</label>
+                <select id="min-rating-select" class="form-select">
+                  <option value="">Any Rating</option>
+                  <option value="3.5">3.5+ Stars</option>
+                  <option value="4.0" selected>4.0+ Stars</option>
+                  <option value="4.5">4.5+ Stars</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="phone-filter-select">📞 Phone Number</label>
+                <select id="phone-filter-select" class="form-select">
+                  <option value="">Any</option>
+                  <option value="true" selected>Has Phone Number</option>
+                  <option value="false">No Phone Number</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="website-filter-select">🌐 Website Status</label>
+                <select id="website-filter-select" class="form-select">
+                  <option value="">Any Website Status</option>
+                  <option value="false" selected>No Website (Prime Lead Opportunity!)</option>
+                  <option value="true">Has Website</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="submit" id="search-btn" class="btn btn-primary" style="padding: 0.85rem 2.5rem;">
+                🔍 Find Businesses
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Search Results Section -->
+        <div id="results-header" class="results-header" style="display: none;">
+          <div>
+            <div class="results-count-title">
+              <span class="results-count-number" id="results-count">0</span>
+              <span>Businesses Found</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;" id="results-context">
+              Results from Google Places
+            </div>
+          </div>
+
+          <div class="active-pills" id="active-pills"></div>
+        </div>
+
+        <!-- Loading Skeleton Grid -->
+        <div id="loading-state" class="cards-grid" style="display: none;">
+          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
+          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
+          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
+          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
+        </div>
+
+        <!-- Real Results Grid -->
+        <div id="cards-grid" class="cards-grid" style="display: none;"></div>
+
+        <!-- Empty Results State -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <div class="empty-icon">🔎</div>
+          <h3 class="empty-title">No Businesses Found</h3>
+          <p class="empty-desc">We couldn't find businesses matching your exact search and filter criteria. Try expanding your area or adjusting filters.</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="error-state" style="display: none;">
+          <div class="error-icon">⚠️</div>
+          <h3 class="error-title">Search Couldn't Complete</h3>
+          <p class="error-desc" id="error-message">Unable to communicate with the Google Places backend API.</p>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 2: DASHBOARD ================= -->
+      <section id="view-dashboard" class="view-section">
+        <div class="page-intro">
+          <h1 class="page-title">Dashboard Overview</h1>
+          <p class="page-subtitle">Track your prospecting pipeline and business metrics.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Businesses Discovered</span>
+            <span class="stat-value" id="dash-discovered">0</span>
+            <span class="stat-subtext">Discovered this session</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Potential Opportunities</span>
+            <span class="stat-value" id="dash-opps" style="color: #6366f1;">0</span>
+            <span class="stat-subtext">No website or phone available</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">No Website Found</span>
+            <span class="stat-value" id="dash-nowebsite" style="color: #f43f5e;">0</span>
+            <span class="stat-subtext">Prime web dev leads</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Phone Available</span>
+            <span class="stat-value" id="dash-phone" style="color: #10b981;">0</span>
+            <span class="stat-subtext">Direct WhatsApp contact ready</span>
+          </div>
+
+          <div class="stat-card">
+            <span class="stat-label">Saved Prospects</span>
+            <span class="stat-value" id="dash-saved" style="color: #ec4899;">0</span>
+            <span class="stat-subtext">In saved list</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 3: SAVED BUSINESSES ================= -->
+      <section id="view-saved-businesses" class="view-section">
+        <div class="page-intro">
+          <h1 class="page-title">Saved Businesses</h1>
+          <p class="page-subtitle">Your saved prospects ready for contact and outreach.</p>
+        </div>
+
+        <div id="saved-grid" class="cards-grid"></div>
+
+        <div id="saved-empty-state" class="empty-state">
+          <div class="empty-icon">❤️</div>
+          <h3 class="empty-title">No Saved Businesses Yet</h3>
+          <p class="empty-desc">When discovering businesses, click the ❤️ icon on any business card to save it here for follow-up.</p>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 4: FUTURE PLACEHOLDERS ================= -->
+      <section id="view-leads" class="view-section">
+        <div class="page-intro">
+          <h1 class="page-title">Leads Pipeline</h1>
+          <p class="page-subtitle">Future CRM pipeline tracking (Coming Soon).</p>
+        </div>
+        <div class="empty-state">
+          <div class="empty-icon">🚀</div>
+          <h3 class="empty-title">Leads Pipeline Coming Soon</h3>
+          <p class="empty-desc">Track leads from initial contact to conversion directly inside Bizz-Hunter.</p>
+        </div>
+      </section>
+
+      <section id="view-analytics" class="view-section">
+        <div class="page-intro">
+          <h1 class="page-title">Analytics</h1>
+          <p class="page-subtitle">Future Prospecting Analytics (Coming Soon).</p>
+        </div>
+        <div class="empty-state">
+          <div class="empty-icon">📈</div>
+          <h3 class="empty-title">Prospecting Analytics Coming Soon</h3>
+          <p class="empty-desc">Detailed conversion analytics and outreach statistics.</p>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view-section">
+        <div class="page-intro">
+          <h1 class="page-title">Settings</h1>
+          <p class="page-subtitle">System & API Preferences.</p>
+        </div>
+        <div class="search-panel">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">System Connections</h3>
+          <div style="font-size: 0.9rem; color: var(--text-muted);">
+            <div><strong>Backend API:</strong> Connected to Rails 8.1 API (/api/v1)</div>
+            <div style="margin-top: 0.5rem;"><strong>Google Places API:</strong> Active via backend service proxy</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- Business Details Modal -->
+<div id="details-modal" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 class="modal-title">Business Details</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body" id="details-modal-body"></div>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qr-modal" class="modal-overlay">
+  <div class="modal-container" style="max-width: 440px;">
+    <div class="modal-header">
+      <h3 class="modal-title">WhatsApp QR Contact</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body" id="qr-modal-body"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="/js/qrcode_generator.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/app.js"></script>
+
+</body>
+</html>

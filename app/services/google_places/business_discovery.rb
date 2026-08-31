@@ -6,7 +6,9 @@ module GooglePlaces
   class BusinessDiscovery < ApplicationService
     def initialize(
       business_type:,
-      country:,
+      location_name: nil,
+      place_id: nil,
+      country: nil,
       state: nil,
       city: nil,
       area: nil,
@@ -15,6 +17,8 @@ module GooglePlaces
       has_website: nil
     )
       @business_type = business_type
+      @location_name = location_name
+      @place_id = place_id
       @country = country
       @state = state
       @city = city
@@ -27,6 +31,8 @@ module GooglePlaces
     def call
       search_results = BusinessSearch.call(
         business_type: business_type,
+        location_name: location_name,
+        place_id: place_id,
         country: country,
         region: state,
         city: city,
@@ -49,6 +55,8 @@ module GooglePlaces
     private
 
     attr_reader :business_type,
+                :location_name,
+                :place_id,
                 :country,
                 :state,
                 :city,

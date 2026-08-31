@@ -10,12 +10,16 @@ module GooglePlaces
 
     def initialize(
       business_type:,
-      country:,
+      location_name: nil,
+      place_id: nil,
+      country: nil,
       region: nil,
       city: nil,
       area: nil
     )
       @business_type = business_type
+      @location_name = location_name
+      @place_id = place_id
       @country = country
       @region = region
       @city = city
@@ -35,6 +39,8 @@ module GooglePlaces
     private
 
     attr_reader :business_type,
+                :location_name,
+                :place_id,
                 :country,
                 :region,
                 :city,
@@ -48,13 +54,11 @@ module GooglePlaces
     end
 
     def build_query
-      [
-        business_type,
-        area,
-        city,
-        region,
-        country
-      ].compact_blank.join(', ')
+      if location_name.present?
+        [business_type, location_name].compact_blank.join(', ')
+      else
+        [business_type, area, city, region, country].compact_blank.join(', ')
+      end
     end
 
     def headers
@@ -80,8 +84,7 @@ module GooglePlaces
     def handle_response(response)
       return response.parsed_response if response.success?
 
-      raise StandardError,
-            response.parsed_response.dig('error', 'message')
+      raise StandardError, response.parsed_response.dig('error', 'message') || 'Business search failed'
     end
   end
 end
