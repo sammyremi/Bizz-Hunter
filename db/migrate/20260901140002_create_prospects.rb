@@ -1,7 +1,7 @@
 class CreateProspects < ActiveRecord::Migration[8.1]
   def change
     create_table :prospects do |t|
-      t.references :user, null: false, foreign_key: { on_delete: :cascade }
+      t.references :user, type: :uuid, null: false, foreign_key: { on_delete: :cascade }
       t.string :google_place_id, null: false
       t.string :business_name, null: false
       t.string :category
