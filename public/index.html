@@ -11,325 +11,419 @@
 
 <div id="app">
 
-  <!-- Sidebar Navigation -->
-  <aside class="sidebar">
-    <div>
-      <div class="brand">
+  <!-- ================= UNAUTHENTICATED LANDING & AUTH GATE ================= -->
+  <div id="view-landing" class="landing-view" style="display: block;">
+    <!-- Landing Header -->
+    <header class="landing-header">
+      <div class="landing-brand">
         <div class="brand-icon">🎯</div>
-        <div>
-          <div class="brand-title">Bizz-Hunter</div>
-        </div>
-        <span class="brand-badge">MVP</span>
+        <span class="brand-title">Bizz-Hunter</span>
       </div>
-
-      <ul class="nav-menu">
-        <li>
-          <a href="#" class="nav-item active" data-tab="find-businesses">
-            <span class="icon">🔍</span>
-            <span>Find Businesses</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-item" data-tab="dashboard">
-            <span class="icon">📊</span>
-            <span>Dashboard</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-item" data-tab="saved-businesses">
-            <span class="icon">❤️</span>
-            <span>Saved Businesses</span>
-            <span class="coming-soon" id="saved-badge">0</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-item" data-tab="leads">
-            <span class="icon">💼</span>
-            <span>Leads</span>
-            <span class="coming-soon">Soon</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-item" data-tab="analytics">
-            <span class="icon">📈</span>
-            <span>Analytics</span>
-            <span class="coming-soon">Soon</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="nav-item" data-tab="settings">
-            <span class="icon">⚙️</span>
-            <span>Settings</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <div class="sidebar-footer">
-      <div class="user-profile">
-        <div class="user-avatar">BH</div>
-        <div class="user-info">
-          <div class="user-name">Pro Hunter</div>
-          <div class="user-role">Connected to Google Places</div>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main Content Wrapper -->
-  <div class="main-wrapper">
-
-    <!-- Top Header -->
-    <header class="top-header">
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <button class="mobile-nav-toggle" id="mobile-nav-toggle">☰</button>
-        <div class="header-title" id="current-nav-title">Find Businesses</div>
-      </div>
-
-      <div class="header-actions">
-        <div class="status-badge">
-          <span class="status-dot"></span>
-          <span>Google Places API Ready</span>
-        </div>
-        <button id="auth-user-btn" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
-          <span>🔑</span> <span id="auth-user-name">Log In / Register</span>
-        </button>
+      <div class="landing-nav">
+        <button id="landing-nav-login" class="btn btn-secondary btn-sm">Log in</button>
+        <button id="landing-nav-signup" class="btn btn-primary btn-sm">Sign Up</button>
       </div>
     </header>
 
-    <!-- Content Body -->
-    <main class="content-body">
+    <!-- Landing Content Container -->
+    <div class="landing-content">
+      <!-- Hero Section -->
+      <div class="landing-hero">
+        <h1 class="landing-title">Find Your Next<br><span class="gradient-text">High-Value Partner</span></h1>
+        <p class="landing-subtitle">Discover, evaluate, and contact high-value business prospects lacking websites or needing your digital services.</p>
 
-      <!-- ================= SECTION 1: FIND BUSINESSES (PRIMARY MVP FOCUS) ================= -->
-      <section id="view-find-businesses" class="view-section active">
-        <div class="page-intro">
-          <h1 class="page-title">Find Businesses</h1>
-          <p class="page-subtitle">Discover businesses that could become your next customers. Identify missing websites & direct contacts.</p>
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap;">
+          <button id="landing-hero-cta" class="btn btn-primary btn-lg">Get Started — Sign Up Free</button>
         </div>
 
-        <!-- Search Form Panel -->
-        <div class="search-panel">
-          <div class="panel-header">
-            <span>🎯 Search & Location Parameters</span>
+        <div class="hero-features">
+          <div class="feature-item">
+            <span class="icon">📍</span> Smart Location Search
+          </div>
+          <div class="feature-item">
+            <span class="icon">🚨</span> Missing Website Alerts
+          </div>
+          <div class="feature-item">
+            <span class="icon">💬</span> Direct WhatsApp Outreach
+          </div>
+          <div class="feature-item">
+            <span class="icon">📊</span> Prospect Pipeline Management
+          </div>
+        </div>
+      </div>
+
+      <!-- Auth Card Box (Sign-Up / Log In) -->
+      <div class="auth-card-wrapper" id="auth-card-container">
+        <div class="auth-card">
+          <div class="auth-card-header">
+            <h2 id="auth-card-title">Sign-Up</h2>
+            <p id="auth-card-sub" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Create your free Bizz-Hunter account to start prospecting</p>
           </div>
 
-          <form id="search-form">
-            <!-- Smart Location Search Bar -->
-            <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
-              <label class="form-label" for="location-search-input">📍 Where do you want to find businesses?</label>
-              <div style="position: relative;">
-                <input type="text" id="location-search-input" class="form-control" placeholder="Search for a city, area, region or place (e.g. Wuse 2, Lagos, London, Tokyo)..." autocomplete="off">
-                <div id="location-suggestions-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
-              </div>
-              <div id="selected-location-badge" class="selected-location-badge" style="display: none; margin-top: 0.75rem;"></div>
+          <div class="auth-card-tabs">
+            <button id="auth-card-tab-register" class="auth-tab-btn active">Sign-Up</button>
+            <button id="auth-card-tab-login" class="auth-tab-btn">Log In</button>
+          </div>
+
+          <!-- Register Form -->
+          <form id="landing-register-form">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" for="landing-register-name">Full Name</label>
+              <input type="text" id="landing-register-name" class="form-control" placeholder="Samuel Adebayo" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" for="landing-register-email">Email Address</label>
+              <input type="email" id="landing-register-email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label class="form-label" for="landing-register-password">Password</label>
+              <input type="password" id="landing-register-password" class="form-control" placeholder="At least 6 characters" required minlength="6">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="landing-register-btn">Create Free Account</button>
+          </form>
+
+          <!-- Login Form -->
+          <form id="landing-login-form" style="display: none;">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" for="landing-login-email">Email Address</label>
+              <input type="email" id="landing-login-email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+              <label class="form-label" for="landing-login-password">Password</label>
+              <input type="password" id="landing-login-password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="landing-login-btn">Log In to Bizz-Hunter</button>
+          </form>
+
+          <div id="auth-error-msg" class="auth-error-box" style="display: none; margin-top: 1rem;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= AUTHENTICATED APPLICATION WORKSPACE ================= -->
+  <div id="app-workspace" style="display: none; width: 100%; min-height: 100vh;">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-icon">🎯</div>
+          <div>
+            <div class="brand-title">Bizz-Hunter</div>
+          </div>
+          <span class="brand-badge">MVP</span>
+        </div>
+
+        <ul class="nav-menu">
+          <li>
+            <a href="#" class="nav-item active" data-tab="find-businesses">
+              <span class="icon">🔍</span>
+              <span>Find Businesses</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="dashboard">
+              <span class="icon">📊</span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="saved-businesses">
+              <span class="icon">❤️</span>
+              <span>My Prospects</span>
+              <span class="coming-soon" id="saved-badge">0</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="leads">
+              <span class="icon">💼</span>
+              <span>Leads</span>
+              <span class="coming-soon">Soon</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="analytics">
+              <span class="icon">📈</span>
+              <span>Analytics</span>
+              <span class="coming-soon">Soon</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" data-tab="settings">
+              <span class="icon">⚙️</span>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="workspace-sidebar-avatar">BH</div>
+          <div class="user-info">
+            <div class="user-name" id="workspace-sidebar-name">User Account</div>
+            <div class="user-role" id="workspace-sidebar-email">user@example.com</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+
+      <!-- Top Header -->
+      <header class="top-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button class="mobile-nav-toggle" id="mobile-nav-toggle">☰</button>
+          <div class="header-title" id="current-nav-title">Find Businesses</div>
+        </div>
+
+        <div class="header-actions">
+          <div class="status-badge">
+            <span class="status-dot"></span>
+            <span>Google Places API Ready</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-surface-elevated); padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid var(--border-color);">
+              <span style="font-size: 0.85rem; font-weight: 700;" id="auth-user-name">User</span>
+            </div>
+            <button id="auth-logout-btn" class="btn btn-secondary btn-sm" title="Log Out">
+              <span>🚪</span> Log Out
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Body -->
+      <main class="content-body">
+
+        <!-- ================= SECTION 1: FIND BUSINESSES (PRIMARY MVP FOCUS) ================= -->
+        <section id="view-find-businesses" class="view-section active">
+          <div class="page-intro">
+            <h1 class="page-title">Find Businesses</h1>
+            <p class="page-subtitle">Discover businesses that could become your next customers. Identify missing websites & direct contacts.</p>
+          </div>
+
+          <!-- Search Form Panel -->
+          <div class="search-panel">
+            <div class="panel-header">
+              <span>🎯 Search & Location Parameters</span>
             </div>
 
-            <!-- Business Category & Filters -->
-            <div class="filter-grid">
-              <div class="form-group">
-                <label class="form-label" for="category-select">🏢 Business Category</label>
-                <select id="category-select" class="form-select">
-                  <option value="restaurant">Restaurant</option>
-                  <option value="hotel">Hotel</option>
-                  <option value="hospital">Hospital / Clinic</option>
-                  <option value="pharmacy">Pharmacy</option>
-                  <option value="school">School / College</option>
-                  <option value="gym">Gym / Fitness Center</option>
-                  <option value="beauty_salon">Salon / Spa</option>
-                  <option value="real_estate_agency">Real Estate</option>
-                  <option value="lawyer">Law Firm</option>
-                  <option value="car_dealer">Car Dealer</option>
-                  <option value="construction">Construction</option>
-                  <option value="supermarket">Supermarket</option>
-                  <option value="clothing_store">Clothing Store</option>
-                  <option value="accounting">Accounting / Finance</option>
-                </select>
+            <form id="search-form">
+              <!-- Smart Location Search Bar -->
+              <div class="form-group" style="margin-bottom: 1.5rem; position: relative;">
+                <label class="form-label" for="location-search-input">📍 Where do you want to find businesses?</label>
+                <div style="position: relative;">
+                  <input type="text" id="location-search-input" class="form-control" placeholder="Search for a city, area, region or place (e.g. Wuse 2, Lagos, London, Tokyo)..." autocomplete="off">
+                  <div id="location-suggestions-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
+                </div>
+                <div id="selected-location-badge" class="selected-location-badge" style="display: none; margin-top: 0.75rem;"></div>
               </div>
 
-              <div class="form-group">
-                <label class="form-label" for="min-rating-select">⭐ Minimum Rating</label>
-                <select id="min-rating-select" class="form-select">
-                  <option value="">Any Rating</option>
-                  <option value="3.5">3.5+ Stars</option>
-                  <option value="4.0" selected>4.0+ Stars</option>
-                  <option value="4.5">4.5+ Stars</option>
-                </select>
+              <!-- Business Category & Filters -->
+              <div class="filter-grid">
+                <div class="form-group">
+                  <label class="form-label" for="category-select">🏢 Business Category</label>
+                  <select id="category-select" class="form-select">
+                    <option value="restaurant">Restaurant</option>
+                    <option value="hotel">Hotel</option>
+                    <option value="hospital">Hospital / Clinic</option>
+                    <option value="pharmacy">Pharmacy</option>
+                    <option value="school">School / College</option>
+                    <option value="gym">Gym / Fitness Center</option>
+                    <option value="beauty_salon">Salon / Spa</option>
+                    <option value="real_estate_agency">Real Estate</option>
+                    <option value="lawyer">Law Firm</option>
+                    <option value="car_dealer">Car Dealer</option>
+                    <option value="construction">Construction</option>
+                    <option value="supermarket">Supermarket</option>
+                    <option value="clothing_store">Clothing Store</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="min-rating-select">⭐ Minimum Rating</label>
+                  <select id="min-rating-select" class="form-select">
+                    <option value="">Any Rating</option>
+                    <option value="4.5">4.5+ Stars (High Rated)</option>
+                    <option value="4.0">4.0+ Stars</option>
+                    <option value="3.5">3.5+ Stars</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="phone-filter-select">📞 Phone Filter</label>
+                  <select id="phone-filter-select" class="form-select">
+                    <option value="">Any</option>
+                    <option value="true">Must Have Phone</option>
+                    <option value="false">No Phone</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="website-filter-select">🌐 Website Filter (Opportunity Target)</label>
+                  <select id="website-filter-select" class="form-select">
+                    <option value="">Any</option>
+                    <option value="false" selected>🚨 No Website (Direct Lead Opportunity)</option>
+                    <option value="true">Has Website</option>
+                  </select>
+                </div>
               </div>
 
-              <div class="form-group">
-                <label class="form-label" for="phone-filter-select">📞 Phone Number</label>
-                <select id="phone-filter-select" class="form-select">
-                  <option value="">Any</option>
-                  <option value="true" selected>Has Phone Number</option>
-                  <option value="false">No Phone Number</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="website-filter-select">🌐 Website Status</label>
-                <select id="website-filter-select" class="form-select">
-                  <option value="">Any Website Status</option>
-                  <option value="false" selected>No Website (Prime Lead Opportunity!)</option>
-                  <option value="true">Has Website</option>
-                </select>
-              </div>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end;">
-              <button type="submit" id="search-btn" class="btn btn-primary" style="padding: 0.85rem 2.5rem;">
+              <button type="submit" id="search-btn" class="btn btn-primary btn-lg btn-block" style="margin-top: 1.5rem;">
                 🔍 Find Businesses
               </button>
+            </form>
+          </div>
+
+          <!-- Results Section Container -->
+          <div class="results-panel">
+            <div id="results-header" class="results-header" style="display: none;">
+              <div class="results-count-title">
+                <span>Discovered Prospects</span>
+                <span class="results-count-number" id="results-count">0</span>
+              </div>
+              <div class="active-pills" id="active-pills"></div>
             </div>
-          </form>
-        </div>
 
-        <!-- Search Results Section -->
-        <div id="results-header" class="results-header" style="display: none;">
-          <div>
-            <div class="results-count-title">
-              <span class="results-count-number" id="results-count">0</span>
-              <span>Businesses Found</span>
+            <div id="results-context" style="margin-bottom: 1.25rem; font-size: 0.9rem; color: var(--text-muted);"></div>
+
+            <!-- Business Cards Grid -->
+            <div id="cards-grid" class="cards-grid"></div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="cards-grid" style="display: none;">
+              <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
+              <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
+              <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
             </div>
-            <div style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem;" id="results-context">
-              Results from Google Places
+
+            <!-- Empty Search State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+              <div class="empty-icon">🔎</div>
+              <h3 class="empty-title">No Businesses Found</h3>
+              <p class="empty-desc">Try adjusting your location search or category parameters to find businesses.</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="error-state" style="display: none;">
+              <div class="error-icon">⚠️</div>
+              <h3 class="error-title">Search Error</h3>
+              <p class="error-desc" id="error-message">Unable to fetch business data.</p>
             </div>
           </div>
+        </section>
 
-          <div class="active-pills" id="active-pills"></div>
-        </div>
-
-        <!-- Loading Skeleton Grid -->
-        <div id="loading-state" class="cards-grid" style="display: none;">
-          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
-          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
-          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
-          <div class="skeleton-card"><div class="skeleton-pulse" style="height: 100%;"></div></div>
-        </div>
-
-        <!-- Real Results Grid -->
-        <div id="cards-grid" class="cards-grid" style="display: none;"></div>
-
-        <!-- Empty Results State -->
-        <div id="empty-state" class="empty-state" style="display: none;">
-          <div class="empty-icon">🔎</div>
-          <h3 class="empty-title">No Businesses Found</h3>
-          <p class="empty-desc">We couldn't find businesses matching your exact search and filter criteria. Try expanding your area or adjusting filters.</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="error-state" class="error-state" style="display: none;">
-          <div class="error-icon">⚠️</div>
-          <h3 class="error-title">Search Couldn't Complete</h3>
-          <p class="error-desc" id="error-message">Unable to communicate with the Google Places backend API.</p>
-        </div>
-      </section>
-
-      <!-- ================= SECTION 2: DASHBOARD ================= -->
-      <section id="view-dashboard" class="view-section">
-        <div class="page-intro">
-          <h1 class="page-title">Dashboard Overview</h1>
-          <p class="page-subtitle">Track your prospecting pipeline and business metrics.</p>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">Businesses Discovered</span>
-            <span class="stat-value" id="dash-discovered">0</span>
-            <span class="stat-subtext">Discovered this session</span>
+        <!-- ================= SECTION 2: DASHBOARD ================= -->
+        <section id="view-dashboard" class="view-section">
+          <div class="page-intro">
+            <h1 class="page-title">Dashboard Overview</h1>
+            <p class="page-subtitle">Prospecting metrics and lead opportunity summary.</p>
           </div>
 
-          <div class="stat-card">
-            <span class="stat-label">Potential Opportunities</span>
-            <span class="stat-value" id="dash-opps" style="color: #6366f1;">0</span>
-            <span class="stat-subtext">No website or phone available</span>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">Total Searched</span>
+              <span class="stat-value" id="dash-discovered" style="color: var(--primary);">0</span>
+              <span class="stat-subtext">Businesses scanned</span>
+            </div>
+
+            <div class="stat-card">
+              <span class="stat-label">High-Value Opportunities</span>
+              <span class="stat-value" id="dash-opps" style="color: #10b981;">0</span>
+              <span class="stat-subtext">No website or phone available</span>
+            </div>
+
+            <div class="stat-card">
+              <span class="stat-label">No Website Prospects</span>
+              <span class="stat-value" id="dash-nowebsite" style="color: #ef4444;">0</span>
+              <span class="stat-subtext">Web design opportunities</span>
+            </div>
+
+            <div class="stat-card">
+              <span class="stat-label">Phone Direct Contact</span>
+              <span class="stat-value" id="dash-phone" style="color: #f59e0b;">0</span>
+              <span class="stat-subtext">Direct calls/WhatsApp</span>
+            </div>
+
+            <div class="stat-card">
+              <span class="stat-label">Saved Prospects</span>
+              <span class="stat-value" id="dash-saved" style="color: #ec4899;">0</span>
+              <span class="stat-subtext">In saved list</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 3: SAVED BUSINESSES (MY PROSPECTS) ================= -->
+        <section id="view-saved-businesses" class="view-section">
+          <div class="page-intro">
+            <h1 class="page-title">My Prospects</h1>
+            <p class="page-subtitle">Your persisted business prospects. Track outreach, add notes, and manage follow-ups.</p>
           </div>
 
-          <div class="stat-card">
-            <span class="stat-label">No Website Found</span>
-            <span class="stat-value" id="dash-nowebsite" style="color: #f43f5e;">0</span>
-            <span class="stat-subtext">Prime web dev leads</span>
+          <div class="status-tabs" id="prospect-status-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm status-tab active" data-status="">All Prospects</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="NEW">🆕 New</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="CONTACTED">💬 Contacted</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="INTERESTED">🔥 Interested</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="CONVERTED">🎉 Converted</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="NOT_INTERESTED">🚫 Not Interested</button>
           </div>
 
-          <div class="stat-card">
-            <span class="stat-label">Phone Available</span>
-            <span class="stat-value" id="dash-phone" style="color: #10b981;">0</span>
-            <span class="stat-subtext">Direct WhatsApp contact ready</span>
+          <div id="saved-grid" class="cards-grid"></div>
+
+          <div id="saved-empty-state" class="empty-state">
+            <div class="empty-icon">❤️</div>
+            <h3 class="empty-title">No Saved Prospects Found</h3>
+            <p class="empty-desc">When discovering businesses, click the ❤️ icon on any card to save it here.</p>
           </div>
+        </section>
 
-          <div class="stat-card">
-            <span class="stat-label">Saved Prospects</span>
-            <span class="stat-value" id="dash-saved" style="color: #ec4899;">0</span>
-            <span class="stat-subtext">In saved list</span>
+        <!-- ================= SECTION 4: FUTURE PLACEHOLDERS ================= -->
+        <section id="view-leads" class="view-section">
+          <div class="page-intro">
+            <h1 class="page-title">Leads Pipeline</h1>
+            <p class="page-subtitle">Future CRM pipeline tracking (Coming Soon).</p>
           </div>
-        </div>
-      </section>
-
-      <!-- ================= SECTION 3: SAVED BUSINESSES (MY PROSPECTS) ================= -->
-      <section id="view-saved-businesses" class="view-section">
-        <div class="page-intro">
-          <h1 class="page-title">My Prospects</h1>
-          <p class="page-subtitle">Your persisted business prospects. Track outreach, add notes, and manage follow-ups.</p>
-        </div>
-
-        <div class="status-tabs" id="prospect-status-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-          <button class="btn btn-secondary btn-sm status-tab active" data-status="">All Prospects</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="NEW">🆕 New</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="CONTACTED">💬 Contacted</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="INTERESTED">🔥 Interested</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="CONVERTED">🎉 Converted</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="NOT_INTERESTED">🚫 Not Interested</button>
-        </div>
-
-        <div id="saved-grid" class="cards-grid"></div>
-
-        <div id="saved-empty-state" class="empty-state">
-          <div class="empty-icon">❤️</div>
-          <h3 class="empty-title">No Saved Businesses Yet</h3>
-          <p class="empty-desc">When discovering businesses, click the ❤️ icon on any business card to save it here for follow-up.</p>
-        </div>
-      </section>
-
-      <!-- ================= SECTION 4: FUTURE PLACEHOLDERS ================= -->
-      <section id="view-leads" class="view-section">
-        <div class="page-intro">
-          <h1 class="page-title">Leads Pipeline</h1>
-          <p class="page-subtitle">Future CRM pipeline tracking (Coming Soon).</p>
-        </div>
-        <div class="empty-state">
-          <div class="empty-icon">🚀</div>
-          <h3 class="empty-title">Leads Pipeline Coming Soon</h3>
-          <p class="empty-desc">Track leads from initial contact to conversion directly inside Bizz-Hunter.</p>
-        </div>
-      </section>
-
-      <section id="view-analytics" class="view-section">
-        <div class="page-intro">
-          <h1 class="page-title">Analytics</h1>
-          <p class="page-subtitle">Future Prospecting Analytics (Coming Soon).</p>
-        </div>
-        <div class="empty-state">
-          <div class="empty-icon">📈</div>
-          <h3 class="empty-title">Prospecting Analytics Coming Soon</h3>
-          <p class="empty-desc">Detailed conversion analytics and outreach statistics.</p>
-        </div>
-      </section>
-
-      <section id="view-settings" class="view-section">
-        <div class="page-intro">
-          <h1 class="page-title">Settings</h1>
-          <p class="page-subtitle">System & API Preferences.</p>
-        </div>
-        <div class="search-panel">
-          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">System Connections</h3>
-          <div style="font-size: 0.9rem; color: var(--text-muted);">
-            <div><strong>Backend API:</strong> Connected to Rails 8.1 API (/api/v1)</div>
-            <div style="margin-top: 0.5rem;"><strong>Google Places API:</strong> Active via backend service proxy</div>
+          <div class="empty-state">
+            <div class="empty-icon">🚀</div>
+            <h3 class="empty-title">Leads Pipeline Coming Soon</h3>
+            <p class="empty-desc">Track leads from initial contact to conversion directly inside Bizz-Hunter.</p>
           </div>
-        </div>
-      </section>
+        </section>
 
-    </main>
+        <section id="view-analytics" class="view-section">
+          <div class="page-intro">
+            <h1 class="page-title">Analytics</h1>
+            <p class="page-subtitle">Future Prospecting Analytics (Coming Soon).</p>
+          </div>
+          <div class="empty-state">
+            <div class="empty-icon">📈</div>
+            <h3 class="empty-title">Prospecting Analytics Coming Soon</h3>
+            <p class="empty-desc">Detailed conversion analytics and outreach statistics.</p>
+          </div>
+        </section>
+
+        <section id="view-settings" class="view-section">
+          <div class="page-intro">
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">System & API Preferences.</p>
+          </div>
+          <div class="search-panel">
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">System Connections</h3>
+            <div style="font-size: 0.9rem; color: var(--text-muted);">
+              <div><strong>Backend API:</strong> Connected to Rails 8.1 API (/api/v1)</div>
+              <div style="margin-top: 0.5rem;"><strong>Google Places API:</strong> Active via backend service proxy</div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
   </div>
+
 </div>
 
 <!-- ================= MODALS ================= -->
@@ -353,52 +447,6 @@
       <button class="modal-close">&times;</button>
     </div>
     <div class="modal-body" id="qr-modal-body"></div>
-  </div>
-</div>
-
-<!-- Auth Modal (Login / Register) -->
-<div id="auth-modal" class="modal-overlay">
-  <div class="modal-container" style="max-width: 420px;">
-    <div class="modal-header">
-      <h3 class="modal-title" id="auth-modal-title">Log In to Bizz-Hunter</h3>
-      <button class="modal-close">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-        <button id="auth-tab-login" class="btn btn-secondary btn-sm active" style="flex: 1;">Log In</button>
-        <button id="auth-tab-register" class="btn btn-secondary btn-sm" style="flex: 1;">Create Account</button>
-      </div>
-
-      <!-- Login Form -->
-      <form id="login-form">
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" for="login-email">Email Address</label>
-          <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label class="form-label" for="login-password">Password</label>
-          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Log In</button>
-      </form>
-
-      <!-- Register Form -->
-      <form id="register-form" style="display: none;">
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" for="register-name">Full Name</label>
-          <input type="text" id="register-name" class="form-control" placeholder="Samuel Adebayo" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" for="register-email">Email Address</label>
-          <input type="email" id="register-email" class="form-control" placeholder="you@example.com" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label class="form-label" for="register-password">Password</label>
-          <input type="password" id="register-password" class="form-control" placeholder="At least 6 characters" required minlength="6">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
-      </form>
-    </div>
   </div>
 </div>
 

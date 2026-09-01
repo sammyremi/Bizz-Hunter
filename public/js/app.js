@@ -39,23 +39,37 @@
       mobileToggle: document.getElementById('mobile-nav-toggle'),
       sidebar: document.querySelector('.sidebar'),
 
-      // Auth Elements
-      authUserBtn: document.getElementById('auth-user-btn'),
+      // Top-Level Views (Landing vs App Workspace)
+      viewLanding: document.getElementById('view-landing'),
+      appWorkspace: document.getElementById('app-workspace'),
+
+      // Landing View Triggers & Card Elements
+      landingNavLogin: document.getElementById('landing-nav-login'),
+      landingNavSignup: document.getElementById('landing-nav-signup'),
+      landingHeroCta: document.getElementById('landing-hero-cta'),
+      authCardTitle: document.getElementById('auth-card-title'),
+      authCardSub: document.getElementById('auth-card-sub'),
+      authCardTabLogin: document.getElementById('auth-card-tab-login'),
+      authCardTabRegister: document.getElementById('auth-card-tab-register'),
+
+      // Landing Auth Forms
+      landingLoginForm: document.getElementById('landing-login-form'),
+      landingRegisterForm: document.getElementById('landing-register-form'),
+      landingLoginEmail: document.getElementById('landing-login-email'),
+      landingLoginPassword: document.getElementById('landing-login-password'),
+      landingRegisterName: document.getElementById('landing-register-name'),
+      landingRegisterEmail: document.getElementById('landing-register-email'),
+      landingRegisterPassword: document.getElementById('landing-register-password'),
+      landingLoginBtn: document.getElementById('landing-login-btn'),
+      landingRegisterBtn: document.getElementById('landing-register-btn'),
+      authErrorMsg: document.getElementById('auth-error-msg'),
+
+      // Authenticated User Workspace Elements
       authUserName: document.getElementById('auth-user-name'),
-      authModal: document.getElementById('auth-modal'),
-      authModalTitle: document.getElementById('auth-modal-title'),
-      authTabLogin: document.getElementById('auth-tab-login'),
-      authTabRegister: document.getElementById('auth-tab-register'),
-      loginForm: document.getElementById('login-form'),
-      registerForm: document.getElementById('register-form'),
-      loginEmail: document.getElementById('login-email'),
-      loginPassword: document.getElementById('login-password'),
-      registerName: document.getElementById('register-name'),
-      registerEmail: document.getElementById('register-email'),
-      registerPassword: document.getElementById('register-password'),
-      sidebarAvatar: document.querySelector('.user-avatar'),
-      sidebarName: document.querySelector('.user-name'),
-      sidebarRole: document.querySelector('.user-role'),
+      authLogoutBtn: document.getElementById('auth-logout-btn'),
+      workspaceSidebarAvatar: document.getElementById('workspace-sidebar-avatar'),
+      workspaceSidebarName: document.getElementById('workspace-sidebar-name'),
+      workspaceSidebarEmail: document.getElementById('workspace-sidebar-email'),
 
       // Form Controls & Smart Location Search
       locationSearchInput: document.getElementById('location-search-input'),
@@ -104,38 +118,102 @@
 
   // --- Auth Controller ---
   function initAuth() {
-    if (dom.authUserBtn) {
-      dom.authUserBtn.addEventListener('click', () => {
-        if (state.currentUser) {
-          if (confirm(`Logged in as ${state.currentUser.email}. Do you want to log out?`)) {
-            logoutUser();
-          }
-        } else {
-          openAuthModal('login');
+    // Top-Right Landing Nav Buttons
+    if (dom.landingNavLogin) {
+      dom.landingNavLogin.addEventListener('click', () => {
+        switchAuthMode('login');
+        scrollToAuthCard();
+      });
+    }
+
+    if (dom.landingNavSignup) {
+      dom.landingNavSignup.addEventListener('click', () => {
+        switchAuthMode('register');
+        scrollToAuthCard();
+      });
+    }
+
+    // Hero Section CTA Button
+    if (dom.landingHeroCta) {
+      dom.landingHeroCta.addEventListener('click', () => {
+        switchAuthMode('register');
+        scrollToAuthCard();
+      });
+    }
+
+    // Card Tab Switchers
+    if (dom.authCardTabLogin) {
+      dom.authCardTabLogin.addEventListener('click', () => switchAuthMode('login'));
+    }
+
+    if (dom.authCardTabRegister) {
+      dom.authCardTabRegister.addEventListener('click', () => switchAuthMode('register'));
+    }
+
+    // Form Submissions
+    if (dom.landingLoginForm) {
+      dom.landingLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await handleLandingLogin();
+      });
+    }
+
+    if (dom.landingRegisterForm) {
+      dom.landingRegisterForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await handleLandingRegister();
+      });
+    }
+
+    // Logout Button
+    if (dom.authLogoutBtn) {
+      dom.authLogoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to log out of Bizz-Hunter?')) {
+          logoutUser();
         }
       });
     }
+  }
 
-    if (dom.authTabLogin) {
-      dom.authTabLogin.addEventListener('click', () => toggleAuthTab('login'));
+  function scrollToAuthCard() {
+    const cardWrapper = document.getElementById('auth-card-container');
+    if (cardWrapper) {
+      cardWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  }
 
-    if (dom.authTabRegister) {
-      dom.authTabRegister.addEventListener('click', () => toggleAuthTab('register'));
+  function switchAuthMode(mode) {
+    clearAuthErrors();
+
+    if (mode === 'login') {
+      if (dom.authCardTabLogin) dom.authCardTabLogin.classList.add('active');
+      if (dom.authCardTabRegister) dom.authCardTabRegister.classList.remove('active');
+      if (dom.landingLoginForm) dom.landingLoginForm.style.display = 'block';
+      if (dom.landingRegisterForm) dom.landingRegisterForm.style.display = 'none';
+      if (dom.authCardTitle) dom.authCardTitle.textContent = 'Log In';
+      if (dom.authCardSub) dom.authCardSub.textContent = 'Welcome back! Log in to your Bizz-Hunter account.';
+    } else {
+      if (dom.authCardTabRegister) dom.authCardTabRegister.classList.add('active');
+      if (dom.authCardTabLogin) dom.authCardTabLogin.classList.remove('active');
+      if (dom.landingRegisterForm) dom.landingRegisterForm.style.display = 'block';
+      if (dom.landingLoginForm) dom.landingLoginForm.style.display = 'none';
+      if (dom.authCardTitle) dom.authCardTitle.textContent = 'Sign-Up';
+      if (dom.authCardSub) dom.authCardSub.textContent = 'Create your free Bizz-Hunter account to start prospecting';
     }
+  }
 
-    if (dom.loginForm) {
-      dom.loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await handleLogin();
-      });
+  function showAuthError(msg) {
+    if (dom.authErrorMsg) {
+      dom.authErrorMsg.textContent = msg;
+      dom.authErrorMsg.style.display = 'block';
     }
+    showToast(msg, 'error');
+  }
 
-    if (dom.registerForm) {
-      dom.registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await handleRegister();
-      });
+  function clearAuthErrors() {
+    if (dom.authErrorMsg) {
+      dom.authErrorMsg.textContent = '';
+      dom.authErrorMsg.style.display = 'none';
     }
   }
 
@@ -152,78 +230,101 @@
   function setCurrentUser(user) {
     state.currentUser = user;
     if (user) {
+      // Authenticated state: display workspace, hide landing page
+      if (dom.viewLanding) dom.viewLanding.style.display = 'none';
+      if (dom.appWorkspace) dom.appWorkspace.style.display = 'flex';
+
       if (dom.authUserName) dom.authUserName.textContent = user.name;
-      if (dom.sidebarAvatar) dom.sidebarAvatar.textContent = getInitials(user.name);
-      if (dom.sidebarName) dom.sidebarName.textContent = user.name;
-      if (dom.sidebarRole) dom.sidebarRole.textContent = user.email;
+      if (dom.workspaceSidebarName) dom.workspaceSidebarName.textContent = user.name;
+      if (dom.workspaceSidebarEmail) dom.workspaceSidebarEmail.textContent = user.email;
+      if (dom.workspaceSidebarAvatar) dom.workspaceSidebarAvatar.textContent = getInitials(user.name);
     } else {
-      if (dom.authUserName) dom.authUserName.textContent = 'Log In / Register';
-      if (dom.sidebarAvatar) dom.sidebarAvatar.textContent = 'BH';
-      if (dom.sidebarName) dom.sidebarName.textContent = 'Guest User';
-      if (dom.sidebarRole) dom.sidebarRole.textContent = 'Log in to save prospects';
+      // Unauthenticated state: display landing page gate, hide workspace
+      if (dom.viewLanding) dom.viewLanding.style.display = 'block';
+      if (dom.appWorkspace) dom.appWorkspace.style.display = 'none';
+
+      if (dom.authUserName) dom.authUserName.textContent = 'Guest User';
+      if (dom.workspaceSidebarName) dom.workspaceSidebarName.textContent = 'Guest User';
+      if (dom.workspaceSidebarEmail) dom.workspaceSidebarEmail.textContent = 'Unauthenticated';
+      if (dom.workspaceSidebarAvatar) dom.workspaceSidebarAvatar.textContent = 'BH';
+
       state.savedBusinesses = [];
       renderSavedCountBadge();
       updateDashboardMetrics();
     }
   }
 
-  function openAuthModal(mode = 'login') {
-    toggleAuthTab(mode);
-    dom.authModal.classList.add('active');
-  }
+  async function handleLandingLogin() {
+    clearAuthErrors();
+    const email = dom.landingLoginEmail.value.trim();
+    const password = dom.landingLoginPassword.value;
 
-  function toggleAuthTab(mode) {
-    if (mode === 'login') {
-      dom.authTabLogin.classList.add('active');
-      dom.authTabRegister.classList.remove('active');
-      dom.loginForm.style.display = 'block';
-      dom.registerForm.style.display = 'none';
-      if (dom.authModalTitle) dom.authModalTitle.textContent = 'Log In to Bizz-Hunter';
-    } else {
-      dom.authTabRegister.classList.add('active');
-      dom.authTabLogin.classList.remove('active');
-      dom.registerForm.style.display = 'block';
-      dom.loginForm.style.display = 'none';
-      if (dom.authModalTitle) dom.authModalTitle.textContent = 'Create Bizz-Hunter Account';
+    if (!email || !password) {
+      showAuthError('Please enter both email and password.');
+      return;
     }
-  }
 
-  async function handleLogin() {
-    const email = dom.loginEmail.value.trim();
-    const password = dom.loginPassword.value;
+    if (dom.landingLoginBtn) {
+      dom.landingLoginBtn.disabled = true;
+      dom.landingLoginBtn.textContent = 'Logging in...';
+    }
 
     try {
       const res = await window.BizzApi.login({ email, password });
       if (res.success && res.user) {
         setCurrentUser(res.user);
-        closeModals();
         showToast(`Welcome back, ${res.user.name}!`, 'success');
         await loadUserProspects();
       } else {
-        showToast(res.message || 'Login failed', 'error');
+        showAuthError(res.message || 'Invalid email or password');
       }
     } catch (err) {
-      showToast(err.message || 'Login error', 'error');
+      showAuthError(err.message || 'Login failed. Please check network connection.');
+    } finally {
+      if (dom.landingLoginBtn) {
+        dom.landingLoginBtn.disabled = false;
+        dom.landingLoginBtn.textContent = 'Log In to Bizz-Hunter';
+      }
     }
   }
 
-  async function handleRegister() {
-    const name = dom.registerName.value.trim();
-    const email = dom.registerEmail.value.trim();
-    const password = dom.registerPassword.value;
+  async function handleLandingRegister() {
+    clearAuthErrors();
+    const name = dom.landingRegisterName.value.trim();
+    const email = dom.landingRegisterEmail.value.trim();
+    const password = dom.landingRegisterPassword.value;
+
+    if (!name || !email || !password) {
+      showAuthError('Please fill out all registration fields.');
+      return;
+    }
+
+    if (password.length < 6) {
+      showAuthError('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (dom.landingRegisterBtn) {
+      dom.landingRegisterBtn.disabled = true;
+      dom.landingRegisterBtn.textContent = 'Creating account...';
+    }
 
     try {
       const res = await window.BizzApi.register({ name, email, password });
       if (res.success && res.user) {
         setCurrentUser(res.user);
-        closeModals();
-        showToast(`Account created! Welcome, ${res.user.name}!`, 'success');
+        showToast(`Account created! Welcome to Bizz-Hunter, ${res.user.name}!`, 'success');
         await loadUserProspects();
       } else {
-        showToast(res.message || 'Registration failed', 'error');
+        showAuthError(res.message || 'Registration failed.');
       }
     } catch (err) {
-      showToast(err.message || 'Registration error', 'error');
+      showAuthError(err.message || 'Registration failed. Please check network connection.');
+    } finally {
+      if (dom.landingRegisterBtn) {
+        dom.landingRegisterBtn.disabled = false;
+        dom.landingRegisterBtn.textContent = 'Create Free Account';
+      }
     }
   }
 
@@ -231,9 +332,7 @@
     await window.BizzApi.logout();
     setCurrentUser(null);
     showToast('Logged out successfully', 'info');
-    if (state.currentTab === 'saved-businesses') {
-      switchTab('find-businesses');
-    }
+    switchTab('find-businesses');
   }
 
   // --- Navigation Controller ---
@@ -723,8 +822,9 @@
   // --- Prospects Backend Persistence Controller ---
   async function toggleSaveBusiness(business) {
     if (!state.currentUser) {
-      showToast('Please log in or create an account to save prospects to your account', 'info');
-      openAuthModal('login');
+      showToast('Please log in or create an account to save prospects', 'info');
+      switchAuthMode('login');
+      scrollToAuthCard();
       return;
     }
 
@@ -820,7 +920,6 @@
   function closeModals() {
     if (dom.detailsModal) dom.detailsModal.classList.remove('active');
     if (dom.qrModal) dom.qrModal.classList.remove('active');
-    if (dom.authModal) dom.authModal.classList.remove('active');
   }
 
   function openDetailsModal(b) {
