@@ -6,16 +6,19 @@ class ApplicationController < ActionController::API
   protected
 
   def authenticate_user!
+    set_current_user_if_present
+    return if @current_user.present?
+
+    render json: { success: false, message: 'Unauthorized. Please log in.' }, status: :unauthorized
+  end
+
+  def set_current_user_if_present
     token = extract_token_from_header
     decoded = token ? JsonWebToken.decode(token) : nil
 
     if decoded && decoded[:user_id]
       @current_user = User.find_by(id: decoded[:user_id])
     end
-
-    return if @current_user.present?
-
-    render json: { success: false, message: 'Unauthorized. Please log in.' }, status: :unauthorized
   end
 
   def current_user

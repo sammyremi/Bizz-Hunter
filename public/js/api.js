@@ -96,6 +96,22 @@
     }
 
     // --- Business Discovery API ---
+    static async getSearchQuota() {
+      try {
+        const response = await fetch(`${BASE_API_URL}/business-discovery/quota`, {
+          method: 'GET',
+          headers: this.getHeaders()
+        });
+        const json = await response.json();
+        if (response.ok && json.success) {
+          return json.quota;
+        }
+      } catch (e) {
+        console.warn('Error fetching search quota', e);
+      }
+      return null;
+    }
+
     static async searchBusinesses(params) {
       const queryParams = new URLSearchParams();
 
@@ -125,10 +141,16 @@
         const json = await response.json();
 
         if (!response.ok || !json.success) {
-          throw new Error(json.message || `API error: ${response.statusText}`);
+          const err = new Error(json.message || `API error: ${response.statusText}`);
+          err.status = response.status;
+          err.quota = json.quota;
+          throw err;
         }
 
-        return json.data || [];
+        return {
+          data: json.data || [],
+          quota: json.quota
+        };
       } catch (error) {
         console.error('Bizz-Hunter API Search Error:', error);
         throw error;

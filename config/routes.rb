@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       post 'auth/logout', to: 'auth#logout'
 
       get 'business-discovery/search', to: 'business_discovery#search'
+      get 'business-discovery/quota', to: 'business_discovery#quota'
       get 'locations/autocomplete', to: 'locations#autocomplete'
       get 'locations/details', to: 'locations#details'
 

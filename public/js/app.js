@@ -7,6 +7,7 @@
   const state = {
     currentTab: 'find-businesses',
     currentUser: null,
+    currentQuota: null,
     searchResults: [],
     savedBusinesses: [],
     activeProspectStatusFilter: '',
@@ -28,7 +29,9 @@
     initSearchForm();
     initModals();
     initAuth();
+
     await checkAuthSession();
+    await fetchAndUpdateQuota();
   });
 
   function cacheDomElements() {
@@ -38,38 +41,41 @@
       currentNavTitle: document.getElementById('current-nav-title'),
       mobileToggle: document.getElementById('mobile-nav-toggle'),
       sidebar: document.querySelector('.sidebar'),
-
-      // Top-Level Views (Landing vs App Workspace)
-      viewLanding: document.getElementById('view-landing'),
       appWorkspace: document.getElementById('app-workspace'),
 
-      // Landing View Triggers & Card Elements
-      landingNavLogin: document.getElementById('landing-nav-login'),
-      landingNavSignup: document.getElementById('landing-nav-signup'),
-      landingHeroCta: document.getElementById('landing-hero-cta'),
-      authCardTitle: document.getElementById('auth-card-title'),
-      authCardSub: document.getElementById('auth-card-sub'),
-      authCardTabLogin: document.getElementById('auth-card-tab-login'),
-      authCardTabRegister: document.getElementById('auth-card-tab-register'),
-
-      // Landing Auth Forms
-      landingLoginForm: document.getElementById('landing-login-form'),
-      landingRegisterForm: document.getElementById('landing-register-form'),
-      landingLoginEmail: document.getElementById('landing-login-email'),
-      landingLoginPassword: document.getElementById('landing-login-password'),
-      landingRegisterName: document.getElementById('landing-register-name'),
-      landingRegisterEmail: document.getElementById('landing-register-email'),
-      landingRegisterPassword: document.getElementById('landing-register-password'),
-      landingLoginBtn: document.getElementById('landing-login-btn'),
-      landingRegisterBtn: document.getElementById('landing-register-btn'),
-      authErrorMsg: document.getElementById('auth-error-msg'),
-
-      // Authenticated User Workspace Elements
-      authUserName: document.getElementById('auth-user-name'),
+      // Auth Controls & Modal
+      authModal: document.getElementById('auth-modal'),
+      authModalTitle: document.getElementById('auth-modal-title'),
+      authModalBanner: document.getElementById('auth-modal-banner'),
+      authTabLogin: document.getElementById('auth-tab-login'),
+      authTabRegister: document.getElementById('auth-tab-register'),
+      authLoginBtn: document.getElementById('auth-login-btn'),
       authLogoutBtn: document.getElementById('auth-logout-btn'),
+      loggedInUserContainer: document.getElementById('logged-in-user-container'),
+      authUserName: document.getElementById('auth-user-name'),
+      modalLoginForm: document.getElementById('modal-login-form'),
+      modalRegisterForm: document.getElementById('modal-register-form'),
+      modalLoginEmail: document.getElementById('modal-login-email'),
+      modalLoginPassword: document.getElementById('modal-login-password'),
+      modalRegisterName: document.getElementById('modal-register-name'),
+      modalRegisterEmail: document.getElementById('modal-register-email'),
+      modalRegisterPassword: document.getElementById('modal-register-password'),
+      modalLoginSubmit: document.getElementById('modal-login-btn'),
+      modalRegisterSubmit: document.getElementById('modal-register-btn'),
+      modalAuthError: document.getElementById('modal-auth-error'),
+
+      // Sidebar Profile Elements
       workspaceSidebarAvatar: document.getElementById('workspace-sidebar-avatar'),
       workspaceSidebarName: document.getElementById('workspace-sidebar-name'),
       workspaceSidebarEmail: document.getElementById('workspace-sidebar-email'),
+
+      // Quota Elements
+      headerQuotaBadge: document.getElementById('header-quota-badge'),
+      headerQuotaText: document.getElementById('header-quota-text'),
+      panelQuotaCard: document.getElementById('panel-quota-card'),
+      panelQuotaCount: document.getElementById('panel-quota-count'),
+      quotaUpgradeLink: document.getElementById('quota-upgrade-link'),
+      errorQuotaSignupBtn: document.getElementById('error-quota-signup-btn'),
 
       // Form Controls & Smart Location Search
       locationSearchInput: document.getElementById('location-search-input'),
@@ -98,6 +104,8 @@
       savedGrid: document.getElementById('saved-grid'),
       savedEmptyState: document.getElementById('saved-empty-state'),
       savedBadge: document.getElementById('saved-badge'),
+      lockDashboard: document.getElementById('lock-dashboard'),
+      lockSaved: document.getElementById('lock-saved'),
 
       // Modals
       detailsModal: document.getElementById('details-modal'),
@@ -116,104 +124,100 @@
     };
   }
 
-  // --- Auth Controller ---
+  // --- Auth & Quota Controller ---
   function initAuth() {
-    // Top-Right Landing Nav Buttons
-    if (dom.landingNavLogin) {
-      dom.landingNavLogin.addEventListener('click', () => {
-        switchAuthMode('login');
-        scrollToAuthCard();
+    if (dom.authLoginBtn) {
+      dom.authLoginBtn.addEventListener('click', () => {
+        openAuthModal('login');
       });
     }
 
-    if (dom.landingNavSignup) {
-      dom.landingNavSignup.addEventListener('click', () => {
-        switchAuthMode('register');
-        scrollToAuthCard();
-      });
-    }
-
-    // Hero Section CTA Button
-    if (dom.landingHeroCta) {
-      dom.landingHeroCta.addEventListener('click', () => {
-        switchAuthMode('register');
-        scrollToAuthCard();
-      });
-    }
-
-    // Card Tab Switchers
-    if (dom.authCardTabLogin) {
-      dom.authCardTabLogin.addEventListener('click', () => switchAuthMode('login'));
-    }
-
-    if (dom.authCardTabRegister) {
-      dom.authCardTabRegister.addEventListener('click', () => switchAuthMode('register'));
-    }
-
-    // Form Submissions
-    if (dom.landingLoginForm) {
-      dom.landingLoginForm.addEventListener('submit', async (e) => {
+    if (dom.quotaUpgradeLink) {
+      dom.quotaUpgradeLink.addEventListener('click', (e) => {
         e.preventDefault();
-        await handleLandingLogin();
+        openAuthModal('register', 'Sign up for a free account to unlock 50 searches per day!');
       });
     }
 
-    if (dom.landingRegisterForm) {
-      dom.landingRegisterForm.addEventListener('submit', async (e) => {
+    if (dom.errorQuotaSignupBtn) {
+      dom.errorQuotaSignupBtn.addEventListener('click', () => {
+        openAuthModal('register', 'Sign up for a free account to get 50 searches per day!');
+      });
+    }
+
+    if (dom.authTabLogin) {
+      dom.authTabLogin.addEventListener('click', () => toggleAuthTab('login'));
+    }
+
+    if (dom.authTabRegister) {
+      dom.authTabRegister.addEventListener('click', () => toggleAuthTab('register'));
+    }
+
+    if (dom.modalLoginForm) {
+      dom.modalLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        await handleLandingRegister();
+        await handleModalLogin();
       });
     }
 
-    // Logout Button
+    if (dom.modalRegisterForm) {
+      dom.modalRegisterForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await handleModalRegister();
+      });
+    }
+
     if (dom.authLogoutBtn) {
       dom.authLogoutBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to log out of Bizz-Hunter?')) {
+        if (confirm('Are you sure you want to log out?')) {
           logoutUser();
         }
       });
     }
   }
 
-  function scrollToAuthCard() {
-    const cardWrapper = document.getElementById('auth-card-container');
-    if (cardWrapper) {
-      cardWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  function openAuthModal(mode = 'login', bannerMsg = null) {
+    toggleAuthTab(mode);
+    clearAuthModalErrors();
+
+    if (bannerMsg && dom.authModalBanner) {
+      dom.authModalBanner.textContent = bannerMsg;
+      dom.authModalBanner.style.display = 'block';
+    } else if (dom.authModalBanner) {
+      dom.authModalBanner.style.display = 'none';
     }
+
+    if (dom.authModal) dom.authModal.classList.add('active');
   }
 
-  function switchAuthMode(mode) {
-    clearAuthErrors();
-
+  function toggleAuthTab(mode) {
+    clearAuthModalErrors();
     if (mode === 'login') {
-      if (dom.authCardTabLogin) dom.authCardTabLogin.classList.add('active');
-      if (dom.authCardTabRegister) dom.authCardTabRegister.classList.remove('active');
-      if (dom.landingLoginForm) dom.landingLoginForm.style.display = 'block';
-      if (dom.landingRegisterForm) dom.landingRegisterForm.style.display = 'none';
-      if (dom.authCardTitle) dom.authCardTitle.textContent = 'Log In';
-      if (dom.authCardSub) dom.authCardSub.textContent = 'Welcome back! Log in to your Bizz-Hunter account.';
+      if (dom.authTabLogin) dom.authTabLogin.classList.add('active');
+      if (dom.authTabRegister) dom.authTabRegister.classList.remove('active');
+      if (dom.modalLoginForm) dom.modalLoginForm.style.display = 'block';
+      if (dom.modalRegisterForm) dom.modalRegisterForm.style.display = 'none';
+      if (dom.authModalTitle) dom.authModalTitle.textContent = 'Log In';
     } else {
-      if (dom.authCardTabRegister) dom.authCardTabRegister.classList.add('active');
-      if (dom.authCardTabLogin) dom.authCardTabLogin.classList.remove('active');
-      if (dom.landingRegisterForm) dom.landingRegisterForm.style.display = 'block';
-      if (dom.landingLoginForm) dom.landingLoginForm.style.display = 'none';
-      if (dom.authCardTitle) dom.authCardTitle.textContent = 'Sign-Up';
-      if (dom.authCardSub) dom.authCardSub.textContent = 'Create your free Bizz-Hunter account to start prospecting';
+      if (dom.authTabRegister) dom.authTabRegister.classList.add('active');
+      if (dom.authTabLogin) dom.authTabLogin.classList.remove('active');
+      if (dom.modalRegisterForm) dom.modalRegisterForm.style.display = 'block';
+      if (dom.modalLoginForm) dom.modalLoginForm.style.display = 'none';
+      if (dom.authModalTitle) dom.authModalTitle.textContent = 'Sign-Up';
     }
   }
 
-  function showAuthError(msg) {
-    if (dom.authErrorMsg) {
-      dom.authErrorMsg.textContent = msg;
-      dom.authErrorMsg.style.display = 'block';
+  function showAuthModalError(msg) {
+    if (dom.modalAuthError) {
+      dom.modalAuthError.textContent = msg;
+      dom.modalAuthError.style.display = 'block';
     }
-    showToast(msg, 'error');
   }
 
-  function clearAuthErrors() {
-    if (dom.authErrorMsg) {
-      dom.authErrorMsg.textContent = '';
-      dom.authErrorMsg.style.display = 'none';
+  function clearAuthModalErrors() {
+    if (dom.modalAuthError) {
+      dom.modalAuthError.textContent = '';
+      dom.modalAuthError.style.display = 'none';
     }
   }
 
@@ -230,23 +234,26 @@
   function setCurrentUser(user) {
     state.currentUser = user;
     if (user) {
-      // Authenticated state: display workspace, hide landing page
-      if (dom.viewLanding) dom.viewLanding.style.display = 'none';
-      if (dom.appWorkspace) dom.appWorkspace.style.display = 'flex';
-
+      if (dom.authLoginBtn) dom.authLoginBtn.style.display = 'none';
+      if (dom.loggedInUserContainer) dom.loggedInUserContainer.style.display = 'flex';
       if (dom.authUserName) dom.authUserName.textContent = user.name;
+
       if (dom.workspaceSidebarName) dom.workspaceSidebarName.textContent = user.name;
       if (dom.workspaceSidebarEmail) dom.workspaceSidebarEmail.textContent = user.email;
       if (dom.workspaceSidebarAvatar) dom.workspaceSidebarAvatar.textContent = getInitials(user.name);
-    } else {
-      // Unauthenticated state: display landing page gate, hide workspace
-      if (dom.viewLanding) dom.viewLanding.style.display = 'block';
-      if (dom.appWorkspace) dom.appWorkspace.style.display = 'none';
 
-      if (dom.authUserName) dom.authUserName.textContent = 'Guest User';
+      if (dom.lockDashboard) dom.lockDashboard.style.display = 'none';
+      if (dom.lockSaved) dom.lockSaved.style.display = 'none';
+    } else {
+      if (dom.authLoginBtn) dom.authLoginBtn.style.display = 'flex';
+      if (dom.loggedInUserContainer) dom.loggedInUserContainer.style.display = 'none';
+
       if (dom.workspaceSidebarName) dom.workspaceSidebarName.textContent = 'Guest User';
-      if (dom.workspaceSidebarEmail) dom.workspaceSidebarEmail.textContent = 'Unauthenticated';
+      if (dom.workspaceSidebarEmail) dom.workspaceSidebarEmail.textContent = 'Sign in for 50 searches/day';
       if (dom.workspaceSidebarAvatar) dom.workspaceSidebarAvatar.textContent = 'BH';
+
+      if (dom.lockDashboard) dom.lockDashboard.style.display = 'inline';
+      if (dom.lockSaved) dom.lockSaved.style.display = 'inline';
 
       state.savedBusinesses = [];
       renderSavedCountBadge();
@@ -254,77 +261,101 @@
     }
   }
 
-  async function handleLandingLogin() {
-    clearAuthErrors();
-    const email = dom.landingLoginEmail.value.trim();
-    const password = dom.landingLoginPassword.value;
+  async function fetchAndUpdateQuota() {
+    const quota = await window.BizzApi.getSearchQuota();
+    if (quota) {
+      updateQuotaUI(quota);
+    }
+  }
+
+  function updateQuotaUI(quota) {
+    if (!quota) return;
+    state.currentQuota = quota;
+
+    const isGuest = quota.user_type === 'guest';
+    const remaining = quota.remaining;
+    const limit = quota.limit;
+
+    if (dom.headerQuotaBadge) {
+      dom.headerQuotaBadge.className = `quota-badge ${isGuest ? 'guest' : 'user'}`;
+    }
+
+    if (dom.headerQuotaText) {
+      dom.headerQuotaText.textContent = `${isGuest ? 'Guest' : 'Pro'}: ${remaining}/${limit} Left`;
+    }
+
+    if (dom.panelQuotaCount) {
+      dom.panelQuotaCount.textContent = `${remaining}/${limit} Remaining`;
+    }
+
+    if (dom.quotaUpgradeLink) {
+      dom.quotaUpgradeLink.style.display = isGuest ? 'inline' : 'none';
+    }
+  }
+
+  async function handleModalLogin() {
+    clearAuthModalErrors();
+    const email = dom.modalLoginEmail.value.trim();
+    const password = dom.modalLoginPassword.value;
 
     if (!email || !password) {
-      showAuthError('Please enter both email and password.');
+      showAuthModalError('Please fill out all fields.');
       return;
     }
 
-    if (dom.landingLoginBtn) {
-      dom.landingLoginBtn.disabled = true;
-      dom.landingLoginBtn.textContent = 'Logging in...';
-    }
+    if (dom.modalLoginSubmit) dom.modalLoginSubmit.disabled = true;
 
     try {
       const res = await window.BizzApi.login({ email, password });
       if (res.success && res.user) {
         setCurrentUser(res.user);
+        closeModals();
         showToast(`Welcome back, ${res.user.name}!`, 'success');
+        await fetchAndUpdateQuota();
         await loadUserProspects();
       } else {
-        showAuthError(res.message || 'Invalid email or password');
+        showAuthModalError(res.message || 'Invalid email or password');
       }
     } catch (err) {
-      showAuthError(err.message || 'Login failed. Please check network connection.');
+      showAuthModalError(err.message || 'Login failed.');
     } finally {
-      if (dom.landingLoginBtn) {
-        dom.landingLoginBtn.disabled = false;
-        dom.landingLoginBtn.textContent = 'Log In to Bizz-Hunter';
-      }
+      if (dom.modalLoginSubmit) dom.modalLoginSubmit.disabled = false;
     }
   }
 
-  async function handleLandingRegister() {
-    clearAuthErrors();
-    const name = dom.landingRegisterName.value.trim();
-    const email = dom.landingRegisterEmail.value.trim();
-    const password = dom.landingRegisterPassword.value;
+  async function handleModalRegister() {
+    clearAuthModalErrors();
+    const name = dom.modalRegisterName.value.trim();
+    const email = dom.modalRegisterEmail.value.trim();
+    const password = dom.modalRegisterPassword.value;
 
     if (!name || !email || !password) {
-      showAuthError('Please fill out all registration fields.');
+      showAuthModalError('Please fill out all fields.');
       return;
     }
 
     if (password.length < 6) {
-      showAuthError('Password must be at least 6 characters.');
+      showAuthModalError('Password must be at least 6 characters.');
       return;
     }
 
-    if (dom.landingRegisterBtn) {
-      dom.landingRegisterBtn.disabled = true;
-      dom.landingRegisterBtn.textContent = 'Creating account...';
-    }
+    if (dom.modalRegisterSubmit) dom.modalRegisterSubmit.disabled = true;
 
     try {
       const res = await window.BizzApi.register({ name, email, password });
       if (res.success && res.user) {
         setCurrentUser(res.user);
-        showToast(`Account created! Welcome to Bizz-Hunter, ${res.user.name}!`, 'success');
+        closeModals();
+        showToast(`Account created! Welcome, ${res.user.name}!`, 'success');
+        await fetchAndUpdateQuota();
         await loadUserProspects();
       } else {
-        showAuthError(res.message || 'Registration failed.');
+        showAuthModalError(res.message || 'Registration failed.');
       }
     } catch (err) {
-      showAuthError(err.message || 'Registration failed. Please check network connection.');
+      showAuthModalError(err.message || 'Registration failed.');
     } finally {
-      if (dom.landingRegisterBtn) {
-        dom.landingRegisterBtn.disabled = false;
-        dom.landingRegisterBtn.textContent = 'Create Free Account';
-      }
+      if (dom.modalRegisterSubmit) dom.modalRegisterSubmit.disabled = false;
     }
   }
 
@@ -332,6 +363,7 @@
     await window.BizzApi.logout();
     setCurrentUser(null);
     showToast('Logged out successfully', 'info');
+    await fetchAndUpdateQuota();
     switchTab('find-businesses');
   }
 
@@ -342,6 +374,12 @@
         e.preventDefault();
         const tab = item.getAttribute('data-tab');
         if (!tab) return;
+
+        // Protected feature gating: check auth requirement
+        if (!state.currentUser && ['dashboard', 'saved-businesses', 'leads', 'analytics'].includes(tab)) {
+          openAuthModal('login', `Account required to access ${capitalize(tab.replace('-', ' '))}. Sign up or log in to continue!`);
+          return;
+        }
 
         switchTab(tab);
       });
@@ -544,18 +582,30 @@
     showLoadingState();
 
     try {
-      const results = await window.BizzApi.searchBusinesses(params);
-      state.searchResults = results;
-      state.searchedCount += results.length;
+      const res = await window.BizzApi.searchBusinesses(params);
+      state.searchResults = res.data;
+      state.searchedCount += res.data.length;
       localStorage.setItem('bizz_hunter_searched_count', state.searchedCount.toString());
 
-      if (results.length === 0) {
+      if (res.quota) {
+        updateQuotaUI(res.quota);
+      }
+
+      if (res.data.length === 0) {
         showEmptyState();
       } else {
-        renderResults(results, params);
+        renderResults(res.data, params);
       }
     } catch (err) {
-      showErrorState(err.message || 'Unable to connect to Google Places API backend.');
+      if (err.status === 429) {
+        if (err.quota) updateQuotaUI(err.quota);
+        showErrorState(err.message || 'Daily guest search limit reached.');
+        if (dom.errorQuotaSignupBtn) dom.errorQuotaSignupBtn.style.display = 'block';
+        openAuthModal('register', 'Daily guest search limit reached (5/5). Create a free account for 50 searches per day!');
+      } else {
+        showErrorState(err.message || 'Unable to connect to Google Places API backend.');
+        if (dom.errorQuotaSignupBtn) dom.errorQuotaSignupBtn.style.display = 'none';
+      }
     } finally {
       state.isSearching = false;
     }
@@ -777,7 +827,7 @@
         const dbId = select.getAttribute('data-id');
         const newStatus = select.value;
         try {
-          const updated = await window.BizzApi.updateProspect(dbId, { status: newStatus });
+          await window.BizzApi.updateProspect(dbId, { status: newStatus });
           showToast(`Status updated to ${newStatus}`, 'success');
           await loadUserProspects();
         } catch (err) {
@@ -822,9 +872,7 @@
   // --- Prospects Backend Persistence Controller ---
   async function toggleSaveBusiness(business) {
     if (!state.currentUser) {
-      showToast('Please log in or create an account to save prospects', 'info');
-      switchAuthMode('login');
-      scrollToAuthCard();
+      openAuthModal('login', 'Sign in or create a free account to save prospects to your list!');
       return;
     }
 
@@ -888,8 +936,8 @@
     if (!state.currentUser) {
       dom.savedGrid.style.display = 'none';
       dom.savedEmptyState.style.display = 'block';
-      dom.savedEmptyState.querySelector('.empty-title').textContent = 'Please Log In';
-      dom.savedEmptyState.querySelector('.empty-desc').textContent = 'Log in or create an account to view and manage your saved business prospects.';
+      dom.savedEmptyState.querySelector('.empty-title').textContent = 'Account Required';
+      dom.savedEmptyState.querySelector('.empty-desc').textContent = 'Sign up or log in to view and manage your saved business prospects.';
       return;
     }
 
@@ -918,6 +966,7 @@
   }
 
   function closeModals() {
+    if (dom.authModal) dom.authModal.classList.remove('active');
     if (dom.detailsModal) dom.detailsModal.classList.remove('active');
     if (dom.qrModal) dom.qrModal.classList.remove('active');
   }
@@ -990,9 +1039,6 @@
   function updateDashboardMetrics() {
     const noWebsiteCount = state.searchResults.filter(b => !b.website).length;
     const phoneCount = state.searchResults.filter(b => b.phone || b.phone_number || b.national_phone).length;
-
-    const contactedCount = state.savedBusinesses.filter(b => b.status === 'CONTACTED').length;
-    const interestedCount = state.savedBusinesses.filter(b => b.status === 'INTERESTED').length;
     const oppsCount = state.searchResults.filter(b => !b.website || (b.phone || b.phone_number)).length;
 
     if (dom.dashDiscovered) dom.dashDiscovered.textContent = state.searchedCount;

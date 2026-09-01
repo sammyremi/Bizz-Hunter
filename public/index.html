@@ -11,98 +11,8 @@
 
 <div id="app">
 
-  <!-- ================= UNAUTHENTICATED LANDING & AUTH GATE ================= -->
-  <div id="view-landing" class="landing-view" style="display: block;">
-    <!-- Landing Header -->
-    <header class="landing-header">
-      <div class="landing-brand">
-        <div class="brand-icon">🎯</div>
-        <span class="brand-title">Bizz-Hunter</span>
-      </div>
-      <div class="landing-nav">
-        <button id="landing-nav-login" class="btn btn-secondary btn-sm">Log in</button>
-        <button id="landing-nav-signup" class="btn btn-primary btn-sm">Sign Up</button>
-      </div>
-    </header>
-
-    <!-- Landing Content Container -->
-    <div class="landing-content">
-      <!-- Hero Section -->
-      <div class="landing-hero">
-        <h1 class="landing-title">Find Your Next<br><span class="gradient-text">High-Value Partner</span></h1>
-        <p class="landing-subtitle">Discover, evaluate, and contact high-value business prospects lacking websites or needing your digital services.</p>
-
-        <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap;">
-          <button id="landing-hero-cta" class="btn btn-primary btn-lg">Get Started — Sign Up Free</button>
-        </div>
-
-        <div class="hero-features">
-          <div class="feature-item">
-            <span class="icon">📍</span> Smart Location Search
-          </div>
-          <div class="feature-item">
-            <span class="icon">🚨</span> Missing Website Alerts
-          </div>
-          <div class="feature-item">
-            <span class="icon">💬</span> Direct WhatsApp Outreach
-          </div>
-          <div class="feature-item">
-            <span class="icon">📊</span> Prospect Pipeline Management
-          </div>
-        </div>
-      </div>
-
-      <!-- Auth Card Box (Sign-Up / Log In) -->
-      <div class="auth-card-wrapper" id="auth-card-container">
-        <div class="auth-card">
-          <div class="auth-card-header">
-            <h2 id="auth-card-title">Sign-Up</h2>
-            <p id="auth-card-sub" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Create your free Bizz-Hunter account to start prospecting</p>
-          </div>
-
-          <div class="auth-card-tabs">
-            <button id="auth-card-tab-register" class="auth-tab-btn active">Sign-Up</button>
-            <button id="auth-card-tab-login" class="auth-tab-btn">Log In</button>
-          </div>
-
-          <!-- Register Form -->
-          <form id="landing-register-form">
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label class="form-label" for="landing-register-name">Full Name</label>
-              <input type="text" id="landing-register-name" class="form-control" placeholder="Samuel Adebayo" required>
-            </div>
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label class="form-label" for="landing-register-email">Email Address</label>
-              <input type="email" id="landing-register-email" class="form-control" placeholder="you@example.com" required>
-            </div>
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label class="form-label" for="landing-register-password">Password</label>
-              <input type="password" id="landing-register-password" class="form-control" placeholder="At least 6 characters" required minlength="6">
-            </div>
-            <button type="submit" class="btn btn-primary btn-block btn-lg" id="landing-register-btn">Create Free Account</button>
-          </form>
-
-          <!-- Login Form -->
-          <form id="landing-login-form" style="display: none;">
-            <div class="form-group" style="margin-bottom: 1rem;">
-              <label class="form-label" for="landing-login-email">Email Address</label>
-              <input type="email" id="landing-login-email" class="form-control" placeholder="you@example.com" required>
-            </div>
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-              <label class="form-label" for="landing-login-password">Password</label>
-              <input type="password" id="landing-login-password" class="form-control" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block btn-lg" id="landing-login-btn">Log In to Bizz-Hunter</button>
-          </form>
-
-          <div id="auth-error-msg" class="auth-error-box" style="display: none; margin-top: 1rem;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= AUTHENTICATED APPLICATION WORKSPACE ================= -->
-  <div id="app-workspace" style="display: none; width: 100%; min-height: 100vh;">
+  <!-- ================= MAIN APPLICATION WORKSPACE ================= -->
+  <div id="app-workspace" style="display: flex; width: 100%; min-height: 100vh;">
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
@@ -126,12 +36,14 @@
             <a href="#" class="nav-item" data-tab="dashboard">
               <span class="icon">📊</span>
               <span>Dashboard</span>
+              <span class="nav-lock" id="lock-dashboard">🔒</span>
             </a>
           </li>
           <li>
             <a href="#" class="nav-item" data-tab="saved-businesses">
               <span class="icon">❤️</span>
               <span>My Prospects</span>
+              <span class="nav-lock" id="lock-saved">🔒</span>
               <span class="coming-soon" id="saved-badge">0</span>
             </a>
           </li>
@@ -159,11 +71,11 @@
       </div>
 
       <div class="sidebar-footer">
-        <div class="user-profile">
+        <div class="user-profile" id="user-profile-widget">
           <div class="user-avatar" id="workspace-sidebar-avatar">BH</div>
           <div class="user-info">
-            <div class="user-name" id="workspace-sidebar-name">User Account</div>
-            <div class="user-role" id="workspace-sidebar-email">user@example.com</div>
+            <div class="user-name" id="workspace-sidebar-name">Guest User</div>
+            <div class="user-role" id="workspace-sidebar-email">Sign in for 50 searches/day</div>
           </div>
         </div>
       </div>
@@ -180,17 +92,25 @@
         </div>
 
         <div class="header-actions">
-          <div class="status-badge">
-            <span class="status-dot"></span>
-            <span>Google Places API Ready</span>
+          <!-- Real-Time Search Quota Badge -->
+          <div id="header-quota-badge" class="quota-badge guest">
+            <span class="quota-icon">⚡</span>
+            <span id="header-quota-text">Guest: 5/5 Searches Left</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-surface-elevated); padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid var(--border-color);">
-              <span style="font-size: 0.85rem; font-weight: 700;" id="auth-user-name">User</span>
-            </div>
-            <button id="auth-logout-btn" class="btn btn-secondary btn-sm" title="Log Out">
-              <span>🚪</span> Log Out
+
+          <div id="auth-header-controls" style="display: flex; align-items: center; gap: 0.75rem;">
+            <button id="auth-login-btn" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 0.4rem;">
+              <span>🔑</span> <span>Log In / Sign Up</span>
             </button>
+
+            <div id="logged-in-user-container" style="display: none; align-items: center; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-surface-elevated); padding: 4px 12px; border-radius: var(--radius-full); border: 1px solid var(--border-color);">
+                <span style="font-size: 0.85rem; font-weight: 700;" id="auth-user-name">User</span>
+              </div>
+              <button id="auth-logout-btn" class="btn btn-secondary btn-sm" title="Log Out">
+                <span>🚪</span> Log Out
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -200,9 +120,17 @@
 
         <!-- ================= SECTION 1: FIND BUSINESSES (PRIMARY MVP FOCUS) ================= -->
         <section id="view-find-businesses" class="view-section active">
-          <div class="page-intro">
-            <h1 class="page-title">Find Businesses</h1>
-            <p class="page-subtitle">Discover businesses that could become your next customers. Identify missing websites & direct contacts.</p>
+          <div class="page-intro" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h1 class="page-title">Find Businesses</h1>
+              <p class="page-subtitle">Discover businesses that could become your next customers. Identify missing websites & direct contacts.</p>
+            </div>
+
+            <div id="panel-quota-card" class="panel-quota-box">
+              <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">DAILY SEARCH QUOTA</div>
+              <div style="font-size: 1.1rem; font-weight: 800; margin-top: 2px;" id="panel-quota-count">5/5 Remaining</div>
+              <a href="#" id="quota-upgrade-link" style="font-size: 0.75rem; color: var(--primary); font-weight: 600;">Sign in for 50/day →</a>
+            </div>
           </div>
 
           <!-- Search Form Panel -->
@@ -312,6 +240,7 @@
               <div class="error-icon">⚠️</div>
               <h3 class="error-title">Search Error</h3>
               <p class="error-desc" id="error-message">Unable to fetch business data.</p>
+              <button id="error-quota-signup-btn" class="btn btn-primary btn-sm" style="display: none; margin: 0 auto;">Sign Up for 50 Searches/Day</button>
             </div>
           </div>
         </section>
@@ -416,6 +345,7 @@
             <div style="font-size: 0.9rem; color: var(--text-muted);">
               <div><strong>Backend API:</strong> Connected to Rails 8.1 API (/api/v1)</div>
               <div style="margin-top: 0.5rem;"><strong>Google Places API:</strong> Active via backend service proxy</div>
+              <div style="margin-top: 0.5rem;"><strong>Search Quota System:</strong> Active (Guest: 5/day, User: 50/day)</div>
             </div>
           </div>
         </section>
@@ -427,6 +357,58 @@
 </div>
 
 <!-- ================= MODALS ================= -->
+
+<!-- Auth Modal (Log In / Sign Up Gate) -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal-container" style="max-width: 420px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="auth-modal-title">Sign Up / Log In</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="auth-modal-banner" style="display: none; background: var(--bg-surface-elevated); border: 1px solid var(--border-focus); padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; margin-bottom: 1.25rem; color: var(--text-main);">
+        🔑 Account required to save prospects and track follow-ups.
+      </div>
+
+      <div class="auth-card-tabs" style="margin-bottom: 1.25rem;">
+        <button id="auth-tab-register" class="auth-tab-btn active">Sign-Up</button>
+        <button id="auth-tab-login" class="auth-tab-btn">Log In</button>
+      </div>
+
+      <!-- Register Form -->
+      <form id="modal-register-form">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="modal-register-name">Full Name</label>
+          <input type="text" id="modal-register-name" class="form-control" placeholder="Samuel Adebayo" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="modal-register-email">Email Address</label>
+          <input type="email" id="modal-register-email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="modal-register-password">Password</label>
+          <input type="password" id="modal-register-password" class="form-control" placeholder="At least 6 characters" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="modal-register-btn">Create Free Account</button>
+      </form>
+
+      <!-- Login Form -->
+      <form id="modal-login-form" style="display: none;">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="modal-login-email">Email Address</label>
+          <input type="email" id="modal-login-email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="modal-login-password">Password</label>
+          <input type="password" id="modal-login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="modal-login-btn">Log In to Bizz-Hunter</button>
+      </form>
+
+      <div id="modal-auth-error" class="auth-error-box" style="display: none; margin-top: 1rem;"></div>
+    </div>
+  </div>
+</div>
 
 <!-- Business Details Modal -->
 <div id="details-modal" class="modal-overlay">

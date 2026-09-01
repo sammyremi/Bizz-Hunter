@@ -7,7 +7,30 @@ module Api
     class BusinessDiscoveryController < ApplicationController
       include BusinessDiscoveryConcern
 
+      before_action :set_current_user_if_present
+
+      def quota
+        status = SearchQuotaTracker.status(user: current_user, ip: request.remote_ip)
+        render json: {
+          success: true,
+          quota: status
+        }, status: :ok
+      end
+
       def search
+        quota_result = SearchQuotaTracker.check_and_increment!(
+          user: current_user,
+          ip: request.remote_ip
+        )
+
+        unless quota_result[:allowed]
+          return render json: {
+            success: false,
+            message: quota_result[:message],
+            quota: quota_result[:quota]
+          }, status: :too_many_requests
+        end
+
         result = GooglePlaces::BusinessDiscovery.call(
           **business_discovery_params.to_h.symbolize_keys
         )
@@ -15,7 +38,8 @@ module Api
         render json: {
           success: true,
           message: 'Businesses retrieved successfully',
-          data: result
+          data: result,
+          quota: quota_result[:quota]
         }, status: :ok
       end
     end
