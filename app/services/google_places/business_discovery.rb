@@ -103,7 +103,7 @@ module GooglePlaces
     end
 
     def normalize_business(place)
-      {
+      data = {
         id: place['id'],
         name: place.dig('displayName', 'text'),
         types: place['types'],
@@ -117,6 +117,13 @@ module GooglePlaces
         website: place['websiteUri'],
         google_maps_url: place['googleMapsUri']
       }
+
+      opp = OpportunityScoreCalculator.call(data)
+      data[:opportunity_score] = opp[:score]
+      data[:opportunity_level] = opp[:level]
+      data[:opportunity_signals] = opp[:signals]
+
+      data
     end
   end
 end

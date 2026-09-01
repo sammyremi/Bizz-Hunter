@@ -5,8 +5,10 @@
 module Api
   module V1
     class LocationsController < ApplicationController
+      include LocationsConcern
+
       def autocomplete
-        input = params[:input].to_s.strip
+        input = autocomplete_input_param
         if input.blank? || input.length < 2
           return render json: { success: true, data: [] }, status: :ok
         end
@@ -18,11 +20,12 @@ module Api
       end
 
       def details
-        if params[:place_id].blank?
+        place_id = place_id_param
+        if place_id.blank?
           return render json: { success: false, message: 'place_id parameter is required' }, status: :bad_request
         end
 
-        details = GooglePlaces::LocationDetails.call(place_id: params[:place_id])
+        details = GooglePlaces::LocationDetails.call(place_id: place_id)
         render json: { success: true, data: details }, status: :ok
       rescue StandardError => e
         render json: { success: false, message: e.message }, status: :unprocessable_entity

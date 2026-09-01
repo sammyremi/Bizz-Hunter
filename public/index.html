@@ -91,6 +91,9 @@
           <span class="status-dot"></span>
           <span>Google Places API Ready</span>
         </div>
+        <button id="auth-user-btn" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>🔑</span> <span id="auth-user-name">Log In / Register</span>
+        </button>
       </div>
     </header>
 
@@ -261,11 +264,20 @@
         </div>
       </section>
 
-      <!-- ================= SECTION 3: SAVED BUSINESSES ================= -->
+      <!-- ================= SECTION 3: SAVED BUSINESSES (MY PROSPECTS) ================= -->
       <section id="view-saved-businesses" class="view-section">
         <div class="page-intro">
-          <h1 class="page-title">Saved Businesses</h1>
-          <p class="page-subtitle">Your saved prospects ready for contact and outreach.</p>
+          <h1 class="page-title">My Prospects</h1>
+          <p class="page-subtitle">Your persisted business prospects. Track outreach, add notes, and manage follow-ups.</p>
+        </div>
+
+        <div class="status-tabs" id="prospect-status-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-sm status-tab active" data-status="">All Prospects</button>
+          <button class="btn btn-secondary btn-sm status-tab" data-status="NEW">🆕 New</button>
+          <button class="btn btn-secondary btn-sm status-tab" data-status="CONTACTED">💬 Contacted</button>
+          <button class="btn btn-secondary btn-sm status-tab" data-status="INTERESTED">🔥 Interested</button>
+          <button class="btn btn-secondary btn-sm status-tab" data-status="CONVERTED">🎉 Converted</button>
+          <button class="btn btn-secondary btn-sm status-tab" data-status="NOT_INTERESTED">🚫 Not Interested</button>
         </div>
 
         <div id="saved-grid" class="cards-grid"></div>
@@ -341,6 +353,52 @@
       <button class="modal-close">&times;</button>
     </div>
     <div class="modal-body" id="qr-modal-body"></div>
+  </div>
+</div>
+
+<!-- Auth Modal (Login / Register) -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal-container" style="max-width: 420px;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="auth-modal-title">Log In to Bizz-Hunter</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+        <button id="auth-tab-login" class="btn btn-secondary btn-sm active" style="flex: 1;">Log In</button>
+        <button id="auth-tab-register" class="btn btn-secondary btn-sm" style="flex: 1;">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Log In</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" style="display: none;">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="register-name">Full Name</label>
+          <input type="text" id="register-name" class="form-control" placeholder="Samuel Adebayo" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="register-email">Email Address</label>
+          <input type="email" id="register-email" class="form-control" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="register-password">Password</label>
+          <input type="password" id="register-password" class="form-control" placeholder="At least 6 characters" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+      </form>
+    </div>
   </div>
 </div>
 
