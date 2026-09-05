@@ -10,6 +10,7 @@ Rails.application.routes.draw do
 
       get 'business-discovery/search', to: 'business_discovery#search'
       get 'business-discovery/quota', to: 'business_discovery#quota'
+      get 'business-discovery/analysis', to: 'business_discovery#analysis'
       get 'locations/autocomplete', to: 'locations#autocomplete'
       get 'locations/details', to: 'locations#details'
 

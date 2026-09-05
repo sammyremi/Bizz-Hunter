@@ -8,6 +8,7 @@ module Api
       include BusinessDiscoveryConcern
 
       before_action :set_current_user_if_present
+      before_action :authenticate_user!, only: [:analysis]
 
       def quota
         status = SearchQuotaTracker.status(user: current_user, ip: request.remote_ip)
@@ -40,6 +41,19 @@ module Api
           message: 'Businesses retrieved successfully',
           data: result,
           quota: quota_result[:quota]
+        }, status: :ok
+      end
+
+      def analysis
+        result = GooglePlaces::BusinessDiscovery.call(
+          **business_discovery_params.to_h.symbolize_keys
+        )
+
+        analysis_data = GooglePlaces::BusinessDiscoveryAnalysis.call(businesses: result)
+
+        render json: {
+          success: true,
+          data: analysis_data
         }, status: :ok
       end
     end

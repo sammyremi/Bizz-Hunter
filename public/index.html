@@ -21,6 +21,7 @@
     <div class="nav-center-links">
       <a href="#" class="top-nav-item active" data-tab="find-businesses">Discovery</a>
       <a href="#" class="top-nav-item" data-tab="saved-businesses">My Prospects</a>
+      <a href="#" class="top-nav-item" data-tab="analysis">Analysis</a>
       <a href="#" class="top-nav-item" data-tab="dashboard">Dashboard</a>
     </div>
 
@@ -187,35 +188,270 @@
 
       <!-- ================= SECTION 3: DASHBOARD ================= -->
       <section id="view-dashboard" class="view-section">
-        <div style="margin-bottom: 2rem;">
-          <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">Dashboard Overview</h1>
-          <p style="color: var(--text-muted); font-size: 0.95rem;">Prospecting metrics and lead opportunity analytics.</p>
+        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">Dashboard Overview</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">High-level overview & lead opportunity analytics.</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <button id="dash-btn-view-analysis" class="btn btn-primary">📊 View Full Analysis</button>
+            <button id="dash-btn-view-high-opps" class="btn btn-secondary">🔥 High Opportunities</button>
+            <button id="dash-btn-view-saved" class="btn btn-secondary">📌 Saved Prospects</button>
+          </div>
         </div>
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">Total Searched</span>
-            <span class="stat-value" id="dash-discovered" style="color: var(--primary);">0</span>
-            <span style="font-size: 0.75rem; color: var(--text-dim);">Businesses scanned</span>
+        <!-- 5 KPI CARDS -->
+        <div class="kpi-grid-5">
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">Businesses Found</span>
+              <div class="kpi-card-icon">🏢</div>
+            </div>
+            <div class="kpi-metric-val" id="dash-kpi-found" style="color: var(--primary);">0</div>
+            <div class="kpi-subtext">Discovered from active search</div>
           </div>
 
-          <div class="stat-card">
-            <span class="stat-label">High-Value Opportunities</span>
-            <span class="stat-value" id="dash-opps" style="color: #10b981;">0</span>
-            <span style="font-size: 0.75rem; color: var(--text-dim);">No website or phone available</span>
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">High Opportunity</span>
+              <div class="kpi-card-icon">🔥</div>
+            </div>
+            <div class="kpi-metric-val" id="dash-kpi-high-opp" style="color: #10b981;">0</div>
+            <div class="kpi-subtext">Score 80–100 top prospects</div>
           </div>
 
-          <div class="stat-card">
-            <span class="stat-label">No Website Prospects</span>
-            <span class="stat-value" id="dash-nowebsite" style="color: #ef4444;">0</span>
-            <span style="font-size: 0.75rem; color: var(--text-dim);">Web design opportunities</span>
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">No Website</span>
+              <div class="kpi-card-icon">🚨</div>
+            </div>
+            <div class="kpi-metric-val" id="dash-kpi-no-website" style="color: #ef4444;">0</div>
+            <div class="kpi-subtext">Digital design opportunities</div>
           </div>
 
-          <div class="stat-card">
-            <span class="stat-label">Saved Prospects</span>
-            <span class="stat-value" id="dash-saved" style="color: #ec4899;">0</span>
-            <span style="font-size: 0.75rem; color: var(--text-dim);">In saved list</span>
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">WhatsApp Available</span>
+              <div class="kpi-card-icon">💬</div>
+            </div>
+            <div class="kpi-metric-val" id="dash-kpi-whatsapp" style="color: #25d366;">0</div>
+            <div class="kpi-subtext">Direct outreach channels</div>
           </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">Saved Prospects</span>
+              <div class="kpi-card-icon">📌</div>
+            </div>
+            <div class="kpi-metric-val" id="dash-kpi-saved" style="color: #ec4899;">0</div>
+            <div class="kpi-subtext">Pipeline prospects</div>
+          </div>
+        </div>
+
+        <!-- DASHBOARD SUMMARY CHARTS -->
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Opportunity Breakdown</div>
+                <div class="chart-desc">Proportion of high, medium, and low opportunity tier leads.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="dash-chart-opportunity" height="220"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Top Business Types</div>
+                <div class="chart-desc">Most frequent business types from active discovery results.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="dash-chart-types" height="220"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 4: DEDICATED ANALYSIS WORKSPACE ================= -->
+      <section id="view-analysis" class="view-section">
+        
+        <!-- Header Bar -->
+        <div class="analytics-header-bar">
+          <div class="analysis-header-info">
+            <div class="analysis-header-title">Business Analysis Workspace</div>
+            <div id="analysis-search-context-label" class="analysis-header-sub">Search: Active discovery results • 0 businesses analyzed</div>
+          </div>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <button id="analysis-btn-back-results" class="btn btn-secondary btn-sm">← Back to Results</button>
+            <button id="analysis-btn-export-csv" class="btn btn-primary btn-sm">📥 Export Analysis (CSV)</button>
+          </div>
+        </div>
+
+        <!-- ANALYSIS KPI CARDS ROW -->
+        <div class="kpi-grid-5">
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">Businesses Found</span>
+              <div class="kpi-card-icon">🏢</div>
+            </div>
+            <div class="kpi-metric-val" id="analysis-kpi-found" style="color: var(--primary);">0</div>
+            <div class="kpi-subtext">Total analyzed businesses</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">No Website</span>
+              <div class="kpi-card-icon">🚨</div>
+            </div>
+            <div class="kpi-metric-val" id="analysis-kpi-no-website" style="color: #ef4444;">0</div>
+            <div class="kpi-subtext">Digital gap prospects</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">Phone Available</span>
+              <div class="kpi-card-icon">📞</div>
+            </div>
+            <div class="kpi-metric-val" id="analysis-kpi-phone" style="color: #3b82f6;">0</div>
+            <div class="kpi-subtext">Direct phone line</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">WhatsApp Available</span>
+              <div class="kpi-card-icon">💬</div>
+            </div>
+            <div class="kpi-metric-val" id="analysis-kpi-whatsapp" style="color: #25d366;">0</div>
+            <div class="kpi-subtext">Instant messaging line</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-card-top">
+              <span class="kpi-metric-label">High Opportunity</span>
+              <div class="kpi-card-icon">🔥</div>
+            </div>
+            <div class="kpi-metric-val" id="analysis-kpi-high-opp" style="color: #10b981;">0</div>
+            <div class="kpi-subtext">Score 80–100 priority</div>
+          </div>
+        </div>
+
+        <!-- OPPORTUNITY OVERVIEW & WEBSITE OPPORTUNITY -->
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Opportunity Overview</div>
+                <div class="chart-desc">Score distribution into High (80-100), Medium (50-79), and Low (0-49) tiers.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="analysis-chart-opportunity" height="230"></canvas>
+            </div>
+            <div class="chart-filter-actions">
+              <button class="chart-filter-btn" id="filter-btn-high-opp">🔥 View High Opportunities</button>
+              <button class="chart-filter-btn" id="filter-btn-med-opp">⚡ View Medium Opportunities</button>
+              <button class="chart-filter-btn" id="filter-btn-low-opp">⚪ View Low Opportunities</button>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Website Opportunity</div>
+                <div class="chart-desc">Breakdown of businesses lacking digital website presence.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="analysis-chart-website" height="230"></canvas>
+            </div>
+            <div class="chart-filter-actions">
+              <button class="chart-filter-btn" id="filter-btn-no-website">🚨 View Businesses Without Websites</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTACTABILITY & RATING DISTRIBUTION -->
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Contactability Breakdown</div>
+                <div class="chart-desc">Direct outreach readiness across phone & WhatsApp channels.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="analysis-chart-contactability" height="230"></canvas>
+            </div>
+            <div class="chart-filter-actions">
+              <button class="chart-filter-btn" id="filter-btn-whatsapp-only">💬 View WhatsApp Prospects</button>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Rating Distribution</div>
+                <div class="chart-desc">Reputation rating distribution of discovered businesses.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="analysis-chart-ratings" height="230"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- BUSINESS TYPES & LOCATION DISTRIBUTION -->
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Business Type Distribution</div>
+                <div class="chart-desc">Top business types returned from search results.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="analysis-chart-business-types" height="250"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Location Distribution</div>
+                <div class="chart-desc">Concentration of discovered businesses across neighborhoods & cities.</div>
+              </div>
+            </div>
+            <div class="chart-container-box">
+              <canvas id="analysis-chart-locations" height="250"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOP OPPORTUNITIES RANKED WORKSPACE -->
+        <div class="top-prospects-section">
+          <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">Top Opportunities</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">Ranked list of highest-value prospecting targets based on Bizz-Hunter Opportunity Score.</p>
+          </div>
+          <div id="top-prospects-list"></div>
+        </div>
+
+        <!-- Analysis Empty State -->
+        <div id="analysis-empty-state" class="empty-state" style="display: none;">
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Business Data Available for Analysis Yet</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Perform a search in Discovery to calculate intelligence metrics and score targets.</p>
+          <button id="analysis-empty-search-btn" class="btn btn-primary">Go to Business Discovery →</button>
+        </div>
+
+        <!-- Analysis Auth Gate State -->
+        <div id="analysis-auth-gate" class="empty-state" style="display: none;">
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">🔐 Account Required for Analysis Workspace</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Log in or create a free account to unlock deep prospecting analysis, Opportunity Scoring, and export features.</p>
+          <button id="analysis-login-btn" class="btn btn-primary">Log In / Sign Up →</button>
         </div>
       </section>
 
@@ -300,6 +536,7 @@
 <div id="toast-container"></div>
 
 <!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="/js/qrcode_generator.js"></script>
 <script src="/js/api.js"></script>
 <script src="/js/app.js"></script>
