@@ -3,6 +3,8 @@
 (function () {
   'use strict';
 
+  console.log('BIZZ-HUNTER APP CONTROLLER LOADED v20260905_v2');
+
   // Popular Predefined Business Types for Autocomplete Suggestions
   const PREDEFINED_BUSINESS_TYPES = [
     'Restaurant', 'Restaurants', 'Fast Food Restaurant', 'Fine Dining Restaurant',
@@ -296,6 +298,11 @@
     if (user) {
       setCurrentUser(user);
       await loadUserProspects();
+      if (state.currentTab === 'dashboard') {
+        await renderDashboardAnalytics();
+      } else if (state.currentTab === 'analysis') {
+        await renderAnalysisWorkspace();
+      }
     } else {
       setCurrentUser(null);
     }
@@ -350,6 +357,10 @@
         showToast(`Welcome back, ${res.user.name}!`, 'success');
         await fetchAndUpdateQuota();
         await loadUserProspects();
+        await renderDashboardAnalytics();
+        if (state.currentTab === 'analysis') {
+          await renderAnalysisWorkspace();
+        }
       } else {
         showAuthModalError(res.message || 'Invalid email or password');
       }
@@ -386,6 +397,10 @@
         showToast(`Account created! Welcome, ${res.user.name}!`, 'success');
         await fetchAndUpdateQuota();
         await loadUserProspects();
+        await renderDashboardAnalytics();
+        if (state.currentTab === 'analysis') {
+          await renderAnalysisWorkspace();
+        }
       } else {
         showAuthModalError(res.message || 'Registration failed.');
       }
@@ -1095,6 +1110,8 @@
 
     if (state.currentTab === 'find-businesses' && state.searchResults.length > 0) {
       renderResults(state.searchResults, state.activeFilters);
+    } else {
+      await renderDashboardAnalytics();
     }
   }
 
@@ -1109,6 +1126,7 @@
       const prospects = await window.BizzApi.getProspects(state.activeProspectStatusFilter);
       state.savedBusinesses = prospects;
       updateDashboardMetrics();
+      await renderDashboardAnalytics();
 
       if (state.currentTab === 'saved-businesses') {
         renderSavedBusinessesView();
@@ -1458,14 +1476,15 @@
     }
 
     const localAnalytics = calculateAnalytics(state.searchResults);
+    const hasDbData = dbAnalytics && dbAnalytics.businesses_found > 0;
     
-    const totalFound = dbAnalytics ? dbAnalytics.businesses_found : (localAnalytics.totalFound || state.searchedCount);
-    const highOpp = dbAnalytics ? dbAnalytics.high_opportunity : localAnalytics.highOppCount;
-    const medOpp = dbAnalytics ? dbAnalytics.medium_opportunity : localAnalytics.medOppCount;
-    const lowOpp = dbAnalytics ? dbAnalytics.low_opportunity : localAnalytics.lowOppCount;
-    const noWebsite = dbAnalytics ? dbAnalytics.no_website : localAnalytics.noWebsiteCount;
-    const whatsapp = dbAnalytics ? dbAnalytics.whatsapp_available : localAnalytics.whatsappCount;
-    const saved = dbAnalytics ? dbAnalytics.saved_prospects : state.savedBusinesses.length;
+    const totalFound = hasDbData ? dbAnalytics.businesses_found : (localAnalytics.totalFound || state.searchedCount);
+    const highOpp = hasDbData ? dbAnalytics.high_opportunity : localAnalytics.highOppCount;
+    const medOpp = hasDbData ? dbAnalytics.medium_opportunity : localAnalytics.medOppCount;
+    const lowOpp = hasDbData ? dbAnalytics.low_opportunity : localAnalytics.lowOppCount;
+    const noWebsite = hasDbData ? dbAnalytics.no_website : localAnalytics.noWebsiteCount;
+    const whatsapp = hasDbData ? dbAnalytics.whatsapp_available : localAnalytics.whatsappCount;
+    const saved = (dbAnalytics && dbAnalytics.saved_prospects !== undefined) ? dbAnalytics.saved_prospects : state.savedBusinesses.length;
 
     if (dom.dashKpiFound) dom.dashKpiFound.textContent = totalFound;
     if (dom.dashKpiHighOpp) dom.dashKpiHighOpp.textContent = highOpp;
@@ -1497,7 +1516,10 @@
     });
 
     // 2. Dashboard Top Types Chart
-    const topTypes = dbAnalytics && dbAnalytics.top_business_types ? dbAnalytics.top_business_types.slice(0, 5) : localAnalytics.sortedTypes.slice(0, 5);
+    const topTypes = (hasDbData && dbAnalytics.top_business_types && dbAnalytics.top_business_types.length > 0) 
+      ? dbAnalytics.top_business_types.slice(0, 5) 
+      : localAnalytics.sortedTypes.slice(0, 5);
+
     createChart('dash-chart-types', {
       type: 'bar',
       data: {
@@ -1551,6 +1573,9 @@
     // Render Search History list
     const searches = await window.BizzApi.getSearches();
     if (searches && searches.length > 0) {
+      if (!state.activeSearchId) {
+        state.activeSearchId = searches[0].id;
+      }
       if (dom.searchHistoryContainer) dom.searchHistoryContainer.style.display = 'block';
       if (dom.searchHistoryList) {
         dom.searchHistoryList.innerHTML = searches.map(s => {
@@ -1577,8 +1602,9 @@
 
     // Fetch search-specific analysis or latest search analysis
     let analysisData = await window.BizzApi.getSearchAnalysis(state.activeSearchId);
-    
-    if (!analysisData && state.searchResults && state.searchResults.length > 0) {
+    const hasAnalysisData = analysisData && analysisData.summary && analysisData.summary.total_businesses > 0;
+
+    if (!hasAnalysisData && state.searchResults && state.searchResults.length > 0) {
       analysisData = calculateAnalytics(state.searchResults);
     }
 
@@ -1695,7 +1721,11 @@
       data: {
         labels: ['Phone Available', 'WhatsApp Available', 'No Phone'],
         datasets: [{
-          data: [analytics.phoneCount, analytics.whatsappCount, analytics.noPhoneCount],
+          data: [
+            contactCounts.phone_available || 0,
+            contactCounts.whatsapp_available || 0,
+            contactCounts.no_phone || 0
+          ],
           backgroundColor: [colors.phone, colors.whatsapp, colors.noPhone],
           borderRadius: 6
         }]
@@ -1712,17 +1742,25 @@
     });
 
     // 4. Rating Distribution Chart
+    const ratingList = analysisData.ratings || [];
+    const ratingMap = {};
+    if (Array.isArray(ratingList)) {
+      ratingList.forEach(r => { ratingMap[r.range] = r.count; });
+    } else if (analysisData.ratingsMap) {
+      Object.assign(ratingMap, analysisData.ratingsMap);
+    }
+
     createChart('analysis-chart-ratings', {
       type: 'bar',
       data: {
         labels: ['5.0', '4.5–4.9', '4.0–4.4', '3.5–3.9', 'Below 3.5'],
         datasets: [{
           data: [
-            analytics.ratingsMap['5.0'],
-            analytics.ratingsMap['4.5-4.9'],
-            analytics.ratingsMap['4.0-4.4'],
-            analytics.ratingsMap['3.5-3.9'],
-            analytics.ratingsMap['Below 3.5']
+            ratingMap['5.0'] || 0,
+            ratingMap['4.5-4.9'] || 0,
+            ratingMap['4.0-4.4'] || 0,
+            ratingMap['3.5-3.9'] || 0,
+            ratingMap['Below 3.5'] || 0
           ],
           backgroundColor: colors.primary,
           borderRadius: 6
@@ -1740,7 +1778,7 @@
     });
 
     // 5. Business Type Distribution Chart
-    const typesData = analytics.sortedTypes.slice(0, 8);
+    const typesData = (analysisData.business_types || analysisData.sortedTypes || []).slice(0, 8);
     createChart('analysis-chart-business-types', {
       type: 'bar',
       data: {
@@ -1764,13 +1802,13 @@
     });
 
     // 6. Location Distribution Chart
-    const locsData = analytics.sortedLocations.slice(0, 8);
+    const locsData = (analysisData.locations || analysisData.sortedLocations || []).slice(0, 8);
     createChart('analysis-chart-locations', {
       type: 'bar',
       data: {
         labels: locsData.length > 0 ? locsData.map(l => l.name) : ['All Areas'],
         datasets: [{
-          data: locsData.length > 0 ? locsData.map(l => l.count) : [analytics.totalFound],
+          data: locsData.length > 0 ? locsData.map(l => l.count) : [summary.total_businesses],
           backgroundColor: colors.primary,
           borderRadius: 6
         }]
@@ -1788,15 +1826,16 @@
     });
 
     // Render Ranked Top Opportunities Workspace
-    renderTopProspectsList(analytics.topProspects);
+    renderTopProspectsList(topProspects);
 
     // Attach Analysis Buttons
     if (dom.analysisBtnBackResults) {
       dom.analysisBtnBackResults.onclick = () => switchTab('find-businesses');
     }
 
+    const processedList = analysisData.processedList || topProspects;
     if (dom.analysisBtnExportCsv) {
-      dom.analysisBtnExportCsv.onclick = () => exportAnalysisToCsv(analytics.processedList);
+      dom.analysisBtnExportCsv.onclick = () => exportAnalysisToCsv(processedList);
     }
 
     if (dom.filterBtnHighOpp) {

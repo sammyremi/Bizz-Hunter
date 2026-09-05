@@ -52,10 +52,18 @@ module Api
       end
 
       def analysis
-        if params[:search_id].present?
-          search_record = current_user.searches.find(params[:search_id])
+        search_record = if params[:search_id].present?
+                          current_user.searches.find_by(id: params[:search_id])
+                        else
+                          current_user.searches.recent.first
+                        end
+
+        if search_record.present?
           analysis_data = GooglePlaces::BusinessDiscoveryAnalysis.call(search: search_record)
-        else
+          return render json: { success: true, data: analysis_data }, status: :ok
+        end
+
+        if business_discovery_params[:business_type].present?
           result = GooglePlaces::BusinessDiscovery.call(
             **business_discovery_params.to_h.symbolize_keys
           )
@@ -70,12 +78,12 @@ module Api
             search: saved_search,
             businesses: result
           )
+
+          return render json: { success: true, data: analysis_data }, status: :ok
         end
 
-        render json: {
-          success: true,
-          data: analysis_data
-        }, status: :ok
+        analysis_data = GooglePlaces::BusinessDiscoveryAnalysis.call(businesses: [])
+        render json: { success: true, data: analysis_data }, status: :ok
       end
     end
   end

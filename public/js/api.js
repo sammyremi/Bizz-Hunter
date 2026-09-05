@@ -149,6 +149,7 @@
 
         return {
           data: json.data || [],
+          search_id: json.search_id,
           quota: json.quota
         };
       } catch (error) {
@@ -313,5 +314,6 @@
   }
 
   window.BizzApi = ApiClient;
+  console.log('BIZZ-HUNTER API CLIENT LOADED v20260905_v2', Object.getOwnPropertyNames(ApiClient));
 
 })(window);
