@@ -816,7 +816,7 @@
     // DIRECT PERMANENT LARGE SCANNABLE SVG QR CODE INJECTION
     let qrSvgHtml = '';
     if (waUrl && window.QRCodeGenerator) {
-      qrSvgHtml = window.QRCodeGenerator(waUrl, { size: 136, colorDark: '#0b0f19', colorLight: '#ffffff' });
+      qrSvgHtml = window.QRCodeGenerator(waUrl, { size: 144, colorDark: '#0b0f19', colorLight: '#ffffff' });
     }
 
     // Opportunity Signals & Score
@@ -847,6 +847,11 @@
               <div class="info-row">
                 <span>📍</span>
                 <span>${escapeHtml(b.address || 'Address unavailable')}</span>
+              </div>
+              <div class="info-row">
+                <span>📞</span>
+                <span>${escapeHtml(formattedPhone)}</span>
+                ${hasPhone ? `<button class="copy-icon-btn" title="Copy Phone Number" data-phone="${escapeHtml(formattedPhone)}">📋</button>` : ''}
               </div>
               <div class="info-row">
                 <span>🌐</span>
@@ -906,20 +911,12 @@
         </div>
 
         <!-- Right Panel: PERMANENT VISIBLE LARGE SCANNABLE QR CODE -->
-        <div class="card-right-panel">
-          <div class="phone-header-box">
-            <div class="phone-section-label">PHONE</div>
-            <div class="phone-number-text">
-              <span>${escapeHtml(formattedPhone)}</span>
-              ${hasPhone ? `<button class="copy-icon-btn" title="Copy Phone Number" data-phone="${escapeHtml(formattedPhone)}">📋</button>` : ''}
-            </div>
-          </div>
-
+        <div class="card-right-panel" style="justify-content: center; gap: 0.75rem;">
           ${waUrl ? `
             <div class="qr-visible-box">
               ${qrSvgHtml}
             </div>
-            <div class="qr-caption-subtext">Scan to open WhatsApp chat</div>
+            <div class="qr-caption-subtext">Scan to WhatsApp</div>
 
             <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm btn-block">
               <span>💬</span> WhatsApp
