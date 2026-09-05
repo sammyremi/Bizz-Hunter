@@ -816,7 +816,7 @@
     // DIRECT PERMANENT LARGE SCANNABLE SVG QR CODE INJECTION
     let qrSvgHtml = '';
     if (waUrl && window.QRCodeGenerator) {
-      qrSvgHtml = window.QRCodeGenerator(waUrl, { size: 132, colorDark: '#0b0f19', colorLight: '#ffffff' });
+      qrSvgHtml = window.QRCodeGenerator(waUrl, { size: 136, colorDark: '#0b0f19', colorLight: '#ffffff' });
     }
 
     // Opportunity Signals & Score
