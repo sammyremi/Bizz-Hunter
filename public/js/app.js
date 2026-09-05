@@ -1,10 +1,29 @@
-/* public/js/app.js - Bizz-Hunter Main Application Controller */
+/* public/js/app.js - Bizz-Hunter Main Application Controller & Search Engine */
 
 (function () {
   'use strict';
 
+  // Popular Predefined Business Types for Autocomplete Suggestions
+  const PREDEFINED_BUSINESS_TYPES = [
+    'Restaurant', 'Restaurants', 'Fast Food Restaurant', 'Fine Dining Restaurant',
+    'Chinese Restaurant', 'Italian Restaurant', 'Mexican Restaurant', 'African Restaurant',
+    'Hotel', 'Hotels', 'Resort', 'Bed & Breakfast', 'Motel',
+    'Cafe', 'Coffee Shop', 'Bakery',
+    'Bar', 'Bars', 'Barber', 'Barbershop', 'Beauty Bar', 'Beauty Salon', 'Hair Salon', 'Spa', 'Nail Salon',
+    'Gym', 'Fitness Center', 'Yoga Studio', 'CrossFit Gym',
+    'Car Dealer', 'Car Rental', 'Car Repair', 'Car Wash', 'Auto Parts Store',
+    'Hospital', 'Medical Clinic', 'Dental Clinic', 'Pharmacy',
+    'School', 'College', 'University', 'Tutoring Center',
+    'Real Estate Agency', 'Property Management', 'Real Estate Agent',
+    'Solar Installation', 'Solar Company', 'Roofing Contractor', 'Construction Company',
+    'Supermarket', 'Grocery Store', 'Boutique', 'Shopping Mall',
+    'Law Firm', 'Lawyer', 'Accounting Firm', 'Consulting Agency',
+    'Plumbing Service', 'Electrician', 'Pest Control Service'
+  ];
+
   // Application State
   const state = {
+    theme: localStorage.getItem('bizz_hunter_theme') || 'dark',
     currentTab: 'find-businesses',
     currentUser: null,
     currentQuota: null,
@@ -15,8 +34,8 @@
     activeFilters: {},
     selectedPlaceId: null,
     selectedLocationName: '',
-    selectedBusinessForModal: null,
-    isSearching: false
+    isSearching: false,
+    selectedBusinessTypeIndex: -1
   };
 
   // DOM Cache
@@ -24,8 +43,10 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     cacheDomElements();
+    initTheme();
     initNavigation();
     initLocationSelectors();
+    initBusinessTypeAutocomplete();
     initSearchForm();
     initModals();
     initAuth();
@@ -36,12 +57,12 @@
 
   function cacheDomElements() {
     dom = {
-      navItems: document.querySelectorAll('.nav-item'),
+      navItems: document.querySelectorAll('.top-nav-item'),
       views: document.querySelectorAll('.view-section'),
-      currentNavTitle: document.getElementById('current-nav-title'),
-      mobileToggle: document.getElementById('mobile-nav-toggle'),
-      sidebar: document.querySelector('.sidebar'),
-      appWorkspace: document.getElementById('app-workspace'),
+
+      // Theme Switcher
+      themeToggleBtn: document.getElementById('theme-toggle-btn'),
+      themeIcon: document.getElementById('theme-icon'),
 
       // Auth Controls & Modal
       authModal: document.getElementById('auth-modal'),
@@ -49,10 +70,8 @@
       authModalBanner: document.getElementById('auth-modal-banner'),
       authTabLogin: document.getElementById('auth-tab-login'),
       authTabRegister: document.getElementById('auth-tab-register'),
-      authLoginBtn: document.getElementById('auth-login-btn'),
-      authLogoutBtn: document.getElementById('auth-logout-btn'),
-      loggedInUserContainer: document.getElementById('logged-in-user-container'),
-      authUserName: document.getElementById('auth-user-name'),
+      navProfileBtn: document.getElementById('nav-profile-btn'),
+      navSettingsBtn: document.getElementById('nav-settings-btn'),
       modalLoginForm: document.getElementById('modal-login-form'),
       modalRegisterForm: document.getElementById('modal-register-form'),
       modalLoginEmail: document.getElementById('modal-login-email'),
@@ -64,27 +83,24 @@
       modalRegisterSubmit: document.getElementById('modal-register-btn'),
       modalAuthError: document.getElementById('modal-auth-error'),
 
-      // Sidebar Profile Elements
-      workspaceSidebarAvatar: document.getElementById('workspace-sidebar-avatar'),
-      workspaceSidebarName: document.getElementById('workspace-sidebar-name'),
-      workspaceSidebarEmail: document.getElementById('workspace-sidebar-email'),
-
-      // Quota Elements
-      headerQuotaBadge: document.getElementById('header-quota-badge'),
-      headerQuotaText: document.getElementById('header-quota-text'),
-      panelQuotaCard: document.getElementById('panel-quota-card'),
-      panelQuotaCount: document.getElementById('panel-quota-count'),
-      quotaUpgradeLink: document.getElementById('quota-upgrade-link'),
+      // Quota Widget Elements
+      quotaLabelText: document.getElementById('quota-label-text'),
+      quotaProgressFill: document.getElementById('quota-progress-fill'),
       errorQuotaSignupBtn: document.getElementById('error-quota-signup-btn'),
 
       // Form Controls & Smart Location Search
       locationSearchInput: document.getElementById('location-search-input'),
       locationSuggestionsDropdown: document.getElementById('location-suggestions-dropdown'),
       selectedLocationBadge: document.getElementById('selected-location-badge'),
-      categorySelect: document.getElementById('category-select'),
+
+      // Searchable Business Type Field
+      businessTypeInput: document.getElementById('business-type-input'),
+      businessTypeDropdown: document.getElementById('business-type-dropdown'),
+
+      // Filter Selects
       minRatingSelect: document.getElementById('min-rating-select'),
-      phoneFilterSelect: document.getElementById('phone-filter-select'),
       websiteFilterSelect: document.getElementById('website-filter-select'),
+      phoneFilterSelect: document.getElementById('phone-filter-select'),
       searchBtn: document.getElementById('search-btn'),
       searchForm: document.getElementById('search-form'),
 
@@ -92,7 +108,8 @@
       resultsHeader: document.getElementById('results-header'),
       resultsCount: document.getElementById('results-count'),
       resultsContext: document.getElementById('results-context'),
-      activePills: document.getElementById('active-pills'),
+      statMissingWebsite: document.getElementById('stat-missing-website'),
+      statSavedCount: document.getElementById('stat-saved-count'),
       cardsGrid: document.getElementById('cards-grid'),
       loadingState: document.getElementById('loading-state'),
       emptyState: document.getElementById('empty-state'),
@@ -103,39 +120,60 @@
       prospectStatusTabs: document.getElementById('prospect-status-tabs'),
       savedGrid: document.getElementById('saved-grid'),
       savedEmptyState: document.getElementById('saved-empty-state'),
-      savedBadge: document.getElementById('saved-badge'),
-      lockDashboard: document.getElementById('lock-dashboard'),
-      lockSaved: document.getElementById('lock-saved'),
 
       // Modals
       detailsModal: document.getElementById('details-modal'),
-      qrModal: document.getElementById('qr-modal'),
       detailsModalBody: document.getElementById('details-modal-body'),
-      qrModalBody: document.getElementById('qr-modal-body'),
 
       // Dashboard Elements
       dashDiscovered: document.getElementById('dash-discovered'),
       dashOpps: document.getElementById('dash-opps'),
       dashNoWebsite: document.getElementById('dash-nowebsite'),
-      dashPhoneAvailable: document.getElementById('dash-phone'),
       dashSaved: document.getElementById('dash-saved'),
 
       toastContainer: document.getElementById('toast-container')
     };
   }
 
+  // --- Theme Switcher Engine ---
+  function initTheme() {
+    applyTheme(state.theme);
+
+    if (dom.themeToggleBtn) {
+      dom.themeToggleBtn.addEventListener('click', () => {
+        const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
+        applyTheme(nextTheme);
+      });
+    }
+  }
+
+  function applyTheme(themeName) {
+    state.theme = themeName;
+    localStorage.setItem('bizz_hunter_theme', themeName);
+    document.documentElement.setAttribute('data-theme', themeName);
+
+    if (dom.themeIcon) {
+      dom.themeIcon.textContent = themeName === 'light' ? '☀️' : '🌙';
+    }
+  }
+
   // --- Auth & Quota Controller ---
   function initAuth() {
-    if (dom.authLoginBtn) {
-      dom.authLoginBtn.addEventListener('click', () => {
-        openAuthModal('login');
+    if (dom.navProfileBtn) {
+      dom.navProfileBtn.addEventListener('click', () => {
+        if (state.currentUser) {
+          if (confirm(`Logged in as ${state.currentUser.email}. Do you want to log out?`)) {
+            logoutUser();
+          }
+        } else {
+          openAuthModal('login');
+        }
       });
     }
 
-    if (dom.quotaUpgradeLink) {
-      dom.quotaUpgradeLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        openAuthModal('register', 'Sign up for a free account to unlock 50 searches per day!');
+    if (dom.navSettingsBtn) {
+      dom.navSettingsBtn.addEventListener('click', () => {
+        switchTab('settings');
       });
     }
 
@@ -164,14 +202,6 @@
       dom.modalRegisterForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         await handleModalRegister();
-      });
-    }
-
-    if (dom.authLogoutBtn) {
-      dom.authLogoutBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to log out?')) {
-          logoutUser();
-        }
       });
     }
   }
@@ -233,32 +263,6 @@
 
   function setCurrentUser(user) {
     state.currentUser = user;
-    if (user) {
-      if (dom.authLoginBtn) dom.authLoginBtn.style.display = 'none';
-      if (dom.loggedInUserContainer) dom.loggedInUserContainer.style.display = 'flex';
-      if (dom.authUserName) dom.authUserName.textContent = user.name;
-
-      if (dom.workspaceSidebarName) dom.workspaceSidebarName.textContent = user.name;
-      if (dom.workspaceSidebarEmail) dom.workspaceSidebarEmail.textContent = user.email;
-      if (dom.workspaceSidebarAvatar) dom.workspaceSidebarAvatar.textContent = getInitials(user.name);
-
-      if (dom.lockDashboard) dom.lockDashboard.style.display = 'none';
-      if (dom.lockSaved) dom.lockSaved.style.display = 'none';
-    } else {
-      if (dom.authLoginBtn) dom.authLoginBtn.style.display = 'flex';
-      if (dom.loggedInUserContainer) dom.loggedInUserContainer.style.display = 'none';
-
-      if (dom.workspaceSidebarName) dom.workspaceSidebarName.textContent = 'Guest User';
-      if (dom.workspaceSidebarEmail) dom.workspaceSidebarEmail.textContent = 'Sign in for 50 searches/day';
-      if (dom.workspaceSidebarAvatar) dom.workspaceSidebarAvatar.textContent = 'BH';
-
-      if (dom.lockDashboard) dom.lockDashboard.style.display = 'inline';
-      if (dom.lockSaved) dom.lockSaved.style.display = 'inline';
-
-      state.savedBusinesses = [];
-      renderSavedCountBadge();
-      updateDashboardMetrics();
-    }
   }
 
   async function fetchAndUpdateQuota() {
@@ -273,23 +277,16 @@
     state.currentQuota = quota;
 
     const isGuest = quota.user_type === 'guest';
-    const remaining = quota.remaining;
+    const used = quota.used;
     const limit = quota.limit;
+    const percentage = Math.min(Math.round((used / limit) * 100), 100);
 
-    if (dom.headerQuotaBadge) {
-      dom.headerQuotaBadge.className = `quota-badge ${isGuest ? 'guest' : 'user'}`;
+    if (dom.quotaLabelText) {
+      dom.quotaLabelText.textContent = `${isGuest ? 'GUEST USAGE' : 'PRO USAGE'}: ${used}/${limit}`;
     }
 
-    if (dom.headerQuotaText) {
-      dom.headerQuotaText.textContent = `${isGuest ? 'Guest' : 'Pro'}: ${remaining}/${limit} Left`;
-    }
-
-    if (dom.panelQuotaCount) {
-      dom.panelQuotaCount.textContent = `${remaining}/${limit} Remaining`;
-    }
-
-    if (dom.quotaUpgradeLink) {
-      dom.quotaUpgradeLink.style.display = isGuest ? 'inline' : 'none';
+    if (dom.quotaProgressFill) {
+      dom.quotaProgressFill.style.width = `${percentage}%`;
     }
   }
 
@@ -375,8 +372,8 @@
         const tab = item.getAttribute('data-tab');
         if (!tab) return;
 
-        // Protected feature gating: check auth requirement
-        if (!state.currentUser && ['dashboard', 'saved-businesses', 'leads', 'analytics'].includes(tab)) {
+        // Protected feature gating
+        if (!state.currentUser && ['dashboard', 'saved-businesses'].includes(tab)) {
           openAuthModal('login', `Account required to access ${capitalize(tab.replace('-', ' '))}. Sign up or log in to continue!`);
           return;
         }
@@ -384,12 +381,6 @@
         switchTab(tab);
       });
     });
-
-    if (dom.mobileToggle) {
-      dom.mobileToggle.addEventListener('click', () => {
-        dom.sidebar.classList.toggle('open');
-      });
-    }
 
     if (dom.prospectStatusTabs) {
       dom.prospectStatusTabs.querySelectorAll('.status-tab').forEach(tabBtn => {
@@ -422,28 +413,127 @@
       }
     });
 
-    const titles = {
-      'find-businesses': 'Find Businesses',
-      'dashboard': 'Dashboard',
-      'saved-businesses': 'My Prospects',
-      'leads': 'Leads Pipeline',
-      'analytics': 'Analytics',
-      'settings': 'Settings'
-    };
-
-    if (dom.currentNavTitle) {
-      dom.currentNavTitle.textContent = titles[tabName] || 'Find Businesses';
-    }
-
     if (tabName === 'dashboard') {
       updateDashboardMetrics();
     } else if (tabName === 'saved-businesses') {
       loadUserProspects();
     }
+  }
 
-    if (window.innerWidth <= 768 && dom.sidebar) {
-      dom.sidebar.classList.remove('open');
+  // ================= UNIFIED SEARCHABLE BUSINESS TYPE AUTOCOMPLETE =================
+  function initBusinessTypeAutocomplete() {
+    if (!dom.businessTypeInput || !dom.businessTypeDropdown) return;
+
+    // Show suggestions ONLY if input has text typed in it
+    dom.businessTypeInput.addEventListener('focus', () => {
+      const val = dom.businessTypeInput.value.trim();
+      if (val) filterAndShowBusinessTypes(val);
+    });
+
+    dom.businessTypeInput.addEventListener('click', () => {
+      const val = dom.businessTypeInput.value.trim();
+      if (val) filterAndShowBusinessTypes(val);
+    });
+
+    // Filter suggestions dynamically as user types
+    dom.businessTypeInput.addEventListener('input', () => {
+      filterAndShowBusinessTypes(dom.businessTypeInput.value.trim());
+    });
+
+    // Keyboard navigation (ArrowDown, ArrowUp, Enter, Escape)
+    dom.businessTypeInput.addEventListener('keydown', (e) => {
+      const items = dom.businessTypeDropdown.querySelectorAll('.suggestion-item');
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (dom.businessTypeDropdown.style.display === 'none') {
+          const val = dom.businessTypeInput.value.trim();
+          if (val) filterAndShowBusinessTypes(val);
+          return;
+        }
+        state.selectedBusinessTypeIndex = Math.min(state.selectedBusinessTypeIndex + 1, items.length - 1);
+        highlightBusinessTypeItem(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        state.selectedBusinessTypeIndex = Math.max(state.selectedBusinessTypeIndex - 1, 0);
+        highlightBusinessTypeItem(items);
+      } else if (e.key === 'Enter') {
+        if (state.selectedBusinessTypeIndex >= 0 && items[state.selectedBusinessTypeIndex]) {
+          e.preventDefault();
+          selectBusinessType(items[state.selectedBusinessTypeIndex].getAttribute('data-value'));
+        } else {
+          dom.businessTypeDropdown.style.display = 'none';
+        }
+      } else if (e.key === 'Escape') {
+        dom.businessTypeDropdown.style.display = 'none';
+      }
+    });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+      if (!dom.businessTypeInput.contains(e.target) && !dom.businessTypeDropdown.contains(e.target)) {
+        dom.businessTypeDropdown.style.display = 'none';
+      }
+    });
+  }
+
+  function filterAndShowBusinessTypes(query) {
+    const q = query.toLowerCase().trim();
+
+    // REQUIRE AT LEAST 1 TYPED CHARACTER BEFORE SHOWING DROPDOWN
+    if (!q) {
+      dom.businessTypeDropdown.style.display = 'none';
+      dom.businessTypeDropdown.innerHTML = '';
+      return;
     }
+
+    const matches = PREDEFINED_BUSINESS_TYPES.filter(type => type.toLowerCase().includes(q));
+
+    if (matches.length === 0) {
+      dom.businessTypeDropdown.style.display = 'none';
+      dom.businessTypeDropdown.innerHTML = '';
+      return;
+    }
+
+    state.selectedBusinessTypeIndex = -1;
+
+    dom.businessTypeDropdown.innerHTML = matches.map((type, idx) => {
+      const highlightedText = escapeHtml(type).replace(new RegExp(`(${escapeRegExp(q)})`, 'gi'), '<span class="highlight-match">$1</span>');
+      return `
+        <div class="suggestion-item" data-value="${escapeHtml(type)}" data-index="${idx}">
+          <div><strong>${highlightedText}</strong></div>
+          <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 700;">Category</span>
+        </div>
+      `;
+    }).join('');
+
+    dom.businessTypeDropdown.style.display = 'block';
+
+    // Use mousedown listener for immediate selection without blur conflicts
+    dom.businessTypeDropdown.querySelectorAll('.suggestion-item').forEach(item => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectBusinessType(item.getAttribute('data-value'));
+      });
+    });
+  }
+
+  function highlightBusinessTypeItem(items) {
+    items.forEach((item, idx) => {
+      if (idx === state.selectedBusinessTypeIndex) {
+        item.classList.add('active');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  }
+
+  function selectBusinessType(value) {
+    if (!value) return;
+    dom.businessTypeInput.value = value;
+    dom.businessTypeDropdown.style.display = 'none';
+    state.selectedBusinessTypeIndex = -1;
   }
 
   // --- Google Places Smart Location Search Controller ---
@@ -468,6 +558,14 @@
       }, 250);
     });
 
+    dom.locationSearchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (dom.locationSuggestionsDropdown.style.display !== 'none') {
+          dom.locationSuggestionsDropdown.style.display = 'none';
+        }
+      }
+    });
+
     document.addEventListener('click', (e) => {
       if (!dom.locationSearchInput.contains(e.target) && !dom.locationSuggestionsDropdown.contains(e.target)) {
         dom.locationSuggestionsDropdown.style.display = 'none';
@@ -487,9 +585,9 @@
         <div class="suggestion-item" data-id="${p.place_id}" data-address="${escapeHtml(p.formatted_address)}" data-name="${escapeHtml(p.name)}">
           <div>
             <strong>${escapeHtml(p.main_text || p.name)}</strong>
-            <div class="suggestion-meta">${escapeHtml(p.secondary_text || p.formatted_address)}</div>
+            <div class="suggestion-meta" style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(p.secondary_text || p.formatted_address)}</div>
           </div>
-          <span style="font-size: 0.8rem; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px;">Place</span>
+          <span style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 700;">Place</span>
         </div>
       `;
     }).join('');
@@ -497,10 +595,10 @@
     dom.locationSuggestionsDropdown.style.display = 'block';
 
     dom.locationSuggestionsDropdown.querySelectorAll('.suggestion-item').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault();
         const placeId = item.getAttribute('data-id');
         const formattedAddress = item.getAttribute('data-address');
-
         selectLocation(placeId, formattedAddress);
       });
     });
@@ -516,7 +614,7 @@
     if (dom.selectedLocationBadge) {
       dom.selectedLocationBadge.innerHTML = `
         <span>📍 ${escapeHtml(formattedAddress)}</span>
-        <button type="button" class="remove-loc-btn" title="Clear Location">&times;</button>
+        <button type="button" class="remove-loc-btn" title="Clear Location" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer;">&times;</button>
       `;
       dom.selectedLocationBadge.style.display = 'inline-flex';
 
@@ -556,26 +654,28 @@
   async function executeSearch() {
     if (state.isSearching) return;
 
-    const locationName = state.selectedLocationName || dom.locationSearchInput.value.trim();
+    let locationName = state.selectedLocationName || (dom.locationSearchInput ? dom.locationSearchInput.value.trim() : '');
 
+    // Fallback prompt if location input is empty
     if (!locationName) {
-      showToast('Please search and select a location first', 'error');
+      showToast('Please enter a city or location to search (e.g. Lagos, Abuja, London)', 'error');
+      if (dom.locationSearchInput) dom.locationSearchInput.focus();
       return;
     }
 
+    // Capture Business Type dynamically from input field
+    const bTypeInput = document.getElementById('business-type-input');
+    const businessType = bTypeInput ? bTypeInput.value.trim() : '';
+
+    // Capture Combined Search Criteria
     const params = {
       place_id: state.selectedPlaceId,
       location_name: locationName,
-      business_type: dom.categorySelect.value,
-      min_rating: dom.minRatingSelect.value,
-      has_phone: dom.phoneFilterSelect.value,
-      has_website: dom.websiteFilterSelect.value
+      business_type: businessType,
+      min_rating: dom.minRatingSelect ? dom.minRatingSelect.value : '',
+      has_website: dom.websiteFilterSelect ? dom.websiteFilterSelect.value : '',
+      has_phone: dom.phoneFilterSelect ? dom.phoneFilterSelect.value : ''
     };
-
-    if (!params.business_type) {
-      showToast('Please select or enter a business category', 'error');
-      return;
-    }
 
     state.isSearching = true;
     state.activeFilters = params;
@@ -612,193 +712,241 @@
   }
 
   function showLoadingState() {
-    dom.resultsHeader.style.display = 'none';
-    dom.cardsGrid.style.display = 'none';
-    dom.emptyState.style.display = 'none';
-    dom.errorState.style.display = 'none';
-    dom.loadingState.style.display = 'grid';
+    if (dom.resultsHeader) dom.resultsHeader.style.display = 'none';
+    if (dom.cardsGrid) dom.cardsGrid.style.display = 'none';
+    if (dom.emptyState) dom.emptyState.style.display = 'none';
+    if (dom.errorState) dom.errorState.style.display = 'none';
+    if (dom.loadingState) dom.loadingState.style.display = 'flex';
 
-    dom.searchBtn.disabled = true;
-    dom.searchBtn.innerHTML = '<span class="spinner"></span> Searching...';
+    if (dom.searchBtn) {
+      dom.searchBtn.disabled = false;
+      dom.searchBtn.innerHTML = 'Searching...';
+    }
   }
 
   function renderResults(businesses, params) {
-    dom.loadingState.style.display = 'none';
-    dom.emptyState.style.display = 'none';
-    dom.errorState.style.display = 'none';
-    dom.resultsHeader.style.display = 'flex';
-    dom.cardsGrid.style.display = 'grid';
+    if (dom.loadingState) dom.loadingState.style.display = 'none';
+    if (dom.emptyState) dom.emptyState.style.display = 'none';
+    if (dom.errorState) dom.errorState.style.display = 'none';
+    if (dom.resultsHeader) dom.resultsHeader.style.display = 'flex';
+    if (dom.cardsGrid) dom.cardsGrid.style.display = 'flex';
 
-    dom.searchBtn.disabled = false;
-    dom.searchBtn.innerHTML = '🔍 Find Businesses';
+    if (dom.searchBtn) {
+      dom.searchBtn.disabled = false;
+      dom.searchBtn.innerHTML = 'Search →';
+    }
 
-    dom.resultsCount.textContent = businesses.length;
-    dom.resultsContext.textContent = `${capitalize(params.business_type)}s in ${params.location_name}`;
+    if (dom.resultsCount) dom.resultsCount.textContent = businesses.length;
+    if (dom.resultsContext) dom.resultsContext.textContent = `Results for "${capitalize(params.business_type)} in ${params.location_name}"`;
 
-    // Render Pills
-    const pills = [];
-    pills.push(`📍 ${params.location_name}`);
-    if (params.min_rating) pills.push(`★ ${params.min_rating}+ Rating`);
-    if (params.has_phone === 'true') pills.push('📞 Phone Available');
-    if (params.has_website === 'false') pills.push('🌐 No Website (Opportunity)');
-    if (params.has_website === 'true') pills.push('🌐 Has Website');
+    const noWebsiteCount = businesses.filter(b => !b.website).length;
+    if (dom.statMissingWebsite) dom.statMissingWebsite.textContent = noWebsiteCount;
+    if (dom.statSavedCount) dom.statSavedCount.textContent = state.savedBusinesses.length;
 
-    dom.activePills.innerHTML = pills.map(p => `<span class="filter-pill">${p}</span>`).join('');
-
-    // Render Cards
-    dom.cardsGrid.innerHTML = businesses.map(b => createBusinessCardHtml(b)).join('');
-    attachCardEventListeners();
+    // Render Business Cards with PERMANENT VISIBLE LARGE SCANNABLE QR CODES
+    if (dom.cardsGrid) {
+      dom.cardsGrid.innerHTML = businesses.map(b => createBusinessCardHtml(b)).join('');
+      attachCardEventListeners();
+    }
   }
 
   function showEmptyState() {
-    dom.loadingState.style.display = 'none';
-    dom.resultsHeader.style.display = 'none';
-    dom.cardsGrid.style.display = 'none';
-    dom.errorState.style.display = 'none';
-    dom.emptyState.style.display = 'block';
+    if (dom.loadingState) dom.loadingState.style.display = 'none';
+    if (dom.resultsHeader) dom.resultsHeader.style.display = 'none';
+    if (dom.cardsGrid) dom.cardsGrid.style.display = 'none';
+    if (dom.errorState) dom.errorState.style.display = 'none';
+    if (dom.emptyState) dom.emptyState.style.display = 'block';
 
-    dom.searchBtn.disabled = false;
-    dom.searchBtn.innerHTML = '🔍 Find Businesses';
+    if (dom.searchBtn) {
+      dom.searchBtn.disabled = false;
+      dom.searchBtn.innerHTML = 'Search →';
+    }
   }
 
   function showErrorState(msg) {
-    dom.loadingState.style.display = 'none';
-    dom.resultsHeader.style.display = 'none';
-    dom.cardsGrid.style.display = 'none';
-    dom.emptyState.style.display = 'none';
-    dom.errorState.style.display = 'block';
-    dom.errorMessage.textContent = msg;
+    if (dom.loadingState) dom.loadingState.style.display = 'none';
+    if (dom.resultsHeader) dom.resultsHeader.style.display = 'none';
+    if (dom.cardsGrid) dom.cardsGrid.style.display = 'none';
+    if (dom.emptyState) dom.emptyState.style.display = 'none';
+    if (dom.errorState) dom.errorState.style.display = 'block';
+    if (dom.errorMessage) dom.errorMessage.textContent = msg;
 
-    dom.searchBtn.disabled = false;
-    dom.searchBtn.innerHTML = '🔍 Find Businesses';
+    if (dom.searchBtn) {
+      dom.searchBtn.disabled = false;
+      dom.searchBtn.innerHTML = 'Search →';
+    }
   }
 
-  // --- Business Card Component HTML ---
+  // --- WhatsApp Phone Number Sanitizer & Link Formatter ---
+  function buildWhatsAppUrl(b) {
+    const rawIntl = b.phone || b.phone_number || '';
+    const rawNat = b.national_phone || b.international_phone_number || '';
+    const phoneStr = rawIntl || rawNat || '';
+    if (!phoneStr) return null;
+
+    // Strip everything except 0-9 digits
+    let digits = phoneStr.replace(/\D/g, '');
+    if (!digits) return null;
+
+    // Handle Nigerian local format (e.g. 08032079169 -> 2348032079169)
+    if (digits.startsWith('0') && digits.length === 11) {
+      digits = '234' + digits.substring(1);
+    } else if (digits.length === 10 && !digits.startsWith('234')) {
+      digits = '234' + digits;
+    }
+
+    if (digits.length < 7) return null;
+
+    // Format: https://wa.me/<FULL_INTERNATIONAL_PHONE_NUMBER>
+    return `https://wa.me/${digits}`;
+  }
+
+  // ================= BUSINESS RESULT CARD WITH PERMANENT VISIBLE QR CODE =================
   function createBusinessCardHtml(b, isProspectView = false) {
     const placeId = b.google_place_id || b.id;
     const isSaved = state.savedBusinesses.some(saved => saved.google_place_id === placeId || saved.id === placeId);
     const hasWebsite = Boolean(b.website);
     const rawPhone = b.phone || b.phone_number || b.national_phone || b.international_phone_number || '';
     const hasPhone = Boolean(rawPhone);
-    const formattedPhone = b.national_phone || b.international_phone_number || b.phone || b.phone_number || 'Phone unavailable';
+    const formattedPhone = b.national_phone || b.international_phone_number || b.phone || b.phone_number || 'No Phone Number';
 
-    // WhatsApp URL generation
-    const cleanPhone = rawPhone.replace(/[^\d+]/g, '').replace('+', '');
-    const waText = encodeURIComponent(`Hello ${b.name || b.business_name}, I found your business on Bizz-Hunter and wanted to get in touch.`);
-    const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${waText}` : null;
+    // WhatsApp URL & Direct QR Code SVG Rendering
+    const waUrl = buildWhatsAppUrl(b);
+
+    // DIRECT PERMANENT LARGE SCANNABLE SVG QR CODE INJECTION
+    let qrSvgHtml = '';
+    if (waUrl && window.QRCodeGenerator) {
+      qrSvgHtml = window.QRCodeGenerator(waUrl, { size: 132, colorDark: '#0b0f19', colorLight: '#ffffff' });
+    }
 
     // Opportunity Signals & Score
-    const oppLevel = b.opportunity_level || 'HIGH';
-    const oppSignals = b.opportunity_signals || [
-      !hasWebsite ? '🚨 No website (Direct digital opportunity)' : '🌐 Website active',
-      hasPhone ? '📞 Direct phone line available' : 'Phone line unavailable'
-    ];
-
-    const levelColor = oppLevel === 'HIGH' ? '#ef4444' : (oppLevel === 'MEDIUM' ? '#f59e0b' : '#3b82f6');
+    const oppLevel = b.opportunity_level || (!hasWebsite ? 'HIGH' : 'STANDARD');
+    const categoryName = (b.category || b.types?.[0] || 'Business').replace(/_/g, ' ').toUpperCase();
+    const ratingVal = b.rating ? Number(b.rating).toFixed(1) : 'N/A';
+    const reviewCountText = b.review_count ? `(${Number(b.review_count).toLocaleString()})` : '';
 
     return `
       <div class="business-card" data-id="${placeId}" data-db-id="${b.id || ''}">
-        <div class="card-top">
-          <div class="card-title-row">
-            <h3 class="business-name">${escapeHtml(b.name || b.business_name)}</h3>
-            <div class="rating-badge">
-              <span>★</span> ${b.rating ? Number(b.rating).toFixed(1) : 'N/A'}
-            </div>
-          </div>
-          <div class="review-count">${b.review_count ? `${b.review_count} Google reviews` : 'No reviews yet'}</div>
-        </div>
-
-        <div class="business-meta">
-          <div class="meta-item">
-            <span class="icon">📍</span>
-            <span>${escapeHtml(b.address || 'Address unavailable')}</span>
-          </div>
-          <div class="meta-item">
-            <span class="icon">📞</span>
-            <span>${escapeHtml(formattedPhone)}</span>
-          </div>
-          <div class="meta-item">
-            <span class="icon">🌐</span>
-            <span>${hasWebsite ? `<a href="${b.website}" target="_blank" rel="noopener">${escapeHtml(b.website)}</a>` : '<span style="color: #ef4444; font-weight: 600;">No website found</span>'}</span>
-          </div>
-        </div>
-
-        <!-- Opportunity Signals Box -->
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; margin-bottom: 0.85rem;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Opportunity Signal</span>
-            <span style="font-size: 0.75rem; font-weight: 800; color: ${levelColor}; background: rgba(255, 255, 255, 0.08); padding: 1px 6px; border-radius: 4px;">${oppLevel}</span>
-          </div>
-          <div style="font-size: 0.8rem; color: var(--text-main); display: flex; flex-direction: column; gap: 2px;">
-            ${oppSignals.slice(0, 3).map(sig => `<div>• ${escapeHtml(sig)}</div>`).join('')}
-          </div>
-        </div>
-
-        ${isProspectView ? `
-          <!-- Prospect Status & Notes Controls -->
-          <div style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem; margin-bottom: 0.85rem; display: flex; flex-direction: column; gap: 0.6rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-              <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Status:</label>
-              <select class="form-select prospect-status-select" data-id="${b.id}" style="padding: 0.25rem 0.5rem; font-size: 0.825rem; width: auto;">
-                <option value="NEW" ${b.status === 'NEW' ? 'selected' : ''}>🆕 New</option>
-                <option value="CONTACTED" ${b.status === 'CONTACTED' ? 'selected' : ''}>💬 Contacted</option>
-                <option value="INTERESTED" ${b.status === 'INTERESTED' ? 'selected' : ''}>🔥 Interested</option>
-                <option value="CONVERTED" ${b.status === 'CONVERTED' ? 'selected' : ''}>🎉 Converted</option>
-                <option value="NOT_INTERESTED" ${b.status === 'NOT_INTERESTED' ? 'selected' : ''}>🚫 Not Interested</option>
-              </select>
+        
+        <!-- Left Panel: Details, Badges, Tags, Actions -->
+        <div class="card-left-content">
+          <div>
+            <div class="card-top-tags">
+              <div class="category-tag">
+                <span>${escapeHtml(categoryName)}</span>
+                <span class="opp-badge ${oppLevel}">${oppLevel} OPPORTUNITY</span>
+              </div>
+              <div class="card-rating-badge">
+                <span>★</span> ${ratingVal} <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">${reviewCountText}</span>
+              </div>
             </div>
 
-            <div style="display: flex; gap: 0.4rem;">
-              <input type="text" class="form-control prospect-notes-input" data-id="${b.id}" placeholder="Add notes (e.g. Spoke to manager)..." value="${escapeHtml(b.notes || '')}" style="font-size: 0.8rem; padding: 0.35rem 0.5rem;">
-              <button type="button" class="btn btn-secondary btn-sm save-notes-btn" data-id="${b.id}" style="white-space: nowrap; padding: 0.35rem 0.6rem;">Save Note</button>
+            <h3 class="card-business-name">${escapeHtml(b.name || b.business_name)}</h3>
+
+            <div class="card-info-rows">
+              <div class="info-row">
+                <span>📍</span>
+                <span>${escapeHtml(b.address || 'Address unavailable')}</span>
+              </div>
+              <div class="info-row">
+                <span>🌐</span>
+                ${hasWebsite ? `
+                  <a href="${b.website}" target="_blank" rel="noopener" style="color: var(--primary); text-decoration: underline;">${escapeHtml(b.website)}</a>
+                ` : `
+                  <span class="badge-no-website">NO WEBSITE</span>
+                  <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Direct lead opportunity</span>
+                `}
+              </div>
+            </div>
+
+            <div class="signal-tags-group">
+              ${!hasWebsite ? '<span class="signal-tag">No website found</span>' : '<span class="signal-tag">Website active</span>'}
+              ${b.rating >= 4.5 ? '<span class="signal-tag">High rating (4.5+)</span>' : ''}
+              ${b.review_count >= 100 ? `<span class="signal-tag">${Number(b.review_count).toLocaleString()}+ reviews</span>` : ''}
+              ${waUrl ? '<span class="signal-tag">WhatsApp reachable</span>' : ''}
+            </div>
+
+            ${isProspectView ? `
+              <!-- Prospect Status & Notes Controls -->
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+                  <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Status:</label>
+                  <select class="form-select prospect-status-select" data-id="${b.id}" style="padding: 0.25rem 0.5rem; font-size: 0.825rem; width: auto;">
+                    <option value="NEW" ${b.status === 'NEW' ? 'selected' : ''}>🆕 New</option>
+                    <option value="CONTACTED" ${b.status === 'CONTACTED' ? 'selected' : ''}>💬 Contacted</option>
+                    <option value="INTERESTED" ${b.status === 'INTERESTED' ? 'selected' : ''}>🔥 Interested</option>
+                    <option value="CONVERTED" ${b.status === 'CONVERTED' ? 'selected' : ''}>🎉 Converted</option>
+                    <option value="NOT_INTERESTED" ${b.status === 'NOT_INTERESTED' ? 'selected' : ''}>🚫 Not Interested</option>
+                  </select>
+                </div>
+
+                <div style="display: flex; gap: 0.4rem;">
+                  <input type="text" class="form-control prospect-notes-input" data-id="${b.id}" placeholder="Add notes (e.g. Spoke to manager)..." value="${escapeHtml(b.notes || '')}" style="font-size: 0.8rem; padding: 0.35rem 0.5rem;">
+                  <button type="button" class="btn btn-secondary btn-sm save-notes-btn" data-id="${b.id}" style="white-space: nowrap;">Save Note</button>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="card-actions-left">
+            ${isProspectView ? `
+              <button class="btn btn-secondary btn-sm remove-prospect-btn" data-id="${b.id}" style="color: #ef4444;">
+                <span>🗑️</span> Remove
+              </button>
+            ` : `
+              <button class="btn ${isSaved ? 'btn-secondary' : 'btn-primary'} btn-sm save-btn" data-id="${placeId}">
+                <span>${isSaved ? '❤️ Saved' : '🔖 Save prospect'}</span>
+              </button>
+            `}
+
+            <button class="btn btn-secondary btn-sm details-btn" data-id="${placeId}">
+              <span>📞</span> Call / Details
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Panel: PERMANENT VISIBLE LARGE SCANNABLE QR CODE -->
+        <div class="card-right-panel">
+          <div class="phone-header-box">
+            <div class="phone-section-label">PHONE</div>
+            <div class="phone-number-text">
+              <span>${escapeHtml(formattedPhone)}</span>
+              ${hasPhone ? `<button class="copy-icon-btn" title="Copy Phone Number" data-phone="${escapeHtml(formattedPhone)}">📋</button>` : ''}
             </div>
           </div>
-        ` : ''}
 
-        <div class="card-actions">
           ${waUrl ? `
-            <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm wa-link-btn" data-id="${b.id || ''}">
+            <div class="qr-visible-box">
+              ${qrSvgHtml}
+            </div>
+            <div class="qr-caption-subtext">Scan to open WhatsApp chat</div>
+
+            <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm btn-block">
               <span>💬</span> WhatsApp
             </a>
-            <button class="icon-btn qr-btn" title="Scan WhatsApp QR Code" data-id="${placeId}">
-              <span>📱</span>
-            </button>
           ` : `
-            <button class="btn btn-secondary btn-sm" disabled>No Phone</button>
+            <div style="padding: 2rem 0; color: var(--text-dim); font-size: 0.85rem;">
+              <div>NO PHONE NUMBER</div>
+              <div style="font-size: 0.75rem; margin-top: 4px;">QR unavailable</div>
+            </div>
+            <button class="btn btn-secondary btn-sm btn-block" disabled>No Phone Line</button>
           `}
-
-          ${b.google_maps_url ? `
-            <a href="${b.google_maps_url}" target="_blank" rel="noopener" class="icon-btn" title="Open Google Maps">
-              <span>🗺️</span>
-            </a>
-          ` : ''}
-
-          ${isProspectView ? `
-            <button class="icon-btn remove-prospect-btn" title="Delete Prospect" data-id="${b.id}" style="color: #ef4444;">
-              <span>🗑️</span>
-            </button>
-          ` : `
-            <button class="icon-btn save-btn ${isSaved ? 'saved' : ''}" title="${isSaved ? 'Saved in Prospects' : 'Save Prospect'}" data-id="${placeId}">
-              <span>${isSaved ? '❤️' : '🤍'}</span>
-            </button>
-          `}
-
-          <button class="btn btn-secondary btn-sm details-btn" style="margin-left: auto;" data-id="${placeId}">
-            Details
-          </button>
         </div>
+
       </div>
     `;
   }
 
   function attachCardEventListeners() {
-    // QR Code modal
-    document.querySelectorAll('.qr-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
-        const b = state.searchResults.find(item => item.id === id || item.google_place_id === id) ||
-                  state.savedBusinesses.find(item => item.google_place_id === id || item.id === id);
-        if (b) openQrModal(b);
+    // Copy Phone Number Button
+    document.querySelectorAll('.copy-icon-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const phone = btn.getAttribute('data-phone');
+        if (phone) {
+          navigator.clipboard.writeText(phone);
+          showToast(`Copied ${phone} to clipboard!`, 'success');
+        }
       });
     });
 
@@ -905,7 +1053,6 @@
   async function loadUserProspects() {
     if (!state.currentUser) {
       state.savedBusinesses = [];
-      renderSavedCountBadge();
       renderSavedBusinessesView();
       return;
     }
@@ -913,7 +1060,6 @@
     try {
       const prospects = await window.BizzApi.getProspects(state.activeProspectStatusFilter);
       state.savedBusinesses = prospects;
-      renderSavedCountBadge();
       updateDashboardMetrics();
 
       if (state.currentTab === 'saved-businesses') {
@@ -924,31 +1070,21 @@
     }
   }
 
-  function renderSavedCountBadge() {
-    if (dom.savedBadge) {
-      dom.savedBadge.textContent = state.savedBusinesses.length;
-    }
-  }
-
   function renderSavedBusinessesView() {
     if (!dom.savedGrid) return;
 
     if (!state.currentUser) {
       dom.savedGrid.style.display = 'none';
       dom.savedEmptyState.style.display = 'block';
-      dom.savedEmptyState.querySelector('.empty-title').textContent = 'Account Required';
-      dom.savedEmptyState.querySelector('.empty-desc').textContent = 'Sign up or log in to view and manage your saved business prospects.';
       return;
     }
 
     if (state.savedBusinesses.length === 0) {
       dom.savedGrid.style.display = 'none';
       dom.savedEmptyState.style.display = 'block';
-      dom.savedEmptyState.querySelector('.empty-title').textContent = 'No Saved Prospects Found';
-      dom.savedEmptyState.querySelector('.empty-desc').textContent = 'When discovering businesses, click the ❤️ icon on any card to save it here.';
     } else {
       dom.savedEmptyState.style.display = 'none';
-      dom.savedGrid.style.display = 'grid';
+      dom.savedGrid.style.display = 'flex';
       dom.savedGrid.innerHTML = state.savedBusinesses.map(b => createBusinessCardHtml(b, true)).join('');
       attachCardEventListeners();
     }
@@ -968,15 +1104,12 @@
   function closeModals() {
     if (dom.authModal) dom.authModal.classList.remove('active');
     if (dom.detailsModal) dom.detailsModal.classList.remove('active');
-    if (dom.qrModal) dom.qrModal.classList.remove('active');
   }
 
   function openDetailsModal(b) {
     const name = b.name || b.business_name;
+    const waUrl = buildWhatsAppUrl(b);
     const rawPhone = b.phone || b.phone_number || b.national_phone || b.international_phone_number || '';
-    const cleanPhone = rawPhone.replace(/[^\d+]/g, '').replace('+', '');
-    const waText = encodeURIComponent(`Hello ${name}, I found your business on Bizz-Hunter and wanted to get in touch.`);
-    const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${waText}` : null;
 
     dom.detailsModalBody.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
@@ -984,7 +1117,7 @@
           <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.25rem;">${escapeHtml(name)}</h2>
           <div style="color: var(--text-muted); font-size: 0.9rem;">${b.types ? (Array.isArray(b.types) ? b.types.slice(0, 3).join(' • ') : b.types) : (b.category || 'Business')}</div>
         </div>
-        <div class="rating-badge" style="font-size: 1rem; padding: 4px 10px;">
+        <div class="card-rating-badge">
           ★ ${b.rating ? Number(b.rating).toFixed(1) : 'N/A'}
         </div>
       </div>
@@ -994,7 +1127,6 @@
         <div><strong>Phone (International):</strong> ${escapeHtml(b.phone || b.phone_number || 'Unavailable')}</div>
         <div><strong>Phone (National):</strong> ${escapeHtml(b.national_phone || b.international_phone_number || 'Unavailable')}</div>
         <div><strong>Website:</strong> ${b.website ? `<a href="${b.website}" target="_blank">${escapeHtml(b.website)}</a>` : '<span style="color: #ef4444; font-weight: 600;">No Website (Lead Opportunity)</span>'}</div>
-        ${b.latitude && b.longitude ? `<div><strong>Coordinates:</strong> ${Number(b.latitude).toFixed(5)}, ${Number(b.longitude).toFixed(5)}</div>` : ''}
       </div>
 
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
@@ -1007,44 +1139,14 @@
     dom.detailsModal.classList.add('active');
   }
 
-  function openQrModal(b) {
-    const name = b.name || b.business_name;
-    const rawPhone = b.phone || b.phone_number || b.national_phone || b.international_phone_number || '';
-    const cleanPhone = rawPhone.replace(/[^\d+]/g, '').replace('+', '');
-    const waText = encodeURIComponent(`Hello ${name}, I found your business on Bizz-Hunter.`);
-    const waUrl = `https://wa.me/${cleanPhone}?text=${waText}`;
-
-    const svgQr = window.QRCodeGenerator ? window.QRCodeGenerator(waUrl, { size: 240, colorDark: '#0b0f19', colorLight: '#ffffff' }) : '';
-
-    dom.qrModalBody.innerHTML = `
-      <div style="text-align: center;">
-        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.25rem;">${escapeHtml(name)}</h3>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Scan to open WhatsApp contact link</p>
-
-        <div class="qr-container">
-          ${svgQr}
-          <div class="qr-caption">Scan with Phone Camera or WhatsApp</div>
-        </div>
-
-        <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 1rem; word-break: break-all;">
-          ${waUrl}
-        </div>
-      </div>
-    `;
-
-    dom.qrModal.classList.add('active');
-  }
-
   // --- Dashboard Metrics ---
   function updateDashboardMetrics() {
     const noWebsiteCount = state.searchResults.filter(b => !b.website).length;
-    const phoneCount = state.searchResults.filter(b => b.phone || b.phone_number || b.national_phone).length;
     const oppsCount = state.searchResults.filter(b => !b.website || (b.phone || b.phone_number)).length;
 
     if (dom.dashDiscovered) dom.dashDiscovered.textContent = state.searchedCount;
     if (dom.dashOpps) dom.dashOpps.textContent = oppsCount;
     if (dom.dashNoWebsite) dom.dashNoWebsite.textContent = noWebsiteCount;
-    if (dom.dashPhoneAvailable) dom.dashPhoneAvailable.textContent = phoneCount;
     if (dom.dashSaved) dom.dashSaved.textContent = state.savedBusinesses.length;
   }
 
@@ -1072,16 +1174,13 @@
       .replace(/'/g, '&#039;');
   }
 
+  function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   function capitalize(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  function getInitials(name) {
-    if (!name) return 'U';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return parts[0][0].toUpperCase();
   }
 
 })();

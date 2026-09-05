@@ -77,7 +77,11 @@ module GooglePlaces
         'places.location',
         'places.rating',
         'places.userRatingCount',
-        'places.googleMapsUri'
+        'places.googleMapsUri',
+        'places.internationalPhoneNumber',
+        'places.nationalPhoneNumber',
+        'places.websiteUri',
+        'places.types'
       ].join(',')
     end
 

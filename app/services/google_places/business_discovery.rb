@@ -39,17 +39,18 @@ module GooglePlaces
         area: area
       )
 
-      businesses = search_results.fetch('places', [])
+      raw_businesses = search_results.fetch('places', [])
 
-      businesses = filter_businesses(businesses)
-
-      businesses.map do |business|
-        details = PlaceDetails.call(
-          place_id: business['id']
-        )
-
-        normalize_business(details)
+      normalized_businesses = raw_businesses.map do |business|
+        begin
+          details = PlaceDetails.call(place_id: business['id'])
+          normalize_business(details)
+        rescue StandardError => e
+          normalize_business(business)
+        end
       end
+
+      filter_businesses(normalized_businesses)
     end
 
     private
@@ -66,19 +67,17 @@ module GooglePlaces
                 :has_website
 
     def filter_businesses(businesses)
-      businesses = businesses.select do |business|
+      businesses.select do |business|
         rating_matches?(business) &&
           phone_matches?(business) &&
           website_matches?(business)
       end
-
-      businesses
     end
 
     def rating_matches?(business)
       return true if min_rating.blank?
 
-      business['rating'].to_f >= min_rating.to_f
+      business[:rating].to_f >= min_rating.to_f
     end
 
     def phone_matches?(business)
@@ -94,18 +93,17 @@ module GooglePlaces
     end
 
     def business_has_phone?(business)
-      business['internationalPhoneNumber'].present? ||
-        business['nationalPhoneNumber'].present?
+      business[:phone].present? || business[:national_phone].present?
     end
 
     def business_has_website?(business)
-      business['websiteUri'].present?
+      business[:website].present?
     end
 
     def normalize_business(place)
       data = {
         id: place['id'],
-        name: place.dig('displayName', 'text'),
+        name: place.dig('displayName', 'text') || place['displayName'],
         types: place['types'],
         address: place['formattedAddress'],
         latitude: place.dig('location', 'latitude'),
