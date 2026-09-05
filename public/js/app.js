@@ -35,7 +35,8 @@
     selectedPlaceId: null,
     selectedLocationName: '',
     isSearching: false,
-    selectedBusinessTypeIndex: -1
+    selectedBusinessTypeIndex: -1,
+    activeSearchId: null
   };
 
   // DOM Cache
@@ -165,6 +166,8 @@
       analysisEmptySearchBtn: document.getElementById('analysis-empty-search-btn'),
       analysisAuthGate: document.getElementById('analysis-auth-gate'),
       analysisLoginBtn: document.getElementById('analysis-login-btn'),
+      searchHistoryContainer: document.getElementById('search-history-container'),
+      searchHistoryList: document.getElementById('search-history-list'),
 
       toastContainer: document.getElementById('toast-container')
     };
@@ -725,6 +728,10 @@
       state.searchResults = res.data;
       state.searchedCount += res.data.length;
       localStorage.setItem('bizz_hunter_searched_count', state.searchedCount.toString());
+
+      if (res.search_id) {
+        state.activeSearchId = res.search_id;
+      }
 
       if (res.quota) {
         updateQuotaUI(res.quota);
@@ -1444,14 +1451,27 @@
   }
 
   // --- Render Dashboard Analytics Summary ---
-  function renderDashboardAnalytics() {
-    const analytics = calculateAnalytics(state.searchResults);
+  async function renderDashboardAnalytics() {
+    let dbAnalytics = null;
+    if (state.currentUser) {
+      dbAnalytics = await window.BizzApi.getAnalytics();
+    }
 
-    if (dom.dashKpiFound) dom.dashKpiFound.textContent = analytics.totalFound || state.searchedCount;
-    if (dom.dashKpiHighOpp) dom.dashKpiHighOpp.textContent = analytics.highOppCount;
-    if (dom.dashKpiNoWebsite) dom.dashKpiNoWebsite.textContent = analytics.noWebsiteCount;
-    if (dom.dashKpiWhatsapp) dom.dashKpiWhatsapp.textContent = analytics.whatsappCount;
-    if (dom.dashKpiSaved) dom.dashKpiSaved.textContent = state.savedBusinesses.length;
+    const localAnalytics = calculateAnalytics(state.searchResults);
+    
+    const totalFound = dbAnalytics ? dbAnalytics.businesses_found : (localAnalytics.totalFound || state.searchedCount);
+    const highOpp = dbAnalytics ? dbAnalytics.high_opportunity : localAnalytics.highOppCount;
+    const medOpp = dbAnalytics ? dbAnalytics.medium_opportunity : localAnalytics.medOppCount;
+    const lowOpp = dbAnalytics ? dbAnalytics.low_opportunity : localAnalytics.lowOppCount;
+    const noWebsite = dbAnalytics ? dbAnalytics.no_website : localAnalytics.noWebsiteCount;
+    const whatsapp = dbAnalytics ? dbAnalytics.whatsapp_available : localAnalytics.whatsappCount;
+    const saved = dbAnalytics ? dbAnalytics.saved_prospects : state.savedBusinesses.length;
+
+    if (dom.dashKpiFound) dom.dashKpiFound.textContent = totalFound;
+    if (dom.dashKpiHighOpp) dom.dashKpiHighOpp.textContent = highOpp;
+    if (dom.dashKpiNoWebsite) dom.dashKpiNoWebsite.textContent = noWebsite;
+    if (dom.dashKpiWhatsapp) dom.dashKpiWhatsapp.textContent = whatsapp;
+    if (dom.dashKpiSaved) dom.dashKpiSaved.textContent = saved;
 
     const colors = getChartColors();
 
@@ -1461,7 +1481,7 @@
       data: {
         labels: ['High Opportunity', 'Medium Opportunity', 'Low Opportunity'],
         datasets: [{
-          data: [analytics.highOppCount, analytics.medOppCount, analytics.lowOppCount],
+          data: [highOpp, medOpp, lowOpp],
           backgroundColor: [colors.highOpp, colors.medOpp, colors.lowOpp],
           borderWidth: 2,
           borderColor: colors.borderColor
@@ -1477,7 +1497,7 @@
     });
 
     // 2. Dashboard Top Types Chart
-    const topTypes = analytics.sortedTypes.slice(0, 5);
+    const topTypes = dbAnalytics && dbAnalytics.top_business_types ? dbAnalytics.top_business_types.slice(0, 5) : localAnalytics.sortedTypes.slice(0, 5);
     createChart('dash-chart-types', {
       type: 'bar',
       data: {
@@ -1514,9 +1534,10 @@
   }
 
   // --- Render Dedicated Analysis Workspace ---
-  function renderAnalysisWorkspace() {
+  async function renderAnalysisWorkspace() {
     if (!state.currentUser) {
       if (dom.analysisAuthGate) dom.analysisAuthGate.style.display = 'block';
+      if (dom.searchHistoryContainer) dom.searchHistoryContainer.style.display = 'none';
       if (dom.analysisEmptyState) dom.analysisEmptyState.style.display = 'none';
       if (dom.topProspectsList) dom.topProspectsList.innerHTML = '';
       if (dom.analysisLoginBtn) {
@@ -1527,15 +1548,41 @@
 
     if (dom.analysisAuthGate) dom.analysisAuthGate.style.display = 'none';
 
-    const businesses = state.searchResults || [];
-    const analytics = calculateAnalytics(businesses);
+    // Render Search History list
+    const searches = await window.BizzApi.getSearches();
+    if (searches && searches.length > 0) {
+      if (dom.searchHistoryContainer) dom.searchHistoryContainer.style.display = 'block';
+      if (dom.searchHistoryList) {
+        dom.searchHistoryList.innerHTML = searches.map(s => {
+          const isSelected = state.activeSearchId === s.id;
+          const dateStr = new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          return `
+            <div class="chart-filter-btn ${isSelected ? 'active' : ''}" style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;" data-search-id="${s.id}">
+              <span>🏢 ${escapeHtml(s.business_type)} (${escapeHtml(s.location_name || 'All')})</span>
+              <span style="opacity: 0.75; font-size: 0.75rem;">• ${s.results_count} leads • ${dateStr}</span>
+            </div>
+          `;
+        }).join('');
 
-    if (dom.analysisSearchContextLabel) {
-      const locStr = state.selectedLocationName ? `in ${state.selectedLocationName}` : '';
-      dom.analysisSearchContextLabel.textContent = `Search: ${businesses.length} businesses analyzed ${locStr}`;
+        dom.searchHistoryList.querySelectorAll('[data-search-id]').forEach(btn => {
+          btn.onclick = async () => {
+            state.activeSearchId = btn.getAttribute('data-search-id');
+            await renderAnalysisWorkspace();
+          };
+        });
+      }
+    } else {
+      if (dom.searchHistoryContainer) dom.searchHistoryContainer.style.display = 'none';
     }
 
-    if (businesses.length === 0) {
+    // Fetch search-specific analysis or latest search analysis
+    let analysisData = await window.BizzApi.getSearchAnalysis(state.activeSearchId);
+    
+    if (!analysisData && state.searchResults && state.searchResults.length > 0) {
+      analysisData = calculateAnalytics(state.searchResults);
+    }
+
+    if (!analysisData || (!analysisData.top_prospects && (!analysisData.summary || analysisData.summary.total_businesses === 0))) {
       if (dom.analysisEmptyState) dom.analysisEmptyState.style.display = 'block';
       if (dom.analysisKpiFound) dom.analysisKpiFound.textContent = '0';
       if (dom.analysisKpiNoWebsite) dom.analysisKpiNoWebsite.textContent = '0';
@@ -1551,12 +1598,48 @@
 
     if (dom.analysisEmptyState) dom.analysisEmptyState.style.display = 'none';
 
+    const summary = analysisData.summary || {
+      total_businesses: analysisData.totalFound || 0,
+      no_website_count: analysisData.noWebsiteCount || 0,
+      phone_available_count: analysisData.phoneCount || 0,
+      whatsapp_available_count: analysisData.whatsappCount || 0,
+      high_opportunity_count: analysisData.highOppCount || 0
+    };
+
+    const oppCounts = analysisData.opportunity || {
+      high: analysisData.highOppCount || 0,
+      medium: analysisData.medOppCount || 0,
+      low: analysisData.lowOppCount || 0
+    };
+
+    const webCounts = analysisData.website || {
+      no_website: analysisData.noWebsiteCount || 0,
+      has_website: analysisData.hasWebsiteCount || 0
+    };
+
+    const contactCounts = analysisData.contactability || {
+      phone_available: analysisData.phoneCount || 0,
+      whatsapp_available: analysisData.whatsappCount || 0,
+      no_phone: analysisData.noPhoneCount || 0
+    };
+
+    const topProspects = analysisData.top_prospects || [];
+    const searchMeta = analysisData.search;
+
+    if (dom.analysisSearchContextLabel) {
+      if (searchMeta) {
+        dom.analysisSearchContextLabel.textContent = `Search Analysis: ${searchMeta.business_type} in ${searchMeta.location_name || 'All'} • ${summary.total_businesses} businesses analyzed`;
+      } else {
+        dom.analysisSearchContextLabel.textContent = `Search Analysis: ${summary.total_businesses} businesses analyzed`;
+      }
+    }
+
     // Update 5 KPI Cards
-    if (dom.analysisKpiFound) dom.analysisKpiFound.textContent = analytics.totalFound;
-    if (dom.analysisKpiNoWebsite) dom.analysisKpiNoWebsite.textContent = analytics.noWebsiteCount;
-    if (dom.analysisKpiPhone) dom.analysisKpiPhone.textContent = analytics.phoneCount;
-    if (dom.analysisKpiWhatsapp) dom.analysisKpiWhatsapp.textContent = analytics.whatsappCount;
-    if (dom.analysisKpiHighOpp) dom.analysisKpiHighOpp.textContent = analytics.highOppCount;
+    if (dom.analysisKpiFound) dom.analysisKpiFound.textContent = summary.total_businesses;
+    if (dom.analysisKpiNoWebsite) dom.analysisKpiNoWebsite.textContent = summary.no_website_count;
+    if (dom.analysisKpiPhone) dom.analysisKpiPhone.textContent = summary.phone_available_count;
+    if (dom.analysisKpiWhatsapp) dom.analysisKpiWhatsapp.textContent = summary.whatsapp_available_count;
+    if (dom.analysisKpiHighOpp) dom.analysisKpiHighOpp.textContent = summary.high_opportunity_count;
 
     const colors = getChartColors();
 
@@ -1565,12 +1648,12 @@
       type: 'doughnut',
       data: {
         labels: [
-          `High (${analytics.highOppCount})`,
-          `Medium (${analytics.medOppCount})`,
-          `Low (${analytics.lowOppCount})`
+          `High (${oppCounts.high})`,
+          `Medium (${oppCounts.medium})`,
+          `Low (${oppCounts.low})`
         ],
         datasets: [{
-          data: [analytics.highOppCount, analytics.medOppCount, analytics.lowOppCount],
+          data: [oppCounts.high, oppCounts.medium, oppCounts.low],
           backgroundColor: [colors.highOpp, colors.medOpp, colors.lowOpp],
           borderWidth: 2,
           borderColor: colors.borderColor
@@ -1589,9 +1672,9 @@
     createChart('analysis-chart-website', {
       type: 'doughnut',
       data: {
-        labels: [`No Website (${analytics.noWebsiteCount})`, `Has Website (${analytics.hasWebsiteCount})`],
+        labels: [`No Website (${webCounts.no_website})`, `Has Website (${webCounts.has_website})`],
         datasets: [{
-          data: [analytics.noWebsiteCount, analytics.hasWebsiteCount],
+          data: [webCounts.no_website, webCounts.has_website],
           backgroundColor: [colors.noWebsite, colors.hasWebsite],
           borderWidth: 2,
           borderColor: colors.borderColor

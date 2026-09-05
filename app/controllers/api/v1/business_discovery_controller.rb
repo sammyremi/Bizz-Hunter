@@ -36,20 +36,41 @@ module Api
           **business_discovery_params.to_h.symbolize_keys
         )
 
+        saved_search = GooglePlaces::SearchPersistence.call(
+          user: current_user,
+          search_params: business_discovery_params.to_h,
+          businesses: result
+        )
+
         render json: {
           success: true,
           message: 'Businesses retrieved successfully',
           data: result,
+          search_id: saved_search&.id,
           quota: quota_result[:quota]
         }, status: :ok
       end
 
       def analysis
-        result = GooglePlaces::BusinessDiscovery.call(
-          **business_discovery_params.to_h.symbolize_keys
-        )
+        if params[:search_id].present?
+          search_record = current_user.searches.find(params[:search_id])
+          analysis_data = GooglePlaces::BusinessDiscoveryAnalysis.call(search: search_record)
+        else
+          result = GooglePlaces::BusinessDiscovery.call(
+            **business_discovery_params.to_h.symbolize_keys
+          )
 
-        analysis_data = GooglePlaces::BusinessDiscoveryAnalysis.call(businesses: result)
+          saved_search = GooglePlaces::SearchPersistence.call(
+            user: current_user,
+            search_params: business_discovery_params.to_h,
+            businesses: result
+          )
+
+          analysis_data = GooglePlaces::BusinessDiscoveryAnalysis.call(
+            search: saved_search,
+            businesses: result
+          )
+        end
 
         render json: {
           success: true,

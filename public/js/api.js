@@ -260,6 +260,56 @@
       }
       return json;
     }
+
+    // --- Analytics & Searches API ---
+    static async getAnalytics() {
+      if (!this.getToken()) return null;
+      try {
+        const response = await fetch(`${BASE_API_URL}/analytics`, {
+          headers: this.getHeaders()
+        });
+        const json = await response.json();
+        if (response.ok && json.success) {
+          return json.data;
+        }
+      } catch (e) {
+        console.warn('Error fetching analytics', e);
+      }
+      return null;
+    }
+
+    static async getSearches() {
+      if (!this.getToken()) return [];
+      try {
+        const response = await fetch(`${BASE_API_URL}/searches`, {
+          headers: this.getHeaders()
+        });
+        const json = await response.json();
+        if (response.ok && json.success) {
+          return json.data || [];
+        }
+      } catch (e) {
+        console.warn('Error fetching searches', e);
+      }
+      return [];
+    }
+
+    static async getSearchAnalysis(searchId) {
+      if (!this.getToken()) return null;
+      try {
+        const url = searchId ? `${BASE_API_URL}/searches/${searchId}/analysis` : `${BASE_API_URL}/business-discovery/analysis`;
+        const response = await fetch(url, {
+          headers: this.getHeaders()
+        });
+        const json = await response.json();
+        if (response.ok && json.success) {
+          return json.data;
+        }
+      } catch (e) {
+        console.warn('Error fetching search analysis', e);
+      }
+      return null;
+    }
   }
 
   window.BizzApi = ApiClient;

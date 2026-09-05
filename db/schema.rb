@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_01_140002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_05_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -40,6 +40,57 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_140002) do
     t.index ["user_id"], name: "index_prospects_on_user_id"
   end
 
+  create_table "search_results", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "address"
+    t.string "business_type"
+    t.string "city"
+    t.string "country"
+    t.datetime "created_at", null: false
+    t.string "google_maps_url"
+    t.string "google_place_id", null: false
+    t.float "latitude"
+    t.float "longitude"
+    t.string "name", null: false
+    t.string "national_phone"
+    t.jsonb "opportunity_factors", default: []
+    t.string "opportunity_level", default: "LOW"
+    t.integer "opportunity_score", default: 0
+    t.string "opportunity_tier", default: "low"
+    t.string "phone"
+    t.float "rating"
+    t.integer "review_count", default: 0
+    t.uuid "search_id", null: false
+    t.string "state"
+    t.jsonb "types", default: []
+    t.datetime "updated_at", null: false
+    t.uuid "user_id"
+    t.string "website"
+    t.index ["google_place_id"], name: "index_search_results_on_google_place_id"
+    t.index ["opportunity_tier"], name: "index_search_results_on_opportunity_tier"
+    t.index ["search_id"], name: "index_search_results_on_search_id"
+    t.index ["user_id", "google_place_id"], name: "index_search_results_on_user_id_and_google_place_id"
+    t.index ["user_id"], name: "index_search_results_on_user_id"
+  end
+
+  create_table "searches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "area"
+    t.string "business_type"
+    t.string "city"
+    t.string "country"
+    t.datetime "created_at", null: false
+    t.string "location_name"
+    t.float "min_rating"
+    t.string "phone_filter"
+    t.string "query"
+    t.integer "results_count", default: 0, null: false
+    t.string "state"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id"
+    t.string "website_filter"
+    t.index ["created_at"], name: "index_searches_on_created_at"
+    t.index ["user_id"], name: "index_searches_on_user_id"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -50,4 +101,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_140002) do
   end
 
   add_foreign_key "prospects", "users", on_delete: :cascade
+  add_foreign_key "search_results", "searches", on_delete: :cascade
+  add_foreign_key "search_results", "users", on_delete: :cascade
+  add_foreign_key "searches", "users", on_delete: :cascade
 end

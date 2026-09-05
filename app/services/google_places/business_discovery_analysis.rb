@@ -4,8 +4,40 @@
 
 module GooglePlaces
   class BusinessDiscoveryAnalysis < ApplicationService
-    def initialize(businesses: [])
-      @businesses = Array(businesses).map(&:with_indifferent_access)
+    def initialize(businesses: nil, search: nil)
+      @search_obj = search
+      if search.present?
+        @search_meta = {
+          id: search.id,
+          query: search.query,
+          business_type: search.business_type,
+          location_name: search.location_name,
+          results_count: search.results_count,
+          created_at: search.created_at
+        }
+        raw_list = search.search_results.map do |r|
+          {
+            id: r.google_place_id,
+            google_place_id: r.google_place_id,
+            name: r.name,
+            types: r.types,
+            address: r.address,
+            phone: r.phone,
+            national_phone: r.national_phone,
+            website: r.website,
+            rating: r.rating,
+            review_count: r.review_count,
+            opportunity_score: r.opportunity_score,
+            opportunity_tier: r.opportunity_tier,
+            opportunity_level: r.opportunity_level,
+            opportunity_factors: r.opportunity_factors
+          }
+        end
+        @businesses = raw_list.map(&:with_indifferent_access)
+      else
+        @search_meta = nil
+        @businesses = Array(businesses).map(&:with_indifferent_access)
+      end
     end
 
     def call
@@ -122,6 +154,7 @@ module GooglePlaces
       top_prospects = scored_businesses.sort_by { |b| -b[:opportunity_score].to_i }.first(10)
 
       {
+        search: @search_meta,
         summary: {
           total_businesses: total_businesses,
           no_website_count: no_website_count,
@@ -152,10 +185,11 @@ module GooglePlaces
 
     private
 
-    attr_reader :businesses
+    attr_reader :businesses, :search_meta, :search_obj
 
     def empty_analysis
       {
+        search: search_meta,
         summary: {
           total_businesses: 0,
           no_website_count: 0,

@@ -73,7 +73,7 @@
           </form>
 
           <!-- Filter Panel & Searchable Business Type -->
-          <div class="filter-panel-box" style="max-width: 780px; margin: 1.25rem auto 0 auto;">
+          <div class="filter-panel-box" style="max-width: 1000px; margin: 1.25rem auto 0 auto;">
             <div class="filter-grid">
               
               <!-- UNIFIED SEARCHABLE BUSINESS TYPE DROPDOWN + CUSTOM INPUT -->
@@ -289,6 +289,17 @@
             <button id="analysis-btn-back-results" class="btn btn-secondary btn-sm">← Back to Results</button>
             <button id="analysis-btn-export-csv" class="btn btn-primary btn-sm">📥 Export Analysis (CSV)</button>
           </div>
+        </div>
+
+        <!-- SEARCH HISTORY / PREVIOUS SEARCHES ROW -->
+        <div id="search-history-container" class="chart-card" style="margin-bottom: 1.75rem; display: none;">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-title">🕒 Search History</div>
+              <div class="chart-desc">Reopen any previously saved search analysis workspace.</div>
+            </div>
+          </div>
+          <div id="search-history-list" style="display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem;"></div>
         </div>
 
         <!-- ANALYSIS KPI CARDS ROW -->

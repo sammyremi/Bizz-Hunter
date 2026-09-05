@@ -14,6 +14,10 @@ Rails.application.routes.draw do
       get 'locations/autocomplete', to: 'locations#autocomplete'
       get 'locations/details', to: 'locations#details'
 
+      get 'analytics', to: 'analytics#show'
+      get 'searches', to: 'searches#index'
+      get 'searches/:id/analysis', to: 'searches#analysis'
+
       resources :prospects
     end
   end
