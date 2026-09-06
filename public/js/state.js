@@ -6,10 +6,13 @@
   // Shared DOM Cache Reference
   window.dom = {};
 
+  const initialHash = window.location.hash ? window.location.hash.replace('#', '') : null;
+  const initialSavedTab = localStorage.getItem('bizz_hunter_current_tab');
+
   // Shared Application State
   window.BizzState = {
     theme: localStorage.getItem('bizz_hunter_theme') || 'dark',
-    currentTab: 'find-businesses',
+    currentTab: initialHash || initialSavedTab || 'find-businesses',
     currentUser: null,
     currentQuota: null,
     searchResults: [],

@@ -17,8 +17,30 @@
     if (typeof window.initModals === 'function') window.initModals();
     if (typeof window.initAuth === 'function') window.initAuth();
 
+    // Determine initial tab from hash, localStorage, or state
+    const hashTab = window.location.hash ? window.location.hash.replace('#', '') : null;
+    const savedTab = localStorage.getItem('bizz_hunter_current_tab');
+    const initialTab = hashTab || savedTab || state.currentTab || 'find-businesses';
+
+    switchTab(initialTab);
+
     if (typeof window.checkAuthSession === 'function') await window.checkAuthSession();
     if (typeof window.fetchAndUpdateQuota === 'function') await window.fetchAndUpdateQuota();
+  });
+
+  window.addEventListener('hashchange', () => {
+    const hashTab = window.location.hash.replace('#', '');
+    if (hashTab && ['find-businesses', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(hashTab)) {
+      if (!state.currentUser && ['dashboard', 'saved-businesses', 'analysis'].includes(hashTab)) {
+        if (typeof window.openAuthModal === 'function') {
+          const tabTitle = window.capitalize ? window.capitalize(hashTab.replace('-', ' ')) : hashTab;
+          window.openAuthModal('login', `Account required to access ${tabTitle}. Sign up or log in to continue!`);
+        }
+        switchTab('find-businesses');
+        return;
+      }
+      switchTab(hashTab);
+    }
   });
 
   // --- Theme Switcher Engine ---
@@ -84,7 +106,18 @@
   }
 
   function switchTab(tabName) {
+    if (!tabName) tabName = 'find-businesses';
     state.currentTab = tabName;
+    localStorage.setItem('bizz_hunter_current_tab', tabName);
+
+    if (window.location.hash !== `#${tabName}`) {
+      try {
+        history.replaceState(null, '', `#${tabName}`);
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
     const dom = window.dom || state.dom;
 
     if (dom && dom.navItems) {

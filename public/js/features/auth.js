@@ -59,16 +59,22 @@
   async function checkAuthSession() {
     const state = window.BizzState;
     const user = await window.BizzApi.getMe();
+    
+    const hashTab = window.location.hash ? window.location.hash.replace('#', '') : null;
+    const savedTab = localStorage.getItem('bizz_hunter_current_tab');
+    const targetTab = hashTab || savedTab || state.currentTab || 'find-businesses';
+
     if (user) {
       setCurrentUser(user);
       await window.loadUserProspects();
-      if (state.currentTab === 'dashboard') {
-        await window.renderDashboardAnalytics();
-      } else if (state.currentTab === 'analysis') {
-        await window.renderAnalysisWorkspace();
-      }
+      window.switchTab(targetTab);
     } else {
       setCurrentUser(null);
+      if (['dashboard', 'saved-businesses', 'analysis'].includes(targetTab)) {
+        window.switchTab('find-businesses');
+      } else {
+        window.switchTab(targetTab);
+      }
     }
   }
 

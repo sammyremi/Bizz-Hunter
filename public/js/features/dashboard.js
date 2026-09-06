@@ -4,15 +4,15 @@
   'use strict';
 
   function updateDashboardMetrics() {
-    const dom = window.dom;
+    const dom = window.dom || (window.BizzState ? window.BizzState.dom : null);
     const state = window.BizzState;
 
-    if (dom.dashKpiSaved) dom.dashKpiSaved.textContent = state.savedBusinesses.length;
+    if (dom && dom.dashKpiSaved) dom.dashKpiSaved.textContent = state.savedBusinesses ? state.savedBusinesses.length : 0;
     window.renderDashboardAnalytics();
   }
 
   async function renderDashboardAnalytics() {
-    const dom = window.dom;
+    const dom = window.dom || (window.BizzState ? window.BizzState.dom : null);
     const state = window.BizzState;
 
     let dbAnalytics = null;
@@ -20,24 +20,49 @@
       dbAnalytics = await window.BizzApi.getAnalytics();
     }
 
-    const localAnalytics = window.calculateAnalytics(state.searchResults);
-    const hasDbData = dbAnalytics && dbAnalytics.businesses_found > 0;
-    
-    const totalFound = hasDbData ? dbAnalytics.businesses_found : (localAnalytics.totalFound || state.searchedCount);
-    const highOpp = hasDbData ? dbAnalytics.high_opportunity : localAnalytics.highOppCount;
-    const medOpp = hasDbData ? dbAnalytics.medium_opportunity : localAnalytics.medOppCount;
-    const lowOpp = hasDbData ? dbAnalytics.low_opportunity : localAnalytics.lowOppCount;
-    const noWebsite = hasDbData ? dbAnalytics.no_website : localAnalytics.noWebsiteCount;
-    const whatsapp = hasDbData ? dbAnalytics.whatsapp_available : localAnalytics.whatsappCount;
-    const saved = (dbAnalytics && dbAnalytics.saved_prospects !== undefined) ? dbAnalytics.saved_prospects : state.savedBusinesses.length;
+    const localAnalytics = window.calculateAnalytics(state.searchResults || []);
+    const isUserLoggedIn = !!state.currentUser && !!dbAnalytics;
 
-    if (dom.dashKpiFound) dom.dashKpiFound.textContent = totalFound;
-    if (dom.dashKpiHighOpp) dom.dashKpiHighOpp.textContent = highOpp;
-    if (dom.dashKpiNoWebsite) dom.dashKpiNoWebsite.textContent = noWebsite;
-    if (dom.dashKpiWhatsapp) dom.dashKpiWhatsapp.textContent = whatsapp;
-    if (dom.dashKpiSaved) dom.dashKpiSaved.textContent = saved;
+    const totalFound = isUserLoggedIn
+      ? (dbAnalytics.businesses_found || 0)
+      : (localAnalytics.totalFound || (state.searchResults ? state.searchResults.length : 0));
 
-    const colors = window.getChartColors();
+    const highOpp = isUserLoggedIn
+      ? (dbAnalytics.high_opportunity || 0)
+      : (localAnalytics.highOppCount || 0);
+
+    const medOpp = isUserLoggedIn
+      ? (dbAnalytics.medium_opportunity || 0)
+      : (localAnalytics.medOppCount || 0);
+
+    const lowOpp = isUserLoggedIn
+      ? (dbAnalytics.low_opportunity || 0)
+      : (localAnalytics.lowOppCount || 0);
+
+    const noWebsite = isUserLoggedIn
+      ? (dbAnalytics.no_website || 0)
+      : (localAnalytics.noWebsiteCount || 0);
+
+    const whatsapp = isUserLoggedIn
+      ? (dbAnalytics.whatsapp_available || 0)
+      : (localAnalytics.whatsappCount || 0);
+
+    const saved = isUserLoggedIn
+      ? (dbAnalytics.saved_prospects !== undefined ? dbAnalytics.saved_prospects : 0)
+      : (state.savedBusinesses ? state.savedBusinesses.length : 0);
+
+    if (dom) {
+      if (dom.dashKpiFound) dom.dashKpiFound.textContent = totalFound;
+      if (dom.dashKpiHighOpp) dom.dashKpiHighOpp.textContent = highOpp;
+      if (dom.dashKpiNoWebsite) dom.dashKpiNoWebsite.textContent = noWebsite;
+      if (dom.dashKpiWhatsapp) dom.dashKpiWhatsapp.textContent = whatsapp;
+      if (dom.dashKpiSaved) dom.dashKpiSaved.textContent = saved;
+    }
+
+    const colors = window.getChartColors ? window.getChartColors() : {
+      highOpp: '#ef4444', medOpp: '#f59e0b', lowOpp: '#10b981',
+      borderColor: '#374151', textColor: '#f3f4f6', primary: '#3b82f6'
+    };
 
     // 1. Dashboard Donut Chart
     window.createChart('dash-chart-opportunity', {
@@ -61,9 +86,9 @@
     });
 
     // 2. Dashboard Top Types Chart
-    const topTypes = (hasDbData && dbAnalytics.top_business_types && dbAnalytics.top_business_types.length > 0) 
-      ? dbAnalytics.top_business_types.slice(0, 5) 
-      : localAnalytics.sortedTypes.slice(0, 5);
+    const topTypes = (isUserLoggedIn && dbAnalytics.top_business_types && dbAnalytics.top_business_types.length > 0)
+      ? dbAnalytics.top_business_types.slice(0, 5)
+      : (localAnalytics.sortedTypes ? localAnalytics.sortedTypes.slice(0, 5) : []);
 
     window.createChart('dash-chart-types', {
       type: 'bar',
@@ -89,14 +114,16 @@
     });
 
     // Setup Quick Action Buttons on Dashboard
-    if (dom.dashBtnViewAnalysis) {
-      dom.dashBtnViewAnalysis.onclick = () => window.switchTab('analysis');
-    }
-    if (dom.dashBtnViewHighOpps) {
-      dom.dashBtnViewHighOpps.onclick = () => window.filterResultsBy('high_opp');
-    }
-    if (dom.dashBtnViewSaved) {
-      dom.dashBtnViewSaved.onclick = () => window.switchTab('saved-businesses');
+    if (dom) {
+      if (dom.dashBtnViewAnalysis) {
+        dom.dashBtnViewAnalysis.onclick = () => window.switchTab('analysis');
+      }
+      if (dom.dashBtnViewHighOpps) {
+        dom.dashBtnViewHighOpps.onclick = () => window.filterResultsBy('high_opp');
+      }
+      if (dom.dashBtnViewSaved) {
+        dom.dashBtnViewSaved.onclick = () => window.switchTab('saved-businesses');
+      }
     }
   }
 
