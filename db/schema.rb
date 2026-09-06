@@ -10,11 +10,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_05_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_06_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
+
+  create_table "prospecting_profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.jsonb "contact_signals", default: []
+    t.datetime "created_at", null: false
+    t.boolean "is_default", default: false, null: false
+    t.string "name", null: false
+    t.jsonb "opportunity_signals", default: []
+    t.string "service", null: false
+    t.text "service_description", null: false
+    t.jsonb "target_businesses", default: []
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["user_id", "is_default"], name: "index_prospecting_profiles_on_user_id_and_is_default"
+    t.index ["user_id"], name: "index_prospecting_profiles_on_user_id"
+  end
 
   create_table "prospects", force: :cascade do |t|
     t.string "address"
@@ -100,6 +115,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_05_150000) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "prospecting_profiles", "users", on_delete: :cascade
   add_foreign_key "prospects", "users", on_delete: :cascade
   add_foreign_key "search_results", "searches", on_delete: :cascade
   add_foreign_key "search_results", "users", on_delete: :cascade

@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :prospects, dependent: :destroy
+  has_many :prospecting_profiles, dependent: :destroy
   has_many :searches, dependent: :destroy
   has_many :search_results, dependent: :destroy
 
