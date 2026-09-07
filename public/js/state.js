@@ -25,6 +25,7 @@
     isSearching: false,
     selectedBusinessTypeIndex: -1,
     activeSearchId: null,
+    prospectingProfiles: [],
     dom: window.dom
   };
 
@@ -140,6 +141,17 @@
       analysisLoginBtn: document.getElementById('analysis-login-btn'),
       searchHistoryContainer: document.getElementById('search-history-container'),
       searchHistoryList: document.getElementById('search-history-list'),
+
+      // Prospecting Profiles Elements
+      profilesGrid: document.getElementById('profiles-grid'),
+      profilesLoadingState: document.getElementById('profiles-loading-state'),
+      profilesEmptyState: document.getElementById('profiles-empty-state'),
+      profilesErrorState: document.getElementById('profiles-error-state'),
+      createProfileBtn: document.getElementById('create-profile-btn'),
+      profilesEmptyCreateBtn: document.getElementById('profiles-empty-create-btn'),
+      profilesRetryBtn: document.getElementById('profiles-retry-btn'),
+      profileModal: document.getElementById('profile-modal'),
+      profileForm: document.getElementById('profile-form'),
 
       toastContainer: document.getElementById('toast-container')
     };

@@ -70,7 +70,7 @@
       window.switchTab(targetTab);
     } else {
       setCurrentUser(null);
-      if (['dashboard', 'saved-businesses', 'analysis'].includes(targetTab)) {
+      if (['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(targetTab)) {
         window.switchTab('find-businesses');
       } else {
         window.switchTab(targetTab);
@@ -145,6 +145,7 @@
         if (passwordEl) passwordEl.value = '';
         await fetchAndUpdateQuota();
         await window.loadUserProspects();
+        if (typeof window.loadProfiles === 'function') await window.loadProfiles();
         await window.renderDashboardAnalytics();
         if (state.currentTab === 'analysis') {
           await window.renderAnalysisWorkspace();
@@ -196,6 +197,7 @@
         if (passwordEl) passwordEl.value = '';
         await fetchAndUpdateQuota();
         await window.loadUserProspects();
+        if (typeof window.loadProfiles === 'function') await window.loadProfiles();
         await window.renderDashboardAnalytics();
         if (state.currentTab === 'analysis') {
           await window.renderAnalysisWorkspace();
