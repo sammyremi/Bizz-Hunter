@@ -17,6 +17,7 @@
     if (typeof window.initModals === 'function') window.initModals();
     if (typeof window.initAuth === 'function') window.initAuth();
     if (typeof window.initProfiles === 'function') window.initProfiles();
+    if (typeof window.initOnboarding === 'function') window.initOnboarding();
 
     // Determine initial tab from hash, localStorage, or state
     const hashTab = window.location.hash ? window.location.hash.replace('#', '') : null;
@@ -149,6 +150,10 @@
       if (typeof window.loadUserProspects === 'function') window.loadUserProspects();
     } else if (tabName === 'prospecting-profiles') {
       if (typeof window.loadProfiles === 'function') window.loadProfiles();
+    }
+
+    if (typeof window.updateDiscoveryBannerVisibility === 'function') {
+      window.updateDiscoveryBannerVisibility();
     }
   }
 

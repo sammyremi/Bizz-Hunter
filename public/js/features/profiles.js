@@ -166,6 +166,9 @@
       const profiles = await window.BizzApi.getProspectingProfiles();
       state.prospectingProfiles = Array.isArray(profiles) ? profiles : [];
       renderProfilesView();
+      if (typeof window.updateDiscoveryBannerVisibility === 'function') {
+        window.updateDiscoveryBannerVisibility();
+      }
     } catch (err) {
       console.error('Error loading prospecting profiles:', err);
       showProfilesError(err.message || 'Failed to load prospecting profiles');
@@ -425,6 +428,8 @@
 
     try {
       let savedProfile;
+      const isNew = !id;
+
       if (id) {
         savedProfile = await window.BizzApi.updateProspectingProfile(id, payload);
         window.showToast(`Updated profile "${savedProfile.name}"!`, 'success');
@@ -435,6 +440,10 @@
 
       closeProfileModal();
       await loadProfiles();
+
+      if (isNew && typeof window.showProfileSuccessModal === 'function') {
+        window.showProfileSuccessModal(savedProfile);
+      }
     } catch (err) {
       console.error('Error saving profile:', err);
       let errMsg = err.message || 'Failed to save prospecting profile.';

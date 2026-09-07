@@ -57,6 +57,21 @@
       <!-- ================= SECTION 1: DISCOVERY ================= -->
       <section id="view-find-businesses" class="view-section active">
         
+        <!-- Discovery Prospecting Profile Prompt Banner (Shown if user skipped profile creation) -->
+        <div id="discovery-profile-banner" class="discovery-profile-banner" style="display: none;">
+          <div class="discovery-banner-content">
+            <span class="discovery-banner-icon">🎯</span>
+            <div>
+              <strong>Want more relevant prospect recommendations?</strong>
+              <p>Create a Prospecting Profile so Bizz-Hunter can understand what you're selling and target the best leads.</p>
+            </div>
+          </div>
+          <div class="discovery-banner-actions">
+            <button type="button" id="discovery-banner-create-btn" class="btn btn-primary btn-sm">Create Profile</button>
+            <button type="button" id="discovery-banner-dismiss-btn" class="btn-dismiss-banner" title="Dismiss prompt">&times;</button>
+          </div>
+        </div>
+
         <!-- Centered Hero Title -->
         <div class="discovery-hero">
           <h1 class="hero-main-title">Find businesses worth<br>contacting.</h1>
@@ -680,6 +695,64 @@
   </div>
 </div>
 
+<!-- First-Time Prospecting Profile Onboarding Modal -->
+<div id="onboarding-modal" class="modal-overlay">
+  <div class="modal-container onboarding-modal-container">
+    <div class="onboarding-header">
+      <div class="onboarding-badge">PERSONALIZATION</div>
+      <h2 class="onboarding-title">Let's personalize your Bizz-Hunter experience</h2>
+      <p class="onboarding-subtitle">Tell us what you sell and who you want to reach. Your Prospecting Profile helps Bizz-Hunter identify businesses that are more relevant to you.</p>
+    </div>
+
+    <div class="onboarding-benefits-grid">
+      <div class="onboarding-benefit-card">
+        <div class="benefit-icon">🎯</div>
+        <div class="benefit-content">
+          <h4>Find better prospects</h4>
+          <p>Identify businesses that match what you offer.</p>
+        </div>
+      </div>
+
+      <div class="onboarding-benefit-card">
+        <div class="benefit-icon">📊</div>
+        <div class="benefit-content">
+          <h4>Prioritize opportunities</h4>
+          <p>Understand which businesses may be worth contacting.</p>
+        </div>
+      </div>
+
+      <div class="onboarding-benefit-card">
+        <div class="benefit-icon">💬</div>
+        <div class="benefit-content">
+          <h4>Reach out faster</h4>
+          <p>Get relevant contact information and outreach opportunities.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="onboarding-actions">
+      <button type="button" id="onboarding-create-btn" class="btn btn-primary btn-lg btn-block">Create My Prospecting Profile</button>
+      <button type="button" id="onboarding-skip-btn" class="btn btn-ghost btn-block">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Prospecting Profile Creation Success Modal -->
+<div id="profile-success-modal" class="modal-overlay">
+  <div class="modal-container onboarding-modal-container" style="max-width: 480px; text-align: center;">
+    <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">🎯</div>
+    <h2 class="onboarding-title" style="margin-bottom: 0.5rem;">Your profile is ready</h2>
+    <p class="onboarding-subtitle" style="margin-bottom: 1.5rem;">
+      Bizz-Hunter can now use your prospecting preferences to help you find better opportunities.
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <button type="button" id="success-start-discovering-btn" class="btn btn-primary btn-lg btn-block">Start Discovering →</button>
+      <button type="button" id="success-view-profiles-btn" class="btn btn-secondary btn-block">View Profiles</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div id="confirm-delete-profile-modal" class="modal-overlay">
   <div class="modal-container" style="max-width: 440px;">
@@ -721,6 +794,7 @@
 <script src="/js/features/dashboard.js?v=20260905_v2"></script>
 <script src="/js/features/analysis.js?v=20260905_v2"></script>
 <script src="/js/features/profiles.js?v=20260905_v2"></script>
+<script src="/js/features/onboarding.js?v=20260905_v2"></script>
 <script src="/js/app.js?v=20260905_v2"></script>
 
 </body>

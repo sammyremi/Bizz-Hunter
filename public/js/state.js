@@ -153,6 +153,17 @@
       profileModal: document.getElementById('profile-modal'),
       profileForm: document.getElementById('profile-form'),
 
+      // Onboarding & Discovery Prompt Banner
+      onboardingModal: document.getElementById('onboarding-modal'),
+      onboardingCreateBtn: document.getElementById('onboarding-create-btn'),
+      onboardingSkipBtn: document.getElementById('onboarding-skip-btn'),
+      profileSuccessModal: document.getElementById('profile-success-modal'),
+      successStartDiscoveringBtn: document.getElementById('success-start-discovering-btn'),
+      successViewProfilesBtn: document.getElementById('success-view-profiles-btn'),
+      discoveryProfileBanner: document.getElementById('discovery-profile-banner'),
+      discoveryBannerCreateBtn: document.getElementById('discovery-banner-create-btn'),
+      discoveryBannerDismissBtn: document.getElementById('discovery-banner-dismiss-btn'),
+
       toastContainer: document.getElementById('toast-container')
     };
 
