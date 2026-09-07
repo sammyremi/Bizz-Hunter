@@ -67,10 +67,12 @@
     if (user) {
       setCurrentUser(user);
       await window.loadUserProspects();
+      if (typeof window.loadProfiles === 'function') await window.loadProfiles();
       window.switchTab(targetTab);
+      if (typeof window.checkAndRunOnboarding === 'function') await window.checkAndRunOnboarding();
     } else {
       setCurrentUser(null);
-      if (['dashboard', 'saved-businesses', 'analysis'].includes(targetTab)) {
+      if (['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(targetTab)) {
         window.switchTab('find-businesses');
       } else {
         window.switchTab(targetTab);
@@ -145,6 +147,8 @@
         if (passwordEl) passwordEl.value = '';
         await fetchAndUpdateQuota();
         await window.loadUserProspects();
+        if (typeof window.loadProfiles === 'function') await window.loadProfiles();
+        if (typeof window.checkAndRunOnboarding === 'function') await window.checkAndRunOnboarding();
         await window.renderDashboardAnalytics();
         if (state.currentTab === 'analysis') {
           await window.renderAnalysisWorkspace();
@@ -196,6 +200,8 @@
         if (passwordEl) passwordEl.value = '';
         await fetchAndUpdateQuota();
         await window.loadUserProspects();
+        if (typeof window.loadProfiles === 'function') await window.loadProfiles();
+        if (typeof window.checkAndRunOnboarding === 'function') await window.checkAndRunOnboarding();
         await window.renderDashboardAnalytics();
         if (state.currentTab === 'analysis') {
           await window.renderAnalysisWorkspace();
@@ -213,6 +219,9 @@
   async function logoutUser() {
     await window.BizzApi.logout();
     setCurrentUser(null);
+    window.BizzState.prospectingProfiles = [];
+    if (typeof window.closeOnboardingModal === 'function') window.closeOnboardingModal();
+    if (typeof window.updateDiscoveryBannerVisibility === 'function') window.updateDiscoveryBannerVisibility();
     window.showToast('Logged out successfully', 'info');
     await fetchAndUpdateQuota();
     window.switchTab('find-businesses');

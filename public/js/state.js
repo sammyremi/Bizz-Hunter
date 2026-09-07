@@ -25,6 +25,7 @@
     isSearching: false,
     selectedBusinessTypeIndex: -1,
     activeSearchId: null,
+    prospectingProfiles: [],
     dom: window.dom
   };
 
@@ -140,6 +141,28 @@
       analysisLoginBtn: document.getElementById('analysis-login-btn'),
       searchHistoryContainer: document.getElementById('search-history-container'),
       searchHistoryList: document.getElementById('search-history-list'),
+
+      // Prospecting Profiles Elements
+      profilesGrid: document.getElementById('profiles-grid'),
+      profilesLoadingState: document.getElementById('profiles-loading-state'),
+      profilesEmptyState: document.getElementById('profiles-empty-state'),
+      profilesErrorState: document.getElementById('profiles-error-state'),
+      createProfileBtn: document.getElementById('create-profile-btn'),
+      profilesEmptyCreateBtn: document.getElementById('profiles-empty-create-btn'),
+      profilesRetryBtn: document.getElementById('profiles-retry-btn'),
+      profileModal: document.getElementById('profile-modal'),
+      profileForm: document.getElementById('profile-form'),
+
+      // Onboarding & Discovery Prompt Banner
+      onboardingModal: document.getElementById('onboarding-modal'),
+      onboardingCreateBtn: document.getElementById('onboarding-create-btn'),
+      onboardingSkipBtn: document.getElementById('onboarding-skip-btn'),
+      profileSuccessModal: document.getElementById('profile-success-modal'),
+      successStartDiscoveringBtn: document.getElementById('success-start-discovering-btn'),
+      successViewProfilesBtn: document.getElementById('success-view-profiles-btn'),
+      discoveryProfileBanner: document.getElementById('discovery-profile-banner'),
+      discoveryBannerCreateBtn: document.getElementById('discovery-banner-create-btn'),
+      discoveryBannerDismissBtn: document.getElementById('discovery-banner-dismiss-btn'),
 
       toastContainer: document.getElementById('toast-container')
     };

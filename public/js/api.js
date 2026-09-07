@@ -311,9 +311,92 @@
       }
       return null;
     }
+
+    // --- Prospecting Profiles API ---
+    static async getProspectingProfiles() {
+      if (!this.getToken()) return [];
+      const response = await fetch(`${BASE_API_URL}/prospecting_profiles`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to fetch prospecting profiles');
+      }
+      return json.data || [];
+    }
+
+    static async getProspectingProfile(id) {
+      if (!this.getToken()) return null;
+      const response = await fetch(`${BASE_API_URL}/prospecting_profiles/${id}`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to fetch prospecting profile');
+      }
+      return json.data;
+    }
+
+    static async createProspectingProfile(profileData) {
+      const response = await fetch(`${BASE_API_URL}/prospecting_profiles`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(profileData)
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        const err = new Error(json.message || 'Failed to create prospecting profile');
+        err.errors = json.errors;
+        throw err;
+      }
+      return json.data;
+    }
+
+    static async updateProspectingProfile(id, profileData) {
+      const response = await fetch(`${BASE_API_URL}/prospecting_profiles/${id}`, {
+        method: 'PATCH',
+        headers: this.getHeaders(),
+        body: JSON.stringify(profileData)
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        const err = new Error(json.message || 'Failed to update prospecting profile');
+        err.errors = json.errors;
+        throw err;
+      }
+      return json.data;
+    }
+
+    static async deleteProspectingProfile(id) {
+      const response = await fetch(`${BASE_API_URL}/prospecting_profiles/${id}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to delete prospecting profile');
+      }
+      return json;
+    }
+
+    static async generateProspectingProfile(description) {
+      const response = await fetch(`${BASE_API_URL}/prospecting_profiles/generate`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ description })
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to generate profile with AI');
+      }
+      return json.data;
+    }
   }
 
   window.BizzApi = ApiClient;
-  console.log('BIZZ-HUNTER API CLIENT LOADED v20260905_v2', Object.getOwnPropertyNames(ApiClient));
+  window.BizzApi.generateProspectingProfile = ApiClient.generateProspectingProfile.bind(ApiClient);
+  console.log('BIZZ-HUNTER API CLIENT LOADED v20260907_v1', Object.getOwnPropertyNames(ApiClient));
 
 })(window);

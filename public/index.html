@@ -20,6 +20,7 @@
     <!-- Centered Navigation Links -->
     <div class="nav-center-links">
       <a href="#" class="top-nav-item active" data-tab="find-businesses">Discovery</a>
+      <a href="#" class="top-nav-item" data-tab="prospecting-profiles">Profiles</a>
       <a href="#" class="top-nav-item" data-tab="dashboard">Dashboard</a>
       <a href="#" class="top-nav-item" data-tab="saved-businesses">My Prospects</a>
       <a href="#" class="top-nav-item" data-tab="analysis">Analytics</a>
@@ -56,6 +57,21 @@
       <!-- ================= SECTION 1: DISCOVERY ================= -->
       <section id="view-find-businesses" class="view-section active">
         
+        <!-- Discovery Prospecting Profile Prompt Banner (Shown if user skipped profile creation) -->
+        <div id="discovery-profile-banner" class="discovery-profile-banner" style="display: none;">
+          <div class="discovery-banner-content">
+            <span class="discovery-banner-icon">🎯</span>
+            <div>
+              <strong>Want more relevant prospect recommendations?</strong>
+              <p>Create a Prospecting Profile so Bizz-Hunter can understand what you're selling and target the best leads.</p>
+            </div>
+          </div>
+          <div class="discovery-banner-actions">
+            <button type="button" id="discovery-banner-create-btn" class="btn btn-primary btn-sm">Create Profile</button>
+            <button type="button" id="discovery-banner-dismiss-btn" class="btn-dismiss-banner" title="Dismiss prompt">&times;</button>
+          </div>
+        </div>
+
         <!-- Centered Hero Title -->
         <div class="discovery-hero">
           <h1 class="hero-main-title">Find businesses worth<br>contacting.</h1>
@@ -473,6 +489,47 @@
         </div>
       </section>
 
+      <!-- ================= SECTION: PROSPECTING PROFILES ================= -->
+      <section id="view-prospecting-profiles" class="view-section">
+        
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem;">Prospecting Profiles</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Define what you offer and what makes a business worth contacting.</p>
+          </div>
+          <button id="create-profile-btn" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <span>+ Create Profile</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="profiles-loading-state" class="loading-container" style="display: none; text-align: center; padding: 4rem 1rem;">
+          <div class="spinner" style="margin: 0 auto 1rem auto;"></div>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">Loading your prospecting profiles...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="profiles-empty-state" class="empty-state-box" style="display: none; text-align: center; padding: 4rem 2rem; background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); max-width: 600px; margin: 2rem auto;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+          <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Create your first Prospecting Profile</h2>
+          <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Tell Bizz-Hunter what you sell and which businesses you want to target.</p>
+          <button id="profiles-empty-create-btn" class="btn btn-primary btn-lg">+ Create Your First Profile</button>
+        </div>
+
+        <!-- Error State -->
+        <div id="profiles-error-state" class="error-state-box" style="display: none; text-align: center; padding: 3rem 2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); max-width: 600px; margin: 2rem auto;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">⚠️</div>
+          <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Unable to load your prospecting profiles</h3>
+          <p id="profiles-error-message" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Please check your internet connection or try again.</p>
+          <button id="profiles-retry-btn" class="btn btn-secondary">Try Again</button>
+        </div>
+
+        <!-- Profile Cards Grid -->
+        <div id="profiles-grid" class="cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;"></div>
+
+      </section>
+
     </main>
   </div>
 
@@ -543,25 +600,227 @@
   </div>
 </div>
 
+<!-- Create / Edit Prospecting Profile Modal -->
+<div id="profile-modal" class="modal-overlay">
+  <div class="modal-container" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+    <div class="modal-header">
+      <h3 class="modal-title" id="profile-modal-title">Create Prospecting Profile</h3>
+      <button class="modal-close" id="profile-modal-close">&times;</button>
+    </div>
+    <form id="profile-form" style="padding: 1.5rem;">
+      <input type="hidden" id="profile-form-id" value="">
+
+      <!-- AI Profile Builder Assistant Card -->
+      <div id="ai-generator-card" class="ai-generator-card">
+        <div class="ai-card-header">
+          <div class="ai-badge">✨ GEMINI AI BUILDER</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Describe what you sell to auto-generate this profile</span>
+        </div>
+        
+        <div class="ai-card-body">
+          <textarea id="ai-description-input" class="form-control" rows="2" placeholder="e.g. I build modern websites for restaurants and hotels that don't have a good online presence..."></textarea>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <button type="button" id="btn-generate-ai-profile" class="btn btn-primary btn-sm btn-ai-sparkle">
+              ✨ Generate Profile with AI
+            </button>
+            <span id="ai-status-msg" style="font-size: 0.8rem; color: var(--text-muted); display: none;"></span>
+          </div>
+        </div>
+
+        <!-- AI Loading State -->
+        <div id="ai-generator-loading" class="ai-loading-box" style="display: none; margin-top: 0.75rem;">
+          <div class="ai-spinner"></div>
+          <span id="ai-loading-text" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">✨ Understanding your service & building profile...</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="profile-form-name">Profile Name <span style="color: #ef4444;">*</span></label>
+        <input type="text" id="profile-form-name" class="form-control" placeholder="e.g. Restaurant Website Development" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="profile-form-service">What service do you offer? <span style="color: #ef4444;">*</span></label>
+        <input type="text" id="profile-form-service" class="form-control" placeholder="e.g. Website Development" required>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" for="profile-form-description">Describe your service</label>
+        <textarea id="profile-form-description" class="form-control" rows="3" placeholder="e.g. I build modern websites for small businesses that want to improve their online presence and generate more customers."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label">Who do you want to target?</label>
+        <div id="target-businesses-tag-container" class="tag-input-container">
+          <div id="target-businesses-chips" class="chips-wrapper"></div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="target-businesses-input" class="form-control" placeholder="Add target business (e.g. Restaurants) & press Enter...">
+            <button type="button" id="target-businesses-add-btn" class="btn btn-secondary">Add</button>
+          </div>
+        </div>
+        <div class="tag-suggestions" style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center;">Suggestions:</span>
+          <button type="button" class="btn-suggestion-chip" data-target="target-businesses" data-value="Restaurants">+ Restaurants</button>
+          <button type="button" class="btn-suggestion-chip" data-target="target-businesses" data-value="Hotels">+ Hotels</button>
+          <button type="button" class="btn-suggestion-chip" data-target="target-businesses" data-value="Barbershops">+ Barbershops</button>
+          <button type="button" class="btn-suggestion-chip" data-target="target-businesses" data-value="Real Estate Agencies">+ Real Estate</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label">What makes a business a good prospect? (Opportunity Signals)</label>
+        <div id="opportunity-signals-tag-container" class="tag-input-container">
+          <div id="opportunity-signals-chips" class="chips-wrapper"></div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="opportunity-signals-input" class="form-control" placeholder="Add opportunity signal (e.g. No website) & press Enter...">
+            <button type="button" id="opportunity-signals-add-btn" class="btn btn-secondary">Add</button>
+          </div>
+        </div>
+        <div class="tag-suggestions" style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center;">Suggestions:</span>
+          <button type="button" class="btn-suggestion-chip" data-target="opportunity-signals" data-value="No website">+ No website</button>
+          <button type="button" class="btn-suggestion-chip" data-target="opportunity-signals" data-value="Outdated website">+ Outdated website</button>
+          <button type="button" class="btn-suggestion-chip" data-target="opportunity-signals" data-value="Poor online presence">+ Poor presence</button>
+          <button type="button" class="btn-suggestion-chip" data-target="opportunity-signals" data-value="No online booking">+ No booking</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label class="form-label">How can you contact them? (Contact Signals)</label>
+        <div id="contact-signals-tag-container" class="tag-input-container">
+          <div id="contact-signals-chips" class="chips-wrapper"></div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="contact-signals-input" class="form-control" placeholder="Add contact signal (e.g. WhatsApp available) & press Enter...">
+            <button type="button" id="contact-signals-add-btn" class="btn btn-secondary">Add</button>
+          </div>
+        </div>
+        <div class="tag-suggestions" style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); align-self: center;">Suggestions:</span>
+          <button type="button" class="btn-suggestion-chip" data-target="contact-signals" data-value="Phone available">+ Phone available</button>
+          <button type="button" class="btn-suggestion-chip" data-target="contact-signals" data-value="WhatsApp available">+ WhatsApp available</button>
+          <button type="button" class="btn-suggestion-chip" data-target="contact-signals" data-value="Email available">+ Email available</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none;">
+          <input type="checkbox" id="profile-form-is-default" style="width: 18px; height: 18px; accent-color: var(--primary);">
+          <span style="font-weight: 600; font-size: 0.95rem;">Set as default profile</span>
+        </label>
+      </div>
+
+      <div id="profile-form-error" class="auth-error-box" style="display: none; margin-bottom: 1rem;"></div>
+
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="profile-modal-cancel-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="profile-form-submit-btn">Save Profile</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- First-Time Prospecting Profile Onboarding Modal -->
+<div id="onboarding-modal" class="modal-overlay">
+  <div class="modal-container onboarding-modal-container">
+    <div class="onboarding-header">
+      <div class="onboarding-badge">PERSONALIZATION</div>
+      <h2 class="onboarding-title">Let's personalize your Bizz-Hunter experience</h2>
+      <p class="onboarding-subtitle">Tell us what you sell and who you want to reach. Your Prospecting Profile helps Bizz-Hunter identify businesses that are more relevant to you.</p>
+    </div>
+
+    <div class="onboarding-benefits-grid">
+      <div class="onboarding-benefit-card">
+        <div class="benefit-icon">🎯</div>
+        <div class="benefit-content">
+          <h4>Find better prospects</h4>
+          <p>Identify businesses that match what you offer.</p>
+        </div>
+      </div>
+
+      <div class="onboarding-benefit-card">
+        <div class="benefit-icon">📊</div>
+        <div class="benefit-content">
+          <h4>Prioritize opportunities</h4>
+          <p>Understand which businesses may be worth contacting.</p>
+        </div>
+      </div>
+
+      <div class="onboarding-benefit-card">
+        <div class="benefit-icon">💬</div>
+        <div class="benefit-content">
+          <h4>Reach out faster</h4>
+          <p>Get relevant contact information and outreach opportunities.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="onboarding-actions">
+      <button type="button" id="onboarding-create-btn" class="btn btn-primary btn-lg btn-block">Create My Prospecting Profile</button>
+      <button type="button" id="onboarding-skip-btn" class="btn btn-ghost btn-block">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Prospecting Profile Creation Success Modal -->
+<div id="profile-success-modal" class="modal-overlay">
+  <div class="modal-container onboarding-modal-container" style="max-width: 480px; text-align: center;">
+    <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">🎯</div>
+    <h2 class="onboarding-title" style="margin-bottom: 0.5rem;">Your profile is ready</h2>
+    <p class="onboarding-subtitle" style="margin-bottom: 1.5rem;">
+      Bizz-Hunter can now use your prospecting preferences to help you find better opportunities.
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <button type="button" id="success-start-discovering-btn" class="btn btn-primary btn-lg btn-block">Start Discovering →</button>
+      <button type="button" id="success-view-profiles-btn" class="btn btn-secondary btn-block">View Profiles</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="confirm-delete-profile-modal" class="modal-overlay">
+  <div class="modal-container" style="max-width: 440px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Delete Prospecting Profile?</h3>
+      <button class="modal-close" id="confirm-delete-modal-close">&times;</button>
+    </div>
+    <div class="modal-body" style="padding: 1.5rem;">
+      <p style="color: var(--text-main); font-size: 0.95rem; margin-bottom: 0.75rem;">
+        Are you sure you want to delete <strong id="delete-profile-name-text"></strong>?
+      </p>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">
+        This action cannot be undone.
+      </p>
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="confirm-delete-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirm-delete-submit-btn" style="background: #ef4444; color: white; border: none;">Delete Profile</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Container -->
 <div id="toast-container"></div>
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/js/qrcode_generator.js?v=20260905_v2"></script>
-<script src="/js/api.js?v=20260905_v2"></script>
-<script src="/js/state.js?v=20260905_v2"></script>
-<script src="/js/utils/formatters.js?v=20260905_v2"></script>
-<script src="/js/utils/toast.js?v=20260905_v2"></script>
-<script src="/js/components/modal.js?v=20260905_v2"></script>
-<script src="/js/components/business-card.js?v=20260905_v2"></script>
-<script src="/js/components/charts.js?v=20260905_v2"></script>
-<script src="/js/features/auth.js?v=20260905_v2"></script>
-<script src="/js/features/search.js?v=20260905_v2"></script>
-<script src="/js/features/prospects.js?v=20260905_v2"></script>
-<script src="/js/features/dashboard.js?v=20260905_v2"></script>
-<script src="/js/features/analysis.js?v=20260905_v2"></script>
-<script src="/js/app.js?v=20260905_v2"></script>
+<script src="/js/qrcode_generator.js?v=20260907_v1"></script>
+<script src="/js/api.js?v=20260907_v1"></script>
+<script src="/js/state.js?v=20260907_v1"></script>
+<script src="/js/utils/formatters.js?v=20260907_v1"></script>
+<script src="/js/utils/toast.js?v=20260907_v1"></script>
+<script src="/js/components/modal.js?v=20260907_v1"></script>
+<script src="/js/components/business-card.js?v=20260907_v1"></script>
+<script src="/js/components/charts.js?v=20260907_v1"></script>
+<script src="/js/features/auth.js?v=20260907_v1"></script>
+<script src="/js/features/search.js?v=20260907_v1"></script>
+<script src="/js/features/prospects.js?v=20260907_v1"></script>
+<script src="/js/features/dashboard.js?v=20260907_v1"></script>
+<script src="/js/features/analysis.js?v=20260907_v1"></script>
+<script src="/js/features/profiles.js?v=20260907_v1"></script>
+<script src="/js/features/onboarding.js?v=20260907_v1"></script>
+<script src="/js/app.js?v=20260907_v1"></script>
 
 </body>
 </html>

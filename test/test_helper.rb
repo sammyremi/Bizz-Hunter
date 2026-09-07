@@ -10,6 +10,17 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    def with_stub(object, method_name, return_value)
+      singleton = object.singleton_class
+      original_method = object.method(method_name) rescue nil
+      singleton.send(:define_method, method_name) { |*args, **kwargs| return_value }
+      yield
+    ensure
+      if original_method
+        singleton.send(:define_method, method_name, original_method)
+      else
+        singleton.send(:remove_method, method_name) rescue nil
+      end
+    end
   end
 end

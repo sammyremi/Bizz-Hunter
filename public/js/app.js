@@ -16,6 +16,8 @@
     if (typeof window.initSearchForm === 'function') window.initSearchForm();
     if (typeof window.initModals === 'function') window.initModals();
     if (typeof window.initAuth === 'function') window.initAuth();
+    if (typeof window.initProfiles === 'function') window.initProfiles();
+    if (typeof window.initOnboarding === 'function') window.initOnboarding();
 
     // Determine initial tab from hash, localStorage, or state
     const hashTab = window.location.hash ? window.location.hash.replace('#', '') : null;
@@ -30,8 +32,8 @@
 
   window.addEventListener('hashchange', () => {
     const hashTab = window.location.hash.replace('#', '');
-    if (hashTab && ['find-businesses', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(hashTab)) {
-      if (!state.currentUser && ['dashboard', 'saved-businesses', 'analysis'].includes(hashTab)) {
+    if (hashTab && ['find-businesses', 'prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(hashTab)) {
+      if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(hashTab)) {
         if (typeof window.openAuthModal === 'function') {
           const tabTitle = window.capitalize ? window.capitalize(hashTab.replace('-', ' ')) : hashTab;
           window.openAuthModal('login', `Account required to access ${tabTitle}. Sign up or log in to continue!`);
@@ -80,7 +82,7 @@
           if (!tab) return;
 
           // Protected feature gating
-          if (!state.currentUser && ['dashboard', 'saved-businesses', 'analysis'].includes(tab)) {
+          if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(tab)) {
             if (typeof window.openAuthModal === 'function') {
               const tabTitle = window.capitalize ? window.capitalize(tab.replace('-', ' ')) : tab;
               window.openAuthModal('login', `Account required to access ${tabTitle}. Sign up or log in to continue!`);
@@ -146,6 +148,12 @@
       if (typeof window.renderAnalysisWorkspace === 'function') window.renderAnalysisWorkspace();
     } else if (tabName === 'saved-businesses') {
       if (typeof window.loadUserProspects === 'function') window.loadUserProspects();
+    } else if (tabName === 'prospecting-profiles') {
+      if (typeof window.loadProfiles === 'function') window.loadProfiles();
+    }
+
+    if (typeof window.updateDiscoveryBannerVisibility === 'function') {
+      window.updateDiscoveryBannerVisibility();
     }
   }
 

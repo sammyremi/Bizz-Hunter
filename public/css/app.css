@@ -1216,3 +1216,398 @@ body {
   min-width: 140px;
 }
 
+/* ================= PROSPECTING PROFILES UI ================= */
+.profile-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-card:hover {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.profile-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.profile-service {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: 0.2rem;
+}
+
+.badge-default {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.profile-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-bottom: 0.35rem;
+}
+
+.profile-chips-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip-tag {
+  font-size: 0.78rem;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chip-tag .chip-remove {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-left: 0.15rem;
+}
+
+.chip-tag .chip-remove:hover {
+  color: #ef4444;
+}
+
+.profile-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.btn-suggestion-chip {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px dashed var(--border-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-suggestion-chip:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.chips-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.chips-wrapper:empty {
+  display: none;
+}
+
+/* ================= TASK 3.5: ONBOARDING & PROMPT BANNER ================= */
+.onboarding-modal-container {
+  max-width: 560px;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.onboarding-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.onboarding-badge {
+  display: inline-block;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+
+.onboarding-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.onboarding-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.onboarding-benefits-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.onboarding-benefit-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  text-align: left;
+  transition: var(--transition);
+}
+
+.onboarding-benefit-card:hover {
+  border-color: var(--border-focus);
+}
+
+.benefit-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.benefit-content h4 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.1rem;
+}
+
+.benefit-content p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.onboarding-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.btn-ghost:hover {
+  color: var(--text-main);
+}
+
+/* Discovery Prompt Banner */
+.discovery-profile-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-lg);
+  padding: 0.9rem 1.25rem;
+  margin: 0 auto 1.5rem auto;
+  max-width: 880px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: var(--shadow-md);
+  animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.discovery-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.discovery-banner-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.discovery-banner-content strong {
+  font-size: 0.92rem;
+  color: var(--text-main);
+}
+
+.discovery-banner-content p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.discovery-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-dismiss-banner {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.25rem;
+  transition: var(--transition);
+}
+
+.btn-dismiss-banner:hover {
+  color: var(--text-main);
+}
+
+@media (max-width: 640px) {
+  .discovery-profile-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .discovery-banner-actions {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+  }
+}
+
+/* ================= TASK 4: AI PROFILE GENERATOR ================= */
+.ai-generator-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.ai-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.btn-ai-sparkle {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #ffffff !important;
+  border: none;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.btn-ai-sparkle:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.ai-loading-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--primary-light);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--primary);
+  animation: pulseAi 1.5s infinite ease-in-out;
+}
+
+@keyframes pulseAi {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.ai-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+
+

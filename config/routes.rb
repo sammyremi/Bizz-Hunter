@@ -19,6 +19,11 @@ Rails.application.routes.draw do
       get 'searches/:id/analysis', to: 'searches#analysis'
 
       resources :prospects
+      resources :prospecting_profiles do
+        collection do
+          post :generate
+        end
+      end
     end
   end
 
