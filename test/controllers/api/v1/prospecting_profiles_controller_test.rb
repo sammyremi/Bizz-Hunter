@@ -179,6 +179,36 @@ module Api
         assert_response :not_found
         assert ProspectingProfile.exists?(@profile_a.id)
       end
+
+      # --- GENERATE AI PROPOSAL TESTS ---
+      test "unauthenticated user cannot call generate" do
+        post generate_api_v1_prospecting_profiles_url, params: { description: 'I build websites' }, as: :json
+        assert_response :unauthorized
+      end
+
+      test "authenticated user can generate AI prospecting profile proposal" do
+        mock_proposal = {
+          name: 'Website Development for Restaurants',
+          service: 'Website Development',
+          service_description: 'Web development for restaurants.',
+          target_businesses: ['restaurants'],
+          opportunity_signals: ['no_website'],
+          contact_signals: ['phone_available'],
+          is_default: false
+        }
+
+        with_stub(Ai::ProspectingProfileBuilder, :call, { success: true, proposal: mock_proposal }) do
+          post generate_api_v1_prospecting_profiles_url, params: {
+            description: 'I build modern websites for restaurants'
+          }, headers: { 'Authorization' => "Bearer #{@token_a}" }, as: :json
+
+          assert_response :ok
+          json = JSON.parse(response.body)
+          assert json['success']
+          assert_equal 'Website Development for Restaurants', json['data']['name']
+          assert_equal 'Website Development', json['data']['service']
+        end
+      end
     end
   end
 end

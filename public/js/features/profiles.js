@@ -54,6 +54,12 @@
     setupTagInput('opportunity-signals', 'opportunity-signals-input', 'opportunity-signals-add-btn');
     setupTagInput('contact-signals', 'contact-signals-input', 'contact-signals-add-btn');
 
+    // AI Profile Generation Sparkle Button
+    const aiBtn = document.getElementById('btn-generate-ai-profile');
+    if (aiBtn) {
+      aiBtn.addEventListener('click', () => handleGenerateAiProfile());
+    }
+
     // Suggestion Chips Click Handling
     document.querySelectorAll('.btn-suggestion-chip').forEach(chip => {
       chip.addEventListener('click', () => {
@@ -323,7 +329,7 @@
     });
   }
 
-  function openProfileModal(profileToEdit = null) {
+  function openProfileModal(profileToEdit = null, initialAiInput = null) {
     clearProfileFormErrors();
 
     const modal = document.getElementById('profile-modal');
@@ -334,6 +340,10 @@
     const descEl = document.getElementById('profile-form-description');
     const defaultEl = document.getElementById('profile-form-is-default');
 
+    const aiDescInput = document.getElementById('ai-description-input');
+    const aiBtn = document.getElementById('btn-generate-ai-profile');
+    if (aiBtn) aiBtn.innerHTML = '✨ Generate Profile with AI';
+
     if (profileToEdit) {
       if (titleEl) titleEl.textContent = 'Edit Prospecting Profile';
       if (idEl) idEl.value = profileToEdit.id;
@@ -341,6 +351,7 @@
       if (serviceEl) serviceEl.value = profileToEdit.service || '';
       if (descEl) descEl.value = profileToEdit.service_description || '';
       if (defaultEl) defaultEl.checked = !!profileToEdit.is_default;
+      if (aiDescInput) aiDescInput.value = '';
 
       formTags['target-businesses'] = Array.isArray(profileToEdit.target_businesses) ? [...profileToEdit.target_businesses] : [];
       formTags['opportunity-signals'] = Array.isArray(profileToEdit.opportunity_signals) ? [...profileToEdit.opportunity_signals] : [];
@@ -352,6 +363,7 @@
       if (serviceEl) serviceEl.value = '';
       if (descEl) descEl.value = '';
       if (defaultEl) defaultEl.checked = false;
+      if (aiDescInput) aiDescInput.value = initialAiInput || '';
 
       formTags['target-businesses'] = [];
       formTags['opportunity-signals'] = [];
@@ -363,6 +375,10 @@
     renderTagChips('contact-signals');
 
     if (modal) modal.classList.add('active');
+
+    if (initialAiInput && !profileToEdit) {
+      handleGenerateAiProfile(initialAiInput);
+    }
   }
 
   function closeProfileModal() {
@@ -498,9 +514,65 @@
     }
   }
 
+  async function handleGenerateAiProfile(overrideDesc = null) {
+    clearProfileFormErrors();
+
+    const aiDescInput = document.getElementById('ai-description-input');
+    const aiBtn = document.getElementById('btn-generate-ai-profile');
+    const loadingBox = document.getElementById('ai-generator-loading');
+
+    const description = overrideDesc || (aiDescInput ? aiDescInput.value.trim() : '');
+
+    if (!description || description.length < 3) {
+      showProfileFormError('Please describe what you sell or offer in a few words.');
+      return;
+    }
+
+    if (aiBtn) aiBtn.disabled = true;
+    if (loadingBox) loadingBox.style.display = 'flex';
+
+    try {
+      const proposal = await window.BizzApi.generateProspectingProfile(description);
+      
+      if (!proposal) {
+        throw new Error('No proposal received from AI service.');
+      }
+
+      // Populate form fields with AI proposal
+      const nameEl = document.getElementById('profile-form-name');
+      const serviceEl = document.getElementById('profile-form-service');
+      const descEl = document.getElementById('profile-form-description');
+
+      if (nameEl) nameEl.value = proposal.name || '';
+      if (serviceEl) serviceEl.value = proposal.service || '';
+      if (descEl) descEl.value = proposal.service_description || '';
+
+      // Populate tag chip arrays
+      formTags['target-businesses'] = Array.isArray(proposal.target_businesses) ? [...proposal.target_businesses] : [];
+      formTags['opportunity-signals'] = Array.isArray(proposal.opportunity_signals) ? [...proposal.opportunity_signals] : [];
+      formTags['contact-signals'] = Array.isArray(proposal.contact_signals) ? [...proposal.contact_signals] : [];
+
+      renderTagChips('target-businesses');
+      renderTagChips('opportunity-signals');
+      renderTagChips('contact-signals');
+
+      if (aiBtn) aiBtn.innerHTML = '✨ Regenerate with AI';
+      if (window.showToast) {
+        window.showToast('✨ AI generated candidate profile! Review fields below and click Save Profile.', 'success');
+      }
+    } catch (err) {
+      console.error('Error generating AI profile:', err);
+      showProfileFormError(err.message || 'Failed to generate profile with AI. Please try again.');
+    } finally {
+      if (aiBtn) aiBtn.disabled = false;
+      if (loadingBox) loadingBox.style.display = 'none';
+    }
+  }
+
   window.initProfiles = initProfiles;
   window.loadProfiles = loadProfiles;
   window.openProfileModal = openProfileModal;
   window.handleSetDefaultProfile = handleSetDefaultProfile;
+  window.handleGenerateAiProfile = handleGenerateAiProfile;
 
 })(window);

@@ -380,9 +380,23 @@
       }
       return json;
     }
+
+    static async generateProspectingProfile(description) {
+      const response = await fetch(`${BASE_API_URL}/prospecting_profiles/generate`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ description })
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to generate profile with AI');
+      }
+      return json.data;
+    }
   }
 
   window.BizzApi = ApiClient;
-  console.log('BIZZ-HUNTER API CLIENT LOADED v20260905_v2', Object.getOwnPropertyNames(ApiClient));
+  window.BizzApi.generateProspectingProfile = ApiClient.generateProspectingProfile.bind(ApiClient);
+  console.log('BIZZ-HUNTER API CLIENT LOADED v20260907_v1', Object.getOwnPropertyNames(ApiClient));
 
 })(window);

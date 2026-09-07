@@ -6,6 +6,10 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+if defined?(Dotenv::Rails)
+  Dotenv::Rails.load
+end
+
 module BizzHunter
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.

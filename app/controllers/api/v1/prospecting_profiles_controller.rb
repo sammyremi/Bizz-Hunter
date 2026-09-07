@@ -25,6 +25,22 @@ module Api
         }, status: :ok
       end
 
+      def generate
+        result = Ai::ProspectingProfileBuilder.call(description: params[:description])
+
+        if result[:success]
+          render json: {
+            success: true,
+            data: result[:proposal]
+          }, status: :ok
+        else
+          render json: {
+            success: false,
+            message: result[:message]
+          }, status: :unprocessable_entity
+        end
+      end
+
       def create
         result = ProspectingProfiles::Create.call(user: current_user, params: prospecting_profile_params)
 
