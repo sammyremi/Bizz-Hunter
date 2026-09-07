@@ -81,11 +81,7 @@ module Ai
 
       # Generate a clean profile name based on service & target
       primary_target = target_businesses.first
-      name = if primary_target.present?
-               "#{service} for #{primary_target.pluralize.titleize}"
-             else
-               "#{service} Prospecting"
-             end
+      name = primary_target.present? ? "#{service} for #{primary_target.pluralize.titleize}" : "#{service} Prospecting"
 
       {
         name: name,
