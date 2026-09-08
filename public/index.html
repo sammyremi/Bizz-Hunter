@@ -91,7 +91,15 @@
           <!-- Filter Panel & Searchable Business Type -->
           <div class="filter-panel-box" style="max-width: 1000px; margin: 1.25rem auto 0 auto;">
             <div class="filter-grid">
-              
+
+              <!-- PROSPECTING PROFILE SELECTOR -->
+              <div class="form-group" id="profile-selector-group">
+                <label class="form-label" for="profile-selector-select">🎯 Prospecting Profile</label>
+                <select id="profile-selector-select" class="form-select">
+                  <option value="">Loading profiles...</option>
+                </select>
+              </div>
+
               <!-- UNIFIED SEARCHABLE BUSINESS TYPE DROPDOWN + CUSTOM INPUT -->
               <div class="form-group" style="position: relative;">
                 <label class="form-label" for="business-type-input">🏢 Business Type</label>
@@ -140,6 +148,7 @@
             <div>
               <h2 class="results-main-title">Discovered prospects (<span id="results-count" style="color: var(--primary);">0</span>)</h2>
               <div id="results-context" class="results-sub-context"></div>
+              <div id="search-profile-context" style="display: none; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;"></div>
             </div>
 
             <div class="results-stats-group">
@@ -807,14 +816,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="/js/qrcode_generator.js?v=20260907_v1"></script>
 <script src="/js/api.js?v=20260907_v1"></script>
-<script src="/js/state.js?v=20260907_v1"></script>
+<script src="/js/state.js?v=20260908_v2"></script>
 <script src="/js/utils/formatters.js?v=20260907_v1"></script>
 <script src="/js/utils/toast.js?v=20260907_v1"></script>
 <script src="/js/components/modal.js?v=20260907_v1"></script>
 <script src="/js/components/business-card.js?v=20260907_v1"></script>
 <script src="/js/components/charts.js?v=20260907_v1"></script>
 <script src="/js/features/auth.js?v=20260907_v1"></script>
-<script src="/js/features/search.js?v=20260907_v1"></script>
+<script src="/js/features/search.js?v=20260908_v2"></script>
 <script src="/js/features/prospects.js?v=20260907_v1"></script>
 <script src="/js/features/dashboard.js?v=20260907_v1"></script>
 <script src="/js/features/analysis.js?v=20260907_v1"></script>

@@ -129,6 +129,9 @@
       if (params.has_website !== undefined && params.has_website !== '') {
         queryParams.append('has_website', params.has_website);
       }
+      if (params.prospecting_profile_id) {
+        queryParams.append('prospecting_profile_id', params.prospecting_profile_id);
+      }
 
       const url = `${BASE_API_URL}/business-discovery/search?${queryParams.toString()}`;
 
@@ -150,6 +153,7 @@
         return {
           data: json.data || [],
           search_id: json.search_id,
+          prospecting_profile: json.prospecting_profile || null,
           quota: json.quota
         };
       } catch (error) {

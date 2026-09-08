@@ -4,6 +4,7 @@
 
 class ProspectingProfile < ApplicationRecord
   belongs_to :user
+  has_many :searches, dependent: :nullify
 
   before_validation :normalize_array_fields
 

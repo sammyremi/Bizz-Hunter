@@ -26,6 +26,7 @@
     selectedBusinessTypeIndex: -1,
     activeSearchId: null,
     prospectingProfiles: [],
+    selectedProspectingProfileId: null,
     dom: window.dom
   };
 
@@ -75,6 +76,8 @@
       minRatingSelect: document.getElementById('min-rating-select'),
       websiteFilterSelect: document.getElementById('website-filter-select'),
       phoneFilterSelect: document.getElementById('phone-filter-select'),
+      profileSelectorSelect: document.getElementById('profile-selector-select'),
+      searchProfileContext: document.getElementById('search-profile-context'),
       searchBtn: document.getElementById('search-btn'),
       searchForm: document.getElementById('search-form'),
 

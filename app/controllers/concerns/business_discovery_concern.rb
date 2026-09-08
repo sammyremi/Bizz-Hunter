@@ -16,7 +16,8 @@ module BusinessDiscoveryConcern
       :area,
       :min_rating,
       :has_phone,
-      :has_website
+      :has_website,
+      :prospecting_profile_id
     )
   end
 end

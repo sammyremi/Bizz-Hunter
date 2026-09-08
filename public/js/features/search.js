@@ -248,6 +248,56 @@
     }
   }
 
+  // --- Profile Selector Controller ---
+  async function initProfileSelector() {
+    const dom = window.dom;
+    const state = window.BizzState;
+    const select = dom.profileSelectorSelect || document.getElementById('profile-selector-select');
+    if (!select) return;
+
+    // Only load profiles if user is authenticated
+    if (!window.BizzApi.getToken()) {
+      select.innerHTML = '<option value="">No profile (sign in to use profiles)</option>';
+      return;
+    }
+
+    try {
+      const profiles = await window.BizzApi.getProspectingProfiles();
+      state.prospectingProfiles = profiles;
+
+      if (!profiles || profiles.length === 0) {
+        select.innerHTML = '<option value="">No profiles yet — create one in Profiles tab</option>';
+        state.selectedProspectingProfileId = null;
+        return;
+      }
+
+      // Build options
+      const placeholder = '<option value="">Select a prospecting profile</option>';
+      const options = profiles.map(p => {
+        const label = p.service ? `${p.name} (${p.service})` : p.name;
+        return `<option value="${window.escapeHtml(p.id)}">${window.escapeHtml(label)}</option>`;
+      }).join('');
+      select.innerHTML = placeholder + options;
+
+      // Pre-select default profile if one is flagged
+      const defaultProfile = profiles.find(p => p.is_default);
+      if (defaultProfile) {
+        select.value = defaultProfile.id;
+        state.selectedProspectingProfileId = defaultProfile.id;
+      } else {
+        state.selectedProspectingProfileId = null;
+      }
+    } catch (e) {
+      console.warn('Error loading profiles for selector', e);
+      select.innerHTML = '<option value="">Unable to load profiles</option>';
+    }
+
+    // Wire up change event
+    select.addEventListener('change', () => {
+      state.selectedProspectingProfileId = select.value || null;
+    });
+  }
+
   // --- Search Controller ---
   function initSearchForm() {
     const dom = window.dom;
@@ -284,14 +334,15 @@
     const bTypeInput = document.getElementById('business-type-input');
     const businessType = bTypeInput ? bTypeInput.value.trim() : '';
 
-    // Capture Combined Search Criteria
+    // Capture Combined Search Criteria (including selected prospecting profile)
     const params = {
       place_id: state.selectedPlaceId,
       location_name: locationName,
       business_type: businessType,
       min_rating: dom.minRatingSelect ? dom.minRatingSelect.value : '',
       has_website: dom.websiteFilterSelect ? dom.websiteFilterSelect.value : '',
-      has_phone: dom.phoneFilterSelect ? dom.phoneFilterSelect.value : ''
+      has_phone: dom.phoneFilterSelect ? dom.phoneFilterSelect.value : '',
+      prospecting_profile_id: state.selectedProspectingProfileId || ''
     };
 
     state.isSearching = true;
@@ -308,6 +359,9 @@
         state.activeSearchId = res.search_id;
       }
 
+      // Store the profile used for this search
+      state.activeSearchProfile = res.prospecting_profile || null;
+
       if (res.quota) {
         window.updateQuotaUI(res.quota);
       }
@@ -315,7 +369,7 @@
       if (res.data.length === 0) {
         showEmptyState();
       } else {
-        renderResults(res.data, params);
+        renderResults(res.data, params, res.prospecting_profile);
       }
     } catch (err) {
       if (err.status === 429) {
@@ -346,7 +400,7 @@
     }
   }
 
-  function renderResults(businesses, params) {
+  function renderResults(businesses, params, activeProfile) {
     const dom = window.dom;
     const state = window.BizzState;
 
@@ -363,6 +417,17 @@
 
     if (dom.resultsCount) dom.resultsCount.textContent = businesses.length;
     if (dom.resultsContext) dom.resultsContext.textContent = `Results for "${window.capitalize(params.business_type)} in ${params.location_name}"`;
+
+    // Show subtle profile context if a profile was used
+    const profileContextEl = dom.searchProfileContext || document.getElementById('search-profile-context');
+    if (profileContextEl) {
+      if (activeProfile && activeProfile.name) {
+        profileContextEl.textContent = `🎯 Prospecting as: ${activeProfile.name}${activeProfile.service ? ' • ' + activeProfile.service : ''}`;
+        profileContextEl.style.display = 'block';
+      } else {
+        profileContextEl.style.display = 'none';
+      }
+    }
 
     const noWebsiteCount = businesses.filter(b => !b.website).length;
     if (dom.statMissingWebsite) dom.statMissingWebsite.textContent = noWebsiteCount;
@@ -411,6 +476,7 @@
 
   window.initBusinessTypeAutocomplete = initBusinessTypeAutocomplete;
   window.initLocationSelectors = initLocationSelectors;
+  window.initProfileSelector = initProfileSelector;
   window.initSearchForm = initSearchForm;
   window.executeSearch = executeSearch;
   window.renderResults = renderResults;

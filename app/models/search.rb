@@ -4,6 +4,7 @@
 
 class Search < ApplicationRecord
   belongs_to :user, optional: true
+  belongs_to :prospecting_profile, optional: true
   has_many :search_results, dependent: :destroy
 
   validates :business_type, presence: true

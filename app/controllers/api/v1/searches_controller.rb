@@ -8,14 +8,25 @@ module Api
       before_action :authenticate_user!
 
       def index
-        searches = current_user.searches.recent.limit(20)
+        searches = current_user.searches.includes(:prospecting_profile).recent.limit(20)
         serialized = searches.map do |s|
+          profile_data = if s.prospecting_profile
+                           {
+                             id: s.prospecting_profile.id,
+                             name: s.prospecting_profile.name,
+                             service: s.prospecting_profile.service
+                           }
+                         else
+                           nil
+                         end
+
           {
             id: s.id,
             query: s.query,
             business_type: s.business_type,
             location_name: s.location_name,
             results_count: s.results_count,
+            prospecting_profile: profile_data,
             created_at: s.created_at
           }
         end

@@ -32,21 +32,51 @@ module Api
           }, status: :too_many_requests
         end
 
+        # Resolve and validate prospecting profile ownership
+        selected_profile = nil
+        profile_id = business_discovery_params[:prospecting_profile_id]
+
+        if profile_id.present?
+          if current_user.blank?
+            return render json: {
+              success: false,
+              message: 'Authentication required to use a prospecting profile'
+            }, status: :unauthorized
+          end
+
+          selected_profile = current_user.prospecting_profiles.find_by(id: profile_id)
+
+          if selected_profile.nil?
+            return render json: {
+              success: false,
+              message: 'Prospecting profile not found'
+            }, status: :unprocessable_entity
+          end
+        end
+
         result = GooglePlaces::BusinessDiscovery.call(
-          **business_discovery_params.to_h.symbolize_keys
+          **business_discovery_params.except(:prospecting_profile_id).to_h.symbolize_keys
         )
 
         saved_search = GooglePlaces::SearchPersistence.call(
           user: current_user,
           search_params: business_discovery_params.to_h,
-          businesses: result
+          businesses: result,
+          prospecting_profile: selected_profile
         )
+
+        profile_summary = selected_profile ? {
+          id: selected_profile.id,
+          name: selected_profile.name,
+          service: selected_profile.service
+        } : nil
 
         render json: {
           success: true,
           message: 'Businesses retrieved successfully',
           data: result,
           search_id: saved_search&.id,
+          prospecting_profile: profile_summary,
           quota: quota_result[:quota]
         }, status: :ok
       end

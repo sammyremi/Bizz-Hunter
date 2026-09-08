@@ -4,10 +4,11 @@
 
 module GooglePlaces
   class SearchPersistence < ApplicationService
-    def initialize(user:, search_params:, businesses:)
+    def initialize(user:, search_params:, businesses:, prospecting_profile: nil)
       @user = user
       @search_params = search_params.symbolize_keys
       @businesses = Array(businesses).map(&:with_indifferent_access)
+      @prospecting_profile = prospecting_profile
     end
 
     def call
@@ -24,7 +25,8 @@ module GooglePlaces
         website_filter: search_params[:has_website],
         phone_filter: search_params[:has_phone],
         query: "#{search_params[:business_type]} in #{search_params[:location_name]}".strip,
-        results_count: businesses.size
+        results_count: businesses.size,
+        prospecting_profile: prospecting_profile
       )
 
       businesses.each do |b|
@@ -57,6 +59,6 @@ module GooglePlaces
 
     private
 
-    attr_reader :user, :search_params, :businesses
+    attr_reader :user, :search_params, :businesses, :prospecting_profile
   end
 end

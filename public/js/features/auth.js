@@ -68,10 +68,12 @@
       setCurrentUser(user);
       await window.loadUserProspects();
       if (typeof window.loadProfiles === 'function') await window.loadProfiles();
+      if (typeof window.initProfileSelector === 'function') await window.initProfileSelector();
       window.switchTab(targetTab);
       if (typeof window.checkAndRunOnboarding === 'function') await window.checkAndRunOnboarding();
     } else {
       setCurrentUser(null);
+      if (typeof window.initProfileSelector === 'function') window.initProfileSelector();
       if (['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(targetTab)) {
         window.switchTab('find-businesses');
       } else {
@@ -148,6 +150,7 @@
         await fetchAndUpdateQuota();
         await window.loadUserProspects();
         if (typeof window.loadProfiles === 'function') await window.loadProfiles();
+        if (typeof window.initProfileSelector === 'function') await window.initProfileSelector();
         if (typeof window.checkAndRunOnboarding === 'function') await window.checkAndRunOnboarding();
         await window.renderDashboardAnalytics();
         if (state.currentTab === 'analysis') {
@@ -201,6 +204,7 @@
         await fetchAndUpdateQuota();
         await window.loadUserProspects();
         if (typeof window.loadProfiles === 'function') await window.loadProfiles();
+        if (typeof window.initProfileSelector === 'function') await window.initProfileSelector();
         if (typeof window.checkAndRunOnboarding === 'function') await window.checkAndRunOnboarding();
         await window.renderDashboardAnalytics();
         if (state.currentTab === 'analysis') {
@@ -220,6 +224,8 @@
     await window.BizzApi.logout();
     setCurrentUser(null);
     window.BizzState.prospectingProfiles = [];
+    window.BizzState.selectedProspectingProfileId = null;
+    if (typeof window.initProfileSelector === 'function') window.initProfileSelector();
     if (typeof window.closeOnboardingModal === 'function') window.closeOnboardingModal();
     if (typeof window.updateDiscoveryBannerVisibility === 'function') window.updateDiscoveryBannerVisibility();
     window.showToast('Logged out successfully', 'info');

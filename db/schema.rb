@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_06_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_08_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -96,6 +96,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_120000) do
     t.string "location_name"
     t.float "min_rating"
     t.string "phone_filter"
+    t.uuid "prospecting_profile_id"
     t.string "query"
     t.integer "results_count", default: 0, null: false
     t.string "state"
@@ -103,6 +104,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_120000) do
     t.uuid "user_id"
     t.string "website_filter"
     t.index ["created_at"], name: "index_searches_on_created_at"
+    t.index ["prospecting_profile_id"], name: "index_searches_on_prospecting_profile_id"
     t.index ["user_id"], name: "index_searches_on_user_id"
   end
 
@@ -119,5 +121,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_06_120000) do
   add_foreign_key "prospects", "users", on_delete: :cascade
   add_foreign_key "search_results", "searches", on_delete: :cascade
   add_foreign_key "search_results", "users", on_delete: :cascade
+  add_foreign_key "searches", "prospecting_profiles", on_delete: :nullify
   add_foreign_key "searches", "users", on_delete: :cascade
 end

@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  console.log('BIZZ-HUNTER APP COORDINATOR LOADED v20260905_v2');
+  console.log('BIZZ-HUNTER APP COORDINATOR LOADED v20260908_v2');
 
   const state = window.BizzState;
 
@@ -18,6 +18,7 @@
     if (typeof window.initAuth === 'function') window.initAuth();
     if (typeof window.initProfiles === 'function') window.initProfiles();
     if (typeof window.initOnboarding === 'function') window.initOnboarding();
+    if (typeof window.initProfileSelector === 'function') window.initProfileSelector();
 
     // Determine initial tab from hash, localStorage, or state
     const hashTab = window.location.hash ? window.location.hash.replace('#', '') : null;
