@@ -58,26 +58,39 @@ module Api
           **business_discovery_params.except(:prospecting_profile_id).to_h.symbolize_keys
         )
 
+        # Apply personalized (or generic) opportunity scoring to each business
+        scored_result = result.map do |business|
+          opp = OpportunityScoreCalculator.call(business: business, profile: selected_profile)
+          business.merge(
+            opportunity_score:   opp[:score],
+            opportunity_tier:    opp[:tier],
+            opportunity_level:   opp[:level],
+            opportunity_factors: opp[:factors],
+            opportunity_signals: opp[:signals],
+            personalized_score:  opp[:personalized]
+          )
+        end
+
         saved_search = GooglePlaces::SearchPersistence.call(
-          user: current_user,
-          search_params: business_discovery_params.to_h,
-          businesses: result,
+          user:                current_user,
+          search_params:       business_discovery_params.to_h,
+          businesses:          scored_result,
           prospecting_profile: selected_profile
         )
 
         profile_summary = selected_profile ? {
-          id: selected_profile.id,
-          name: selected_profile.name,
+          id:      selected_profile.id,
+          name:    selected_profile.name,
           service: selected_profile.service
         } : nil
 
         render json: {
-          success: true,
-          message: 'Businesses retrieved successfully',
-          data: result,
-          search_id: saved_search&.id,
+          success:             true,
+          message:             'Businesses retrieved successfully',
+          data:                scored_result,
+          search_id:           saved_search&.id,
           prospecting_profile: profile_summary,
-          quota: quota_result[:quota]
+          quota:               quota_result[:quota]
         }, status: :ok
       end
 

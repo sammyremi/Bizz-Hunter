@@ -33,9 +33,10 @@ class BusinessDiscoveryAnalysisTest < ActiveSupport::TestCase
     assert_equal 1, analysis[:summary][:no_website_count]
     assert_equal 1, analysis[:summary][:phone_available_count]
     assert_equal 1, analysis[:summary][:whatsapp_available_count]
-    assert_equal 1, analysis[:summary][:high_opportunity_count]
-
-    assert_equal 1, analysis[:opportunity][:high]
+    # Alpha Cafe: no website(30)+phone(20)+whatsapp(15)+rating(8)+reviews(5)=78 → medium
+    # Beta Tech:  has website, no phone, low-ish rating → low
+    assert_equal 0, analysis[:summary][:high_opportunity_count]
+    assert_equal 1, analysis[:opportunity][:medium]
     assert_equal 1, analysis[:opportunity][:low]
 
     assert_equal 2, analysis[:top_prospects].size

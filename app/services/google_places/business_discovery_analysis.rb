@@ -70,7 +70,7 @@ module GooglePlaces
       scored_businesses = businesses.map do |b|
         # Ensure opportunity score is calculated if missing
         unless b.key?(:opportunity_score) && b[:opportunity_score].present?
-          opp = OpportunityScoreCalculator.call(b)
+          opp = OpportunityScoreCalculator.call(business: b, profile: @search_obj&.prospecting_profile)
           b[:opportunity_score] = opp[:score]
           b[:opportunity_tier] = opp[:tier]
           b[:opportunity_level] = opp[:level]

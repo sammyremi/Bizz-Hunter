@@ -15,10 +15,12 @@ class ProspectSerializer
 
   private_class_method def self.format(prospect)
     opp = OpportunityScoreCalculator.call(
-      website: prospect.website,
-      phone: prospect.phone_number || prospect.international_phone_number,
-      rating: prospect.rating,
-      review_count: prospect.review_count
+      business: {
+        website:      prospect.website,
+        phone:        prospect.phone_number || prospect.international_phone_number,
+        rating:       prospect.rating,
+        review_count: prospect.review_count
+      }
     )
 
     {

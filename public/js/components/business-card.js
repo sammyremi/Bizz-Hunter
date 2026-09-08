@@ -21,11 +21,14 @@
       qrSvgHtml = window.QRCodeGenerator(waUrl, { size: 144, colorDark: '#0b0f19', colorLight: '#ffffff' });
     }
 
-    // Opportunity Signals & Score
-    const oppLevel = b.opportunity_level || (!hasWebsite ? 'HIGH' : 'STANDARD');
+    // Opportunity Score & Tier (from backend)
+    const oppLevel = b.opportunity_level || (b.opportunity_tier ? b.opportunity_tier.toUpperCase() : (!hasWebsite ? 'HIGH' : 'STANDARD'));
+    const oppScore = (typeof b.opportunity_score === 'number') ? b.opportunity_score : null;
+    const isPersonalized = Boolean(b.personalized_score);
     const categoryName = (b.category || b.types?.[0] || 'Business').replace(/_/g, ' ').toUpperCase();
     const ratingVal = b.rating ? Number(b.rating).toFixed(1) : 'N/A';
     const reviewCountText = b.review_count ? `(${Number(b.review_count).toLocaleString()})` : '';
+    const opportunityFactors = Array.isArray(b.opportunity_factors) ? b.opportunity_factors : [];
 
     return `
       <div class="business-card" data-id="${placeId}" data-db-id="${b.id || ''}">
@@ -36,7 +39,11 @@
             <div class="card-top-tags">
               <div class="category-tag">
                 <span>${window.escapeHtml(categoryName)}</span>
-                <span class="opp-badge ${oppLevel}">${oppLevel} OPPORTUNITY</span>
+                <span class="opp-badge ${oppLevel}">
+                  ${oppScore !== null ? `<span class="opp-score-num">${oppScore}</span>` : ''}
+                  ${oppLevel} OPPORTUNITY
+                  ${isPersonalized ? '<span class="opp-personalized-dot" title="Personalized score">●</span>' : ''}
+                </span>
               </div>
               <div class="card-rating-badge">
                 <span>★</span> ${ratingVal} <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">${reviewCountText}</span>
@@ -67,10 +74,15 @@
             </div>
 
             <div class="signal-tags-group">
-              ${!hasWebsite ? '<span class="signal-tag">No website found</span>' : '<span class="signal-tag">Website active</span>'}
-              ${b.rating >= 4.5 ? '<span class="signal-tag">High rating (4.5+)</span>' : ''}
-              ${b.review_count >= 100 ? `<span class="signal-tag">${Number(b.review_count).toLocaleString()}+ reviews</span>` : ''}
-              ${waUrl ? '<span class="signal-tag">WhatsApp reachable</span>' : ''}
+              ${opportunityFactors.length > 0
+                ? opportunityFactors.map(f => `<span class="signal-tag">✓ ${window.escapeHtml(f)}</span>`).join('')
+                : `
+                  ${!hasWebsite ? '<span class="signal-tag">No website found</span>' : '<span class="signal-tag">Website active</span>'}
+                  ${b.rating >= 4.5 ? '<span class="signal-tag">High rating (4.5+)</span>' : ''}
+                  ${b.review_count >= 100 ? `<span class="signal-tag">${Number(b.review_count).toLocaleString()}+ reviews</span>` : ''}
+                  ${waUrl ? '<span class="signal-tag">WhatsApp reachable</span>' : ''}
+                `
+              }
             </div>
 
             ${isProspectView ? `
