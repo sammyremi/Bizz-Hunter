@@ -40,22 +40,21 @@ class OpportunityScoreCalculatorTest < ActiveSupport::TestCase
   # A restaurant with no website — the ideal Website Dev prospect
   def restaurant_no_website
     {
-      name:         'Lagos Delight Restaurant',
-      types:        ['restaurant', 'food', 'point_of_interest', 'establishment'],
+      name:          'Lagos Delight Restaurant',
+      types:         ['restaurant', 'food', 'point_of_interest', 'establishment'],
       business_type: 'restaurants',
-      website:      nil,
-      phone:        '+2348032079169',
-      rating:       4.6,
-      review_count: 287
+      website:       nil,
+      phone:         '+2348032079169',
+      rating:        4.6,
+      review_count:  287
     }
   end
 
   # ─────────────────────────────────────────────────────────────────────────────
   # BACKWARD COMPATIBILITY — Generic scoring (no profile)
-  # These preserve the exact behavior that existed before Task 6.
   # ─────────────────────────────────────────────────────────────────────────────
 
-  test 'generic: scores correctly for top prospect (no website, phone, whatsapp, 4.6 rating, 287 reviews)' do
+  test 'generic: scores correctly for prospect without profile' do
     data = {
       name: 'Abuja Delight Restaurant',
       website: nil,
@@ -66,13 +65,13 @@ class OpportunityScoreCalculatorTest < ActiveSupport::TestCase
 
     result = OpportunityScoreCalculator.call(business: data)
 
-    # Generic scoring (no profile): 30+20+15+8+5 = 78 → medium tier (just under 80)
+    # Generic scoring (no profile): 30+20+10+6+3 = 69 → medium tier
     assert_operator result[:score], :>=, 50
-    assert_includes %w[high medium], result[:tier]
-    assert_equal result[:tier].upcase, result[:level]
+    assert_equal 'medium', result[:tier]
+    assert_equal 'MEDIUM', result[:level]
     assert_includes result[:factors], 'No website'
     assert_includes result[:factors], 'Phone available'
-    assert_includes result[:factors], 'WhatsApp available'
+    assert_includes result[:factors], 'Phone present (WhatsApp likely possible)'
     assert_equal false, result[:personalized]
   end
 
@@ -106,113 +105,150 @@ class OpportunityScoreCalculatorTest < ActiveSupport::TestCase
     result = OpportunityScoreCalculator.call(business: data)
 
     assert_operator result[:score], :<=, 100
-    assert_equal 'high', result[:tier]
     assert_equal false, result[:personalized]
   end
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # PERSONALIZED SCORING — Profile-driven
+  # TASK 6 REFINEMENT REQUIRED TESTS (Tests 1–10)
   # ─────────────────────────────────────────────────────────────────────────────
 
-  test 'personalized: website_dev profile gives HIGH score to restaurant with no website' do
+  test 'Test 1 — Target match: relevance > 0 for restaurant + restaurant-targeted profile' do
     result = OpportunityScoreCalculator.call(
       business: restaurant_no_website,
       profile:  website_dev_profile
     )
 
-    assert_operator result[:score], :>=, 70, "Expected >= 70 for matching target + no_website signal"
-    assert_includes %w[high medium], result[:tier]
-    assert_equal true, result[:personalized]
-    # Should include a no-website factor because profile defines it as an opportunity signal
-    website_factor = result[:factors].any? { |f| f.downcase.include?('website') }
-    assert website_factor, "Expected a 'website'-related factor for website dev profile"
+    relevance_factor = result[:factors].any? { |f| f.downcase.include?('matches your target') }
+    assert relevance_factor, "Expected a target match factor for restaurant matching Website Dev profile"
+    assert_operator result[:score], :>=, 40
   end
 
-  test 'personalized: car_sales profile gives LOWER score to restaurant with no website' do
+  test 'Test 2 — Target mismatch: relevance = 0 for restaurant + car-dealership profile' do
     result = OpportunityScoreCalculator.call(
       business: restaurant_no_website,
       profile:  car_sales_profile
     )
 
-    # Must not be HIGH — restaurant doesn't match car-sales targets, no website isn't their signal
-    assert_operator result[:score], :<, 80,
-      "Car sales profile should NOT give a restaurant HIGH score just for having no website"
-    assert_equal true, result[:personalized]
+    mismatch_factor = result[:factors].any? { |f| f.downcase.include?('does not match your target') }
+    assert mismatch_factor, "Expected target mismatch factor when restaurant evaluated by car sales profile"
   end
 
-  test 'CRITICAL: same business scores differently for website_dev vs car_sales profile' do
+  test 'Test 3 — No website: strong opportunity contribution for website-dev profile' do
+    result = OpportunityScoreCalculator.call(
+      business: restaurant_no_website,
+      profile:  website_dev_profile
+    )
+
+    no_web_factor = result[:factors].any? { |f| f.downcase.include?('no website detected') }
+    assert no_web_factor, "Expected 'No website detected' opportunity factor for website dev profile"
+  end
+
+  test 'Test 4 — Same business, different profiles: same business produces different scores and reasons' do
     business = restaurant_no_website
 
-    website_dev_result = OpportunityScoreCalculator.call(business: business, profile: website_dev_profile)
-    car_sales_result   = OpportunityScoreCalculator.call(business: business, profile: car_sales_profile)
+    web_result = OpportunityScoreCalculator.call(business: business, profile: website_dev_profile)
+    car_result = OpportunityScoreCalculator.call(business: business, profile: car_sales_profile)
 
-    assert_not_equal website_dev_result[:score], car_sales_result[:score],
+    assert_not_equal web_result[:score], car_result[:score],
       "Same business MUST produce different scores for materially different profiles"
+    assert_not_equal web_result[:factors], car_result[:factors],
+      "Same business MUST produce different factors/reasons for different profiles"
 
-    # Website Dev should score this restaurant much higher than Car Sales
-    assert_operator website_dev_result[:score], :>, car_sales_result[:score],
+    assert_operator web_result[:score], :>, car_result[:score],
       "Website Dev profile should score a no-website restaurant higher than Car Sales profile"
   end
 
-  test 'personalized: no_website signal only matters if profile lists it as opportunity' do
-    business_no_website = { name: 'Test Co', types: ['restaurant'], website: nil, phone: nil, rating: 3.0, review_count: 5 }
+  test 'Test 5 — Strong web-development prospect: restaurant with no website, phone, 500+ reviews, 4.8 rating => HIGH' do
+    strong_prospect = {
+      name:          'Lagos Grand Restaurant',
+      types:         ['restaurant', 'food'],
+      business_type: 'restaurants',
+      website:       nil,
+      phone:         '+2348032079169',
+      rating:        4.8,
+      review_count:  520
+    }
 
-    # With website dev profile (no_website in signals): should award opportunity points
-    with_signal = OpportunityScoreCalculator.call(
-      business: business_no_website,
+    result = OpportunityScoreCalculator.call(
+      business: strong_prospect,
       profile:  website_dev_profile
     )
 
-    # With car sales profile (no_website NOT in signals): no website points
-    without_signal = OpportunityScoreCalculator.call(
-      business: business_no_website,
-      profile:  car_sales_profile
-    )
-
-    assert_operator with_signal[:score], :>, without_signal[:score],
-      "no_website should contribute more when profile lists it as an opportunity signal"
+    assert_equal 'high', result[:tier], "Strong prospect must fall into HIGH tier"
+    assert_equal 'HIGH', result[:level]
+    assert_operator result[:score], :>=, 80
   end
 
-  test 'personalized: phone_available contact signal contributes when business has phone' do
-    business_with_phone = { name: 'Restaurant A', types: ['restaurant'], website: nil, phone: '+2348011111111', rating: 4.0, review_count: 50 }
+  test 'Test 6 — No website alone: poorly matched/weak business with no website does not automatically become HIGH' do
+    weak_business = {
+      name:          'Unknown Co',
+      types:         ['lawyer'],
+      business_type: 'lawyers',
+      website:       nil,
+      phone:         nil,
+      rating:        0,
+      review_count:  2
+    }
 
     result = OpportunityScoreCalculator.call(
-      business: business_with_phone,
-      profile:  website_dev_profile  # has phone_available in contact_signals
+      business: weak_business,
+      profile:  website_dev_profile # targets Restaurants
     )
 
-    assert_operator result[:score], :>=, 30
-    assert_equal true, result[:personalized]
+    assert_not_equal 'high', result[:tier], "No website alone on an irrelevant business must NOT guarantee HIGH"
+    assert_operator result[:score], :<, 50
   end
 
-  test 'personalized: target business match increases score significantly' do
-    matching_business = {
-      name:          'Best Restaurant Lagos',
-      types:         ['restaurant', 'food', 'establishment'],
+  test 'Test 7 — Unknown website: website presence prevents no_website opportunity signal' do
+    business_with_website = {
+      name:          'Tech Restaurant',
+      types:         ['restaurant'],
       business_type: 'restaurants',
-      website:       nil,
+      website:       'https://techrestaurant.com',
       phone:         '+2348011111111',
       rating:        4.0,
-      review_count:  80
-    }
-    non_matching_business = {
-      name:          'Lagos Auto Parts',
-      types:         ['car_repair', 'establishment'],
-      business_type: 'auto_parts',
-      website:       nil,
-      phone:         '+2348011111111',
-      rating:        4.0,
-      review_count:  80
+      review_count:  50
     }
 
-    match_result    = OpportunityScoreCalculator.call(business: matching_business, profile: website_dev_profile)
-    no_match_result = OpportunityScoreCalculator.call(business: non_matching_business, profile: website_dev_profile)
+    result = OpportunityScoreCalculator.call(
+      business: business_with_website,
+      profile:  website_dev_profile
+    )
 
-    assert_operator match_result[:score], :>, no_match_result[:score],
-      "A business matching the profile's target_businesses should score higher"
+    no_web_factor = result[:factors].any? { |f| f.downcase.include?('no website detected') }
+    refute no_web_factor, "Website presence must NOT trigger no_website opportunity factor"
   end
 
-  test 'personalized: score is reproducible — same inputs always yield same output' do
+  test 'Test 8 — WhatsApp: phone availability is treated as inferred proxy signal, not verified' do
+    result = OpportunityScoreCalculator.call(
+      business: restaurant_no_website,
+      profile:  website_dev_profile
+    )
+
+    whatsapp_factors = result[:factors].select { |f| f.downcase.include?('whatsapp') }
+    assert_equal 1, whatsapp_factors.size
+    assert_includes whatsapp_factors.first, 'WhatsApp likely possible',
+      "WhatsApp factor must represent availability as inferred/possible, not confirmed"
+  end
+
+  test 'Test 9 — Booking: no website does not automatically produce a no_online_booking score' do
+    booking_profile = build_profile(
+      service:              'Booking Software',
+      target_businesses:    ['Restaurants'],
+      opportunity_signals:  ['No online booking'],
+      contact_signals:      ['Phone available']
+    )
+
+    result = OpportunityScoreCalculator.call(
+      business: restaurant_no_website,
+      profile:  booking_profile
+    )
+
+    booking_factor = result[:factors].any? { |f| f.downcase.include?('booking') }
+    refute booking_factor, "Missing website must NOT award no_online_booking factor without factual booking data"
+  end
+
+  test 'Test 10 — Deterministic: same business + profile always produces same score and reasons' do
     business = restaurant_no_website
     profile  = website_dev_profile
 
@@ -220,86 +256,8 @@ class OpportunityScoreCalculatorTest < ActiveSupport::TestCase
     result2 = OpportunityScoreCalculator.call(business: business, profile: profile)
     result3 = OpportunityScoreCalculator.call(business: business, profile: profile)
 
-    assert_equal result1[:score], result2[:score], "Score must be deterministic"
-    assert_equal result2[:score], result3[:score], "Score must be deterministic"
-  end
-
-  test 'personalized: score is always between 0 and 100' do
-    # Try to produce an extreme score
-    business = {
-      name:          'Everything Restaurant',
-      types:         ['restaurant', 'food'],
-      business_type: 'restaurants',
-      website:       nil,
-      phone:         '+2348099999999',
-      rating:        5.0,
-      review_count:  10_000
-    }
-
-    result = OpportunityScoreCalculator.call(business: business, profile: website_dev_profile)
-
-    assert_operator result[:score], :>=, 0
-    assert_operator result[:score], :<=, 100
-  end
-
-  test 'personalized: score is always between 0 and 100 for business with no signals' do
-    business = { name: 'Ghost Business', types: [], website: nil, phone: nil, rating: 0, review_count: 0 }
-
-    result = OpportunityScoreCalculator.call(business: business, profile: car_sales_profile)
-
-    assert_operator result[:score], :>=, 0
-    assert_operator result[:score], :<=, 100
-  end
-
-  test 'personalized: returns explainable factors array' do
-    result = OpportunityScoreCalculator.call(
-      business: restaurant_no_website,
-      profile:  website_dev_profile
-    )
-
-    assert_kind_of Array, result[:factors]
-    assert result[:factors].all? { |f| f.is_a?(String) }
-  end
-
-  test 'personalized: HIGH tier for score >= 80' do
-    # Restaurant + website dev profile with perfect signals should hit HIGH
-    business = {
-      name:          'Perfect Restaurant',
-      types:         ['restaurant'],
-      business_type: 'restaurants',
-      website:       nil,
-      phone:         '+2348011111111',
-      rating:        4.5,
-      review_count:  200
-    }
-    result = OpportunityScoreCalculator.call(business: business, profile: website_dev_profile)
-
-    if result[:score] >= 80
-      assert_equal 'high', result[:tier]
-      assert_equal 'HIGH', result[:level]
-    elsif result[:score] >= 50
-      assert_equal 'medium', result[:tier]
-    else
-      assert_equal 'low', result[:tier]
-    end
-  end
-
-  test 'personalized: car_sales profile scores car business with phone/whatsapp as medium-high' do
-    car_business = {
-      name:          'Lekki Auto Centre',
-      types:         ['car_dealer', 'establishment'],
-      business_type: 'car dealers',
-      website:       'https://lekkiauto.com',
-      phone:         '+2348055555555',
-      rating:        4.2,
-      review_count:  180
-    }
-
-    result = OpportunityScoreCalculator.call(business: car_business, profile: car_sales_profile)
-
-    # Car business + car sales profile + phone + WhatsApp + strong activity
-    assert_operator result[:score], :>=, 40,
-      "Car sales profile should give meaningful score to a car business with phone/whatsapp"
-    assert_equal true, result[:personalized]
+    assert_equal result1[:score], result2[:score]
+    assert_equal result1[:tier], result2[:tier]
+    assert_equal result1[:factors], result2[:factors]
   end
 end

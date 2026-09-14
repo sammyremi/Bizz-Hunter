@@ -12,6 +12,21 @@
 # Score range: 0–100
 # Tiers: HIGH (80–100), MEDIUM (50–79), LOW (0–49)
 #
+# IMPORTANT DESIGN CONSTRAINTS
+# ─────────────────────────────
+# * Missing data ≠ confirmed negative.
+#   If Google Places did not return a website field, we treat it as "unknown",
+#   but the existing pipeline sets website = nil when Google Places confirms no website.
+#   Do not invent facts.
+#
+# * phone_available ≠ WhatsApp verified.
+#   A phone number proves only that a phone number exists. WhatsApp availability
+#   is inferred/possible — not confirmed. Factors reflect this distinction.
+#
+# * no_online_booking must NOT be inferred from no_website.
+#   A business without a website may use Google booking, Facebook, Instagram,
+#   third-party platforms, or WhatsApp booking.
+#
 # Usage:
 #   OpportunityScoreCalculator.call(business: data)                  # generic
 #   OpportunityScoreCalculator.call(business: data, profile: profile) # personalized
@@ -21,10 +36,10 @@ class OpportunityScoreCalculator < ApplicationService
   MEDIUM_THRESHOLD = 50
 
   # Section point caps for profile-aware scoring
-  RELEVANCE_MAX   = 35
+  RELEVANCE_MAX   = 40  # Relevance is the primary differentiator
   OPPORTUNITY_MAX = 35
   CONTACT_MAX     = 15
-  ACTIVITY_MAX    = 15
+  ACTIVITY_MAX    = 10  # Supporting signal only
 
   def initialize(business:, profile: nil)
     @business = business.with_indifferent_access
@@ -48,8 +63,6 @@ class OpportunityScoreCalculator < ApplicationService
   # ─────────────────────────────────────────────────────────────────
 
   def personalized_score
-    factors = []
-
     # Resolve profile signals once
     opp_codes     = SignalNormalizer.normalize_opportunity_signals(profile.opportunity_signals)
     contact_codes = SignalNormalizer.normalize_contact_signals(profile.contact_signals)
@@ -64,13 +77,10 @@ class OpportunityScoreCalculator < ApplicationService
     # 3. Contact Signals — can the user actually reach this business?
     contact_pts, contact_factors = score_contact_signals(contact_codes)
 
-    # 4. Activity / Quality — rating + review volume (kept deliberately modest)
+    # 4. Activity / Quality — rating + review volume (supporting signal only)
     activity_pts, activity_factors = score_activity
 
-    factors.concat(relevance_factors)
-           .concat(opportunity_factors)
-           .concat(contact_factors)
-           .concat(activity_factors)
+    factors = relevance_factors + opportunity_factors + contact_factors + activity_factors
 
     raw_score = relevance_pts + opportunity_pts + contact_pts + activity_pts
     score = clamp(raw_score)
@@ -80,28 +90,50 @@ class OpportunityScoreCalculator < ApplicationService
   end
 
   # 1. Relevance: does business type match profile's target_businesses?
+  #
+  # Strategy: normalize both sides to singular downcased tokens, then compare.
+  # Handles "restaurant" ↔ "restaurants", "car dealer" ↔ "car dealers" etc.
+  # Uses word boundary matching so "car" doesn't match "care home".
   def score_relevance(target_list)
-    return [0, []] if target_list.empty?
+    return [0, ["Business type does not match your target"]] if target_list.empty?
 
-    business_types = extract_business_types
+    business_types = extract_business_types  # downcased, underscores→spaces, noise removed
 
-    # Strong match: one of the target keywords appears in the business type strings
-    strong_match = target_list.any? do |target|
-      business_types.any? { |bt| bt.include?(target) || target.include?(bt) }
+    target_stems = target_list.map { |t| stem(t) }
+    business_stems = business_types.map { |bt| stem(bt) }
+
+    strong_match = target_stems.any? do |ts|
+      business_stems.any? { |bs| target_matches_business_type?(ts, bs) }
     end
 
     if strong_match
       label = "Matches your target: #{profile.target_businesses.first}"
-      [RELEVANCE_MAX, [label]]
-    else
-      # Partial: check search-level business_type against profile targets
-      # Only attempt when search_type is non-blank to avoid false positives
-      search_type = business.fetch(:business_type, '').to_s.downcase.strip
-      partial_match = search_type.present? && target_list.any? do |t|
-        search_type.include?(t) || t.include?(search_type)
-      end
-      partial_match ? [20, ["Partially matches your target businesses"]] : [0, []]
+      return [RELEVANCE_MAX, [label]]
     end
+
+    # Partial match: the search-level business_type param (e.g. "restaurants") vs profile targets
+    search_type_stem = stem(business.fetch(:business_type, '').to_s)
+    if search_type_stem.present?
+      partial = target_stems.any? { |ts| target_matches_business_type?(ts, search_type_stem) }
+      if partial
+        return [20, ["Partially matches your target businesses"]]
+      end
+    end
+
+    [0, ["Business type does not match your target"]]
+  end
+
+  def target_matches_business_type?(target_stem, business_stem)
+    return false if target_stem.blank? || business_stem.blank?
+    return true if target_stem == business_stem
+
+    pattern = /\b#{Regexp.escape(target_stem)}\b/
+    return true if business_stem.match?(pattern)
+
+    pattern_rev = /\b#{Regexp.escape(business_stem)}\b/
+    return true if target_stem.match?(pattern_rev)
+
+    false
   end
 
   # 2. Opportunity signals: each matching signal earns points (section capped)
@@ -125,32 +157,45 @@ class OpportunityScoreCalculator < ApplicationService
   def check_opportunity_signal(code)
     case code
     when :no_website
+      # Treat nil/blank website as confirmed no-website (the pipeline sets nil when Google
+      # Places returns no websiteUri — this is reliable for the current data source).
       match = business[:website].blank?
-      [match, "No website (your profile targets this)", 25]
+      [match, "No website detected", 25]
+
     when :poor_reviews
       rating = business[:rating].to_f
+      # Only score when we have an actual rating (0 means unknown/no rating)
       match = rating > 0 && rating < 3.5
-      [match, "Poor reviews (improvement opportunity)", 15]
+      [match, "Below-average reviews (improvement opportunity)", 15]
+
     when :no_online_booking
-      # Proxy: no website means no online booking system
-      match = business[:website].blank?
-      [match, "No online booking system", 10]
+      # We do NOT infer no_online_booking from no_website.
+      # Without factual booking data, this signal cannot be scored.
+      [false, nil, 0]
+
     when :strong_activity
       review_count = (business[:review_count] || 0).to_i
       match = review_count > 100
       [match, "Strong customer activity (#{review_count} reviews)", 15]
+
     when :relevant_business
-      # Already handled by relevance section; award modest bonus if here too
-      [true, "Business type relevant to your service", 10]
+      # Handled by score_relevance
+      match = extract_business_types.any?
+      [match, "Business type is relevant to your service", 8]
+
     when :phone_available
       match = extract_phone.present?
-      [match, "Phone contact available", 10]
+      [match, "Phone number available", 10]
+
     when :whatsapp_available
-      match = whatsapp_available?
-      [match, "WhatsApp reachable", 10]
+      # WhatsApp availability is INFERRED from phone presence — not verified.
+      match = extract_phone.present?
+      [match, "Phone present (WhatsApp likely possible)", 8]
+
     when :email_available
       match = business[:website].present?
-      [match, "Digital contact available (website)", 5]
+      [match, "Website available for digital contact", 5]
+
     else
       [false, nil, 0]
     end
@@ -171,24 +216,24 @@ class OpportunityScoreCalculator < ApplicationService
           factors << "Phone number available"
         end
       when :whatsapp_available
-        if whatsapp_available?
-          pts += 10
-          factors << "WhatsApp reachable"
+        # Inferred from phone — label is honest
+        if extract_phone.present?
+          pts += 8
+          factors << "Phone present (WhatsApp likely possible)"
         end
       when :email_available
         if business[:website].present?
           pts += 5
-          factors << "Online contact available"
+          factors << "Website available for digital contact"
         end
       end
     end
 
-    # Deduplicate factors that overlap with opportunity section
     factors.uniq!
     [clamp_section(pts, CONTACT_MAX), factors]
   end
 
-  # 4. Activity signals: rating and review volume (kept moderate — max 15 pts)
+  # 4. Activity signals: rating and review volume (supporting signal — max 10 pts)
   def score_activity
     pts     = 0
     factors = []
@@ -196,14 +241,14 @@ class OpportunityScoreCalculator < ApplicationService
     rating       = business[:rating].to_f
     review_count = (business[:review_count] || 0).to_i
 
-    # Rating (max 8 pts)
+    # Rating (max 6 pts)
     rating_pts, rating_label = score_rating(rating)
     if rating_pts > 0
       pts += rating_pts
       factors << rating_label
     end
 
-    # Review volume (max 7 pts)
+    # Review volume (max 4 pts)
     review_pts, review_label = score_reviews(review_count)
     if review_pts > 0
       pts += review_pts
@@ -222,10 +267,9 @@ class OpportunityScoreCalculator < ApplicationService
     factors = []
     signals = []
 
-    has_website  = business[:website].present?
-    phone        = extract_phone
-    has_phone    = phone.present?
-    has_whatsapp = whatsapp_available?
+    has_website = business[:website].present?
+    phone       = extract_phone
+    has_phone   = phone.present?
 
     rating       = business[:rating].to_f
     review_count = (business[:review_count] || business[:user_rating_count] || 0).to_i
@@ -244,16 +288,14 @@ class OpportunityScoreCalculator < ApplicationService
       score += 20
       factors << 'Phone available'
       signals << '📞 Direct phone line available'
+
+      # WhatsApp is inferred — phone presence makes it likely, not confirmed
+      score   += 10
+      factors << 'Phone present (WhatsApp likely possible)'
+      signals << '💬 Phone present — WhatsApp contact may be possible'
     end
 
-    # 3. WhatsApp availability (+15)
-    if has_whatsapp
-      score += 15
-      factors << 'WhatsApp available'
-      signals << '💬 WhatsApp reachable'
-    end
-
-    # 4. Rating
+    # 3. Rating
     rating_pts, rating_label = score_rating(rating)
     if rating_pts > 0
       score += rating_pts
@@ -261,7 +303,7 @@ class OpportunityScoreCalculator < ApplicationService
       signals << rating_label
     end
 
-    # 5. Review volume
+    # 4. Review volume
     review_pts, review_label = score_reviews(review_count)
     if review_pts > 0
       score += review_pts
@@ -281,11 +323,11 @@ class OpportunityScoreCalculator < ApplicationService
 
   def score_rating(rating)
     if rating >= 4.5
-      [8, '⭐ High customer rating (4.5+)']
+      [6, '⭐ High customer rating (4.5+)']
     elsif rating >= 4.0
-      [5, '⭐ Solid customer rating (4.0+)']
+      [4, '⭐ Solid customer rating (4.0+)']
     elsif rating >= 3.5
-      [3, '⭐ Good customer rating (3.5+)']
+      [2, '⭐ Good customer rating (3.5+)']
     elsif rating >= 3.0
       [1, '⭐ Moderate customer rating (3.0+)']
     else
@@ -295,11 +337,11 @@ class OpportunityScoreCalculator < ApplicationService
 
   def score_reviews(review_count)
     if review_count > 500
-      [7, '🔥 Very high review volume (500+ reviews)']
+      [4, '🔥 Very high review volume (500+ reviews)']
     elsif review_count >= 101
-      [5, '🔥 Strong review activity (101–500 reviews)']
+      [3, '🔥 Strong review activity (101–500 reviews)']
     elsif review_count >= 51
-      [3, '💬 Active reviews (51–100 reviews)']
+      [2, '💬 Active reviews (51–100 reviews)']
     elsif review_count >= 11
       [1, '💬 Growing reviews (11–50 reviews)']
     else
@@ -314,16 +356,31 @@ class OpportunityScoreCalculator < ApplicationService
       business[:international_phone_number]
   end
 
-  def whatsapp_available?
-    phone = extract_phone
-    return false if phone.blank?
-
-    phone.to_s.gsub(/\D/, '').length >= 7
+  # Returns downcased, space-normalized business type strings with noise words removed.
+  def extract_business_types
+    noise = %w[point_of_interest establishment business]
+    Array(business[:types])
+      .map { |t| t.to_s.downcase.tr('_', ' ').strip }
+      .reject { |t| noise.include?(t) || t.empty? }
   end
 
-  def extract_business_types
-    raw = Array(business[:types]).map { |t| t.to_s.downcase.tr('_', ' ').strip }
-    raw.reject { |t| %w[point_of_interest establishment business food].include?(t) }
+  def stem(str)
+    s = str.to_s.downcase.strip.gsub(/[_\-]/, ' ').squeeze(' ')
+    return '' if s.empty?
+
+    words = s.split(' ')
+    words.map! do |w|
+      if w.end_with?('ies') && w.length > 4
+        w.sub(/ies$/, 'y')
+      elsif w.end_with?('es') && w.length > 4 && !w.end_with?('sses')
+        w.sub(/es$/, '')
+      elsif w.end_with?('s') && w.length > 3 && !w.end_with?('ss')
+        w.sub(/s$/, '')
+      else
+        w
+      end
+    end
+    words.join(' ')
   end
 
   def clamp(score)
