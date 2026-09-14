@@ -7,12 +7,22 @@ module GooglePlaces
     def initialize(businesses: nil, search: nil)
       @search_obj = search
       if search.present?
+        profile_data = if search.prospecting_profile
+                         {
+                           id: search.prospecting_profile.id,
+                           name: search.prospecting_profile.name,
+                           service: search.prospecting_profile.service
+                         }
+                       else
+                         nil
+                       end
         @search_meta = {
           id: search.id,
           query: search.query,
           business_type: search.business_type,
           location_name: search.location_name,
           results_count: search.results_count,
+          prospecting_profile: profile_data,
           created_at: search.created_at
         }
         raw_list = search.search_results.map do |r|

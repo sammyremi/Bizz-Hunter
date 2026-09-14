@@ -213,10 +213,11 @@
         dom.searchHistoryList.innerHTML = searches.map(s => {
           const isSelected = state.activeSearchId === s.id;
           const dateStr = new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          const profileBadge = s.prospecting_profile ? ` • 🎯 ${window.escapeHtml(s.prospecting_profile.name)}` : '';
           return `
             <div class="chart-filter-btn ${isSelected ? 'active' : ''}" style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;" data-search-id="${s.id}">
               <span>🏢 ${window.escapeHtml(s.business_type)} (${window.escapeHtml(s.location_name || 'All')})</span>
-              <span style="opacity: 0.75; font-size: 0.75rem;">• ${s.results_count} leads • ${dateStr}</span>
+              <span style="opacity: 0.75; font-size: 0.75rem;">• ${s.results_count} leads${profileBadge} • ${dateStr}</span>
             </div>
           `;
         }).join('');
@@ -286,7 +287,8 @@
 
     if (dom.analysisSearchContextLabel) {
       if (searchMeta) {
-        dom.analysisSearchContextLabel.textContent = `Search Analysis: ${searchMeta.business_type} in ${searchMeta.location_name || 'All'} • ${summary.total_businesses} businesses analyzed`;
+        const profInfo = searchMeta.prospecting_profile ? ` • 🎯 Profile: ${searchMeta.prospecting_profile.name}` : '';
+        dom.analysisSearchContextLabel.textContent = `Search Analysis: ${searchMeta.business_type} in ${searchMeta.location_name || 'All'}${profInfo} • ${summary.total_businesses} businesses analyzed`;
       } else {
         dom.analysisSearchContextLabel.textContent = `Search Analysis: ${summary.total_businesses} businesses analyzed`;
       }
