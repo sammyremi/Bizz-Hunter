@@ -132,9 +132,19 @@
             </div>
             <div class="qr-caption-subtext">Scan to WhatsApp</div>
 
-            <a href="${waUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm btn-block">
-              <span>💬</span> WhatsApp
-            </a>
+            <div class="whatsapp-dropdown-container" style="position: relative; width: 100%;">
+              <button type="button" class="btn btn-whatsapp btn-sm btn-block whatsapp-dropdown-trigger" data-place-id="${placeId}">
+                <span>💬</span> WhatsApp <span style="font-size: 0.75rem; margin-left: 2px;">▼</span>
+              </button>
+              <div class="whatsapp-dropdown-menu" id="wa-menu-${placeId}" style="display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: var(--bg-surface, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: var(--radius-md, 8px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; margin-bottom: 6px; overflow: hidden;">
+                <a href="${waUrl}" target="_blank" rel="noopener" class="wa-open-link" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: var(--text-main, #f8fafc); font-size: 0.825rem; text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border-color, #334155);">
+                  <span>📱</span> Open WhatsApp
+                </a>
+                <button type="button" class="wa-generate-msg-btn" data-place-id="${placeId}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: #38bdf8; font-size: 0.825rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; font-weight: 700;">
+                  <span>✨</span> Generate Message
+                </button>
+              </div>
+            </div>
           ` : `
             <div style="padding: 2rem 0; color: var(--text-dim); font-size: 0.85rem;">
               <div>NO PHONE NUMBER</div>
@@ -225,6 +235,87 @@
           } catch (err) {
             window.showToast(err.message || 'Failed to delete prospect', 'error');
           }
+        }
+      });
+    });
+    // WhatsApp Dropdown Trigger Toggle
+    document.querySelectorAll('.whatsapp-dropdown-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const placeId = trigger.getAttribute('data-place-id');
+        const menu = document.getElementById(`wa-menu-${placeId}`);
+        if (!menu) return;
+
+        // Close all other open menus first
+        document.querySelectorAll('.whatsapp-dropdown-menu').forEach(m => {
+          if (m !== menu) m.style.display = 'none';
+        });
+
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      });
+    });
+
+    // Close WhatsApp dropdown menus on click outside
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.whatsapp-dropdown-menu').forEach(menu => {
+        menu.style.display = 'none';
+      });
+    });
+
+    // Generate AI WhatsApp Message Action
+    document.querySelectorAll('.wa-generate-msg-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const placeId = btn.getAttribute('data-place-id');
+        const menu = document.getElementById(`wa-menu-${placeId}`);
+        if (menu) menu.style.display = 'none';
+
+        if (!window.BizzApi.getToken()) {
+          window.openAuthModal('login', 'Please log in or create an account to generate personalized AI outreach messages.');
+          return;
+        }
+
+        const triggerBtn = document.querySelector(`.whatsapp-dropdown-trigger[data-place-id="${placeId}"]`);
+        if (triggerBtn && triggerBtn.disabled) return; // Prevent duplicate request while generating
+
+        const b = state.searchResults.find(item => item.id === placeId || item.google_place_id === placeId) ||
+                  state.savedBusinesses.find(item => item.google_place_id === placeId || String(item.id) === String(placeId));
+
+        const resultId = (b && (b.id || b.google_place_id)) || placeId;
+
+        // Synchronously open blank window during user gesture to bypass browser popup blockers
+        const newWindow = window.open('about:blank', '_blank');
+
+        // Immediate Loading State on dropdown trigger button
+        if (triggerBtn) {
+          triggerBtn.disabled = true;
+          triggerBtn.innerHTML = '<span>⏳</span> Generating...';
+        }
+        btn.disabled = true;
+
+        try {
+          const res = await window.BizzApi.generateOutreachMessage(resultId);
+
+          if (res && res.whatsapp_url) {
+            window.showToast('Message generated! Opening WhatsApp...', 'success');
+            if (newWindow && !newWindow.closed) {
+              newWindow.location.href = res.whatsapp_url;
+            } else {
+              window.open(res.whatsapp_url, '_blank', 'noopener,noreferrer') || (window.location.href = res.whatsapp_url);
+            }
+          } else {
+            if (newWindow && !newWindow.closed) newWindow.close();
+            throw new Error('WhatsApp URL was not returned.');
+          }
+        } catch (err) {
+          if (newWindow && !newWindow.closed) newWindow.close();
+          window.showToast(err.message || 'Unable to generate the WhatsApp message. Please try again.', 'error');
+        } finally {
+          if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.innerHTML = '<span>💬</span> WhatsApp <span style="font-size: 0.75rem; margin-left: 2px;">▼</span>';
+          }
+          btn.disabled = false;
         }
       });
     });

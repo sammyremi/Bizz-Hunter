@@ -74,7 +74,7 @@
     } else {
       setCurrentUser(null);
       if (typeof window.initProfileSelector === 'function') window.initProfileSelector();
-      if (['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(targetTab)) {
+      if (['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(targetTab)) {
         window.switchTab('find-businesses');
       } else {
         window.switchTab(targetTab);

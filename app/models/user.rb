@@ -16,6 +16,16 @@ class User < ApplicationRecord
   validates :email, presence: true,
                     uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :ai_tone, inclusion: { in: %w[Professional Friendly Casual Direct] }, allow_nil: true, if: -> { respond_to?(:ai_tone) }
+  validates :ai_length, inclusion: { in: %w[Short Medium] }, allow_nil: true, if: -> { respond_to?(:ai_length) }
+
+  def effective_ai_tone
+    (respond_to?(:ai_tone) && ai_tone.presence) || 'Professional'
+  end
+
+  def effective_ai_length
+    (respond_to?(:ai_length) && ai_length.presence) || 'Short'
+  end
 
   private
 

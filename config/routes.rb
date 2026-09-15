@@ -18,6 +18,10 @@ Rails.application.routes.draw do
       get 'searches', to: 'searches#index'
       get 'searches/:id/analysis', to: 'searches#analysis'
 
+      post 'outreach_messages', to: 'outreach_messages#create'
+      get 'settings', to: 'settings#show'
+      patch 'settings', to: 'settings#update'
+
       resources :prospects
       resources :prospecting_profiles do
         collection do

@@ -19,6 +19,11 @@ module Api
         assert json['success']
         assert_not_nil json['token']
         assert_equal 'Jane Doe', json['user']['name']
+
+        user = User.find_by(email: 'jane@example.com')
+        assert_not_nil user
+        assert_equal 'Professional', user.effective_ai_tone
+        assert_equal 'Short', user.effective_ai_length
       end
 
       test "authenticates user with valid credentials" do

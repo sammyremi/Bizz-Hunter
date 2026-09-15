@@ -34,7 +34,7 @@
   window.addEventListener('hashchange', () => {
     const hashTab = window.location.hash.replace('#', '');
     if (hashTab && ['find-businesses', 'prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(hashTab)) {
-      if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(hashTab)) {
+      if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(hashTab)) {
         if (typeof window.openAuthModal === 'function') {
           const tabTitle = window.capitalize ? window.capitalize(hashTab.replace('-', ' ')) : hashTab;
           window.openAuthModal('login', `Account required to access ${tabTitle}. Sign up or log in to continue!`);
@@ -83,7 +83,7 @@
           if (!tab) return;
 
           // Protected feature gating
-          if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis'].includes(tab)) {
+          if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(tab)) {
             if (typeof window.openAuthModal === 'function') {
               const tabTitle = window.capitalize ? window.capitalize(tab.replace('-', ' ')) : tab;
               window.openAuthModal('login', `Account required to access ${tabTitle}. Sign up or log in to continue!`);
@@ -110,6 +110,15 @@
 
   function switchTab(tabName) {
     if (!tabName) tabName = 'find-businesses';
+
+    if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(tabName)) {
+      if (typeof window.openAuthModal === 'function') {
+        const tabTitle = window.capitalize ? window.capitalize(tabName.replace('-', ' ')) : tabName;
+        window.openAuthModal('login', `Account required to access ${tabTitle}. Sign up or log in to continue!`);
+      }
+      tabName = 'find-businesses';
+    }
+
     state.currentTab = tabName;
     localStorage.setItem('bizz_hunter_current_tab', tabName);
 
@@ -151,10 +160,51 @@
       if (typeof window.loadUserProspects === 'function') window.loadUserProspects();
     } else if (tabName === 'prospecting-profiles') {
       if (typeof window.loadProfiles === 'function') window.loadProfiles();
+    } else if (tabName === 'settings') {
+      if (typeof window.initSettingsView === 'function') window.initSettingsView();
     }
 
     if (typeof window.updateDiscoveryBannerVisibility === 'function') {
       window.updateDiscoveryBannerVisibility();
+    }
+  }
+
+  async function initSettingsView() {
+    const toneSelect = document.getElementById('settings-ai-tone');
+    const lengthSelect = document.getElementById('settings-ai-length');
+    const form = document.getElementById('settings-form');
+    if (!toneSelect || !lengthSelect) return;
+
+    try {
+      const data = await window.BizzApi.getSettings();
+      if (data) {
+        if (data.ai_tone) toneSelect.value = data.ai_tone;
+        if (data.ai_length) lengthSelect.value = data.ai_length;
+      }
+    } catch (e) {
+      console.warn('Error fetching settings for view', e);
+    }
+
+    if (form && !form.dataset.bound) {
+      form.dataset.bound = 'true';
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('save-settings-btn');
+        const origText = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = 'Saving...'; }
+
+        try {
+          await window.BizzApi.updateSettings({
+            ai_tone: toneSelect.value,
+            ai_length: lengthSelect.value
+          });
+          window.showToast('AI Outreach preferences saved successfully!', 'success');
+        } catch (err) {
+          window.showToast(err.message || 'Failed to save settings', 'error');
+        } finally {
+          if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+        }
+      });
     }
   }
 
@@ -163,4 +213,5 @@
   window.applyTheme = applyTheme;
   window.initNavigation = initNavigation;
   window.switchTab = switchTab;
+  window.initSettingsView = initSettingsView;
 })();

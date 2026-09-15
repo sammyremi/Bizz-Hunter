@@ -492,6 +492,46 @@
       </section>
 
       <section id="view-settings" class="view-section">
+        <div style="margin-bottom: 2rem;">
+          <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem;">Settings</h1>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">Configure your account and AI outreach preferences.</p>
+        </div>
+
+        <div class="filter-panel-box" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🤖</span> AI Outreach Preferences
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">
+            Configure your default message style for AI-generated WhatsApp outreach messages.
+          </p>
+
+          <form id="settings-form" style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 480px;">
+            <div class="form-group">
+              <label style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.4rem; display: block;">Message Tone</label>
+              <select id="settings-ai-tone" class="form-select">
+                <option value="Professional">Professional (Default)</option>
+                <option value="Friendly">Friendly</option>
+                <option value="Casual">Casual</option>
+                <option value="Direct">Direct</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.4rem; display: block;">Message Length</label>
+              <select id="settings-ai-length" class="form-select">
+                <option value="Short">Short (2–3 sentences, default)</option>
+                <option value="Medium">Medium (3–4 sentences)</option>
+              </select>
+            </div>
+
+            <div>
+              <button type="submit" id="save-settings-btn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                <span>💾 Save Preferences</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
         <div class="filter-panel-box">
           <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">System Settings</h3>
           <p style="color: var(--text-muted); font-size: 0.9rem;">Connected to Rails 8.1 API & Google Places API.</p>

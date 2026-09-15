@@ -316,6 +316,46 @@
       return null;
     }
 
+    // --- Outreach Messages API ---
+    static async generateOutreachMessage(searchResultId) {
+      const response = await fetch(`${BASE_API_URL}/outreach_messages`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ search_result_id: searchResultId })
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to generate outreach message');
+      }
+      return json.data;
+    }
+
+    // --- Settings API ---
+    static async getSettings() {
+      if (!this.getToken()) throw new Error('Authentication required');
+      const response = await fetch(`${BASE_API_URL}/settings`, {
+        headers: this.getHeaders()
+      });
+      const json = await response.json();
+      if (response.ok && json.success) {
+        return json.data;
+      }
+      throw new Error(json.message || 'Failed to fetch settings');
+    }
+
+    static async updateSettings(settingsData) {
+      const response = await fetch(`${BASE_API_URL}/settings`, {
+        method: 'PATCH',
+        headers: this.getHeaders(),
+        body: JSON.stringify(settingsData)
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to update settings');
+      }
+      return json.data;
+    }
+
     // --- Prospecting Profiles API ---
     static async getProspectingProfiles() {
       if (!this.getToken()) return [];
