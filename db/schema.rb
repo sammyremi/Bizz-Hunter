@@ -10,11 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
+
+  create_table "outreach_messages", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "length", default: "Short", null: false
+    t.text "message", null: false
+    t.uuid "prospecting_profile_id", null: false
+    t.uuid "search_result_id", null: false
+    t.string "tone", default: "Professional", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id"
+    t.string "whatsapp_url", null: false
+    t.index ["prospecting_profile_id"], name: "index_outreach_messages_on_prospecting_profile_id"
+    t.index ["search_result_id", "prospecting_profile_id", "tone", "length"], name: "idx_outreach_msgs_lookup"
+    t.index ["search_result_id"], name: "index_outreach_messages_on_search_result_id"
+    t.index ["user_id"], name: "index_outreach_messages_on_user_id"
+  end
 
   create_table "prospecting_profiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.jsonb "contact_signals", default: []
@@ -55,6 +71,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000000) do
     t.index ["user_id"], name: "index_prospects_on_user_id"
   end
 
+  create_table "qr_scans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.uuid "prospecting_profile_id"
+    t.datetime "scanned_at", null: false
+    t.uuid "search_id"
+    t.uuid "search_result_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["prospecting_profile_id"], name: "index_qr_scans_on_prospecting_profile_id"
+    t.index ["search_id"], name: "index_qr_scans_on_search_id"
+    t.index ["search_result_id", "scanned_at"], name: "index_qr_scans_on_search_result_id_and_scanned_at"
+    t.index ["search_result_id"], name: "index_qr_scans_on_search_result_id"
+  end
+
   create_table "search_results", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "address"
     t.string "business_type"
@@ -72,6 +101,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000000) do
     t.integer "opportunity_score", default: 0
     t.string "opportunity_tier", default: "low"
     t.string "phone"
+    t.string "qr_token"
     t.float "rating"
     t.integer "review_count", default: 0
     t.uuid "search_id", null: false
@@ -82,6 +112,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000000) do
     t.string "website"
     t.index ["google_place_id"], name: "index_search_results_on_google_place_id"
     t.index ["opportunity_tier"], name: "index_search_results_on_opportunity_tier"
+    t.index ["qr_token"], name: "index_search_results_on_qr_token", unique: true
     t.index ["search_id"], name: "index_search_results_on_search_id"
     t.index ["user_id", "google_place_id"], name: "index_search_results_on_user_id_and_google_place_id"
     t.index ["user_id"], name: "index_search_results_on_user_id"
@@ -97,6 +128,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000000) do
     t.float "min_rating"
     t.string "phone_filter"
     t.uuid "prospecting_profile_id"
+    t.text "qr_message_template"
     t.string "query"
     t.integer "results_count", default: 0, null: false
     t.string "state"
@@ -119,8 +151,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000000) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "outreach_messages", "prospecting_profiles", on_delete: :cascade
+  add_foreign_key "outreach_messages", "search_results", on_delete: :cascade
+  add_foreign_key "outreach_messages", "users", on_delete: :cascade
   add_foreign_key "prospecting_profiles", "users", on_delete: :cascade
   add_foreign_key "prospects", "users", on_delete: :cascade
+  add_foreign_key "qr_scans", "prospecting_profiles", on_delete: :cascade
+  add_foreign_key "qr_scans", "search_results", on_delete: :cascade
+  add_foreign_key "qr_scans", "searches", on_delete: :cascade
   add_foreign_key "search_results", "searches", on_delete: :cascade
   add_foreign_key "search_results", "users", on_delete: :cascade
   add_foreign_key "searches", "prospecting_profiles", on_delete: :nullify

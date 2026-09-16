@@ -334,6 +334,12 @@
     const bTypeInput = document.getElementById('business-type-input');
     const businessType = bTypeInput ? bTypeInput.value.trim() : '';
 
+    if (!businessType) {
+      window.showToast('Please enter a business type to search (e.g. Restaurants, Hotels, Real Estate)', 'error');
+      if (bTypeInput) bTypeInput.focus();
+      return;
+    }
+
     // Capture Combined Search Criteria (including selected prospecting profile)
     const params = {
       place_id: state.selectedPlaceId,
@@ -352,6 +358,7 @@
     try {
       const res = await window.BizzApi.searchBusinesses(params);
       state.searchResults = res.data;
+      state.qrMessageTemplate = res.qr_message_template || '';
       state.searchedCount += res.data.length;
       localStorage.setItem('bizz_hunter_searched_count', state.searchedCount.toString());
 
@@ -380,6 +387,9 @@
       } else {
         showErrorState(err.message || 'Unable to connect to Google Places API backend.');
         if (dom.errorQuotaSignupBtn) dom.errorQuotaSignupBtn.style.display = 'none';
+        if (window.showToast) {
+          window.showToast(err.message || 'Unable to complete search', 'error');
+        }
       }
     } finally {
       state.isSearching = false;

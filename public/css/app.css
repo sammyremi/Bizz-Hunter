@@ -654,12 +654,12 @@ body {
 /* PERMANENT VISIBLE LARGE SCANNABLE QR CODE CONTAINER */
 .qr-visible-box {
   background: #ffffff !important;
-  padding: 12px;
+  padding: 4px;
   border-radius: var(--radius-md);
   border: 1px solid #cbd5e1;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  width: 168px;
-  height: 168px;
+  width: 200px;
+  height: 200px;
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
@@ -668,16 +668,17 @@ body {
   box-sizing: border-box;
   transform: none !important;
   filter: none !important;
-  overflow: hidden;
+  /* overflow must NOT be hidden — the SVG quiet zone must not be clipped */
+  overflow: visible;
 }
 
+/* The SVG is scalable (viewBox only, no fixed px). Let the browser scale it. */
 .qr-visible-box svg {
-  width: 144px;
-  height: 144px;
+  width: 100%;
+  height: auto;
   aspect-ratio: 1 / 1;
   display: block;
-  shape-rendering: crispedges;
-  image-rendering: pixelated;
+  shape-rendering: crispEdges;  /* sharp module edges */
   transform: none !important;
   filter: none !important;
 }
@@ -686,7 +687,6 @@ body {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
-}
   margin-bottom: 0.75rem;
 }
 

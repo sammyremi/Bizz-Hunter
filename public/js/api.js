@@ -153,6 +153,7 @@
         return {
           data: json.data || [],
           search_id: json.search_id,
+          qr_message_template: json.qr_message_template || '',
           prospecting_profile: json.prospecting_profile || null,
           quota: json.quota
         };

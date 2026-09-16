@@ -16,6 +16,7 @@
     currentUser: null,
     currentQuota: null,
     searchResults: [],
+    qrMessageTemplate: '',
     savedBusinesses: [],
     activeProspectStatusFilter: '',
     searchedCount: parseInt(localStorage.getItem('bizz_hunter_searched_count') || '0', 10),

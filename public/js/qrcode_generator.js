@@ -968,25 +968,53 @@
     return qrcode;
   }();
 
-  // Generator wrapper function
-  function generateQRCodeSVG(text, options) {
-    options = options || {};
-    var size = options.size || 160;
-    var qr = qrcode(0, 'M');
-    qr.addData(text);
-    qr.make();
+  // Generator wrapper function — produces a scalable SVG QR code.
+  //
+  // Design rationale:
+  //   - scalable: true — SVG carries only a viewBox, no fixed px dimensions.
+  //     CSS scales the vector cleanly. No fractional path coordinates.
+  //   - cellSize: 10 — integer pixels per module in the viewBox coordinate system.
+  //     Large enough that path d= attributes are whole integers.
+  //   - margin: 4 modules × 10px = 40px quiet zone in viewBox units.
+  //   - Error correction M (15%) — fits WhatsApp URLs (up to ~367 bytes at type 10).
+  //     The embedded RS_BLOCK_TABLE covers types 1–10. H (30%) would require type 11+
+  //     for URLs >191 bytes; M keeps us within type 10 for all realistic WhatsApp URLs.
+  //     M is fully adequate for phone-camera scanning at screen distances.
+  //   - Falls back to L (7%) for very long URLs, then throws a clear error.
+  //
+  // IMPORTANT: the caller must NOT pass options; display size is CSS-controlled.
+  function generateQRCodeSVG(text) {
+    var CELL  = 10; // integer px per module in SVG viewBox coordinate space
+    var QUIET = 4;  // ISO 18004: minimum 4-module quiet zone
 
-    var count = qr.getModuleCount();
-    var margin = 4; // ISO 18004 4-module quiet zone
-    var cellSize = size / (count + margin * 2);
+    // Try M first (fits ~367 bytes at type 10), fall back to L (~513 bytes at type 10)
+    var levels = ['M', 'L'];
+    var lastError = null;
 
-    return qr.createSvgTag({
-      cellSize: cellSize,
-      margin: margin * cellSize,
-      scalable: false
-    });
+    for (var i = 0; i < levels.length; i++) {
+      try {
+        var qr = qrcode(0, levels[i]);
+        qr.addData(text, 'Byte');
+        qr.make();
+
+        return qr.createSvgTag({
+          cellSize:  CELL,
+          margin:    QUIET * CELL,
+          scalable:  true // viewBox only — no fixed width/height attributes
+        });
+      } catch (e) {
+        lastError = e;
+      }
+    }
+
+    // If even L fails the URL is too long for this library (>513 bytes).
+    // Return an empty SVG rather than crashing the page.
+    console.warn('[QRCodeGenerator] Could not encode URL (too long?):', lastError);
+    return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="white"/><text x="50" y="50" font-size="8" text-anchor="middle" fill="red">QR error</text></svg>';
   }
 
   window.QRCodeGenerator = generateQRCodeSVG;
 
 })(window);
+
+

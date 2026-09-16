@@ -15,18 +15,18 @@ module GooglePlaces
       return nil if user.blank?
 
       search = user.searches.create!(
-        business_type:        search_params[:business_type],
-        location_name:        search_params[:location_name],
-        country:              search_params[:country],
-        state:                search_params[:state],
-        city:                 search_params[:city],
-        area:                 search_params[:area],
-        min_rating:           search_params[:min_rating],
-        website_filter:       search_params[:has_website],
-        phone_filter:         search_params[:has_phone],
-        query:                "#{search_params[:business_type]} in #{search_params[:location_name]}".strip,
-        results_count:        businesses.size,
-        prospecting_profile:  prospecting_profile
+        business_type:       search_params[:business_type],
+        location_name:       search_params[:location_name],
+        country:             search_params[:country],
+        state:               search_params[:state],
+        city:                search_params[:city],
+        area:                search_params[:area],
+        min_rating:          search_params[:min_rating],
+        website_filter:      search_params[:has_website],
+        phone_filter:        search_params[:has_phone],
+        query:               "#{search_params[:business_type]} in #{search_params[:location_name]}".strip,
+        results_count:       businesses.size,
+        prospecting_profile: prospecting_profile
       )
 
       businesses.each do |b|

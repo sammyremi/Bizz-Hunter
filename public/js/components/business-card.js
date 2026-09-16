@@ -15,10 +15,38 @@
     // WhatsApp URL & Direct QR Code SVG Rendering
     const waUrl = window.buildWhatsAppUrl(b);
 
+    // Compute personalized QR WhatsApp URL using search QR message template
+    let qrWaUrl = waUrl;
+    if (hasPhone) {
+      const template = window.BizzState ? (window.BizzState.qrMessageTemplate || '') : '';
+      if (template) {
+        const bName = b.name || b.business_name || 'there';
+        const personalizedMsg = template.replace(/\{\{\s*business_name\s*\}\}/g, bName);
+        qrWaUrl = window.buildWhatsAppUrl(b, personalizedMsg) || waUrl;
+      }
+    }
+
     // DIRECT PERMANENT LARGE SCANNABLE SVG QR CODE INJECTION
     let qrSvgHtml = '';
-    if (waUrl && window.QRCodeGenerator) {
-      qrSvgHtml = window.QRCodeGenerator(waUrl, { size: 144, colorDark: '#0b0f19', colorLight: '#ffffff' });
+    if (qrWaUrl && window.QRCodeGenerator) {
+      // DEV: log first QR payload so it can be independently verified in browser devtools
+      if (!window._qrPayloadLogged) {
+        window._qrPayloadLogged = true;
+        const template = window.BizzState ? (window.BizzState.qrMessageTemplate || '') : '';
+        console.group('[QR DEBUG] First business card QR payload');
+        console.log('Business:', b.name || b.business_name);
+        console.log('Raw phone:', b.phone || b.phone_number || b.international_phone_number || '(none)');
+        console.log('Template present:', Boolean(template));
+        if (template) {
+          const bName = b.name || b.business_name || 'there';
+          const personalizedMsg = template.replace(/\{\{\s*business_name\s*\}\}/g, bName);
+          console.log('Personalized message:', personalizedMsg);
+        }
+        console.log('QR payload:', qrWaUrl);
+        console.log('Has ?text=:', qrWaUrl.includes('?text='));
+        console.groupEnd();
+      }
+      qrSvgHtml = window.QRCodeGenerator(qrWaUrl);
     }
 
     // Opportunity Score & Tier (from backend)
@@ -137,7 +165,7 @@
                 <span>💬</span> WhatsApp <span style="font-size: 0.75rem; margin-left: 2px;">▼</span>
               </button>
               <div class="whatsapp-dropdown-menu" id="wa-menu-${placeId}" style="display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: var(--bg-surface, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: var(--radius-md, 8px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; margin-bottom: 6px; overflow: hidden;">
-                <a href="${waUrl}" target="_blank" rel="noopener" class="wa-open-link" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: var(--text-main, #f8fafc); font-size: 0.825rem; text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border-color, #334155);">
+                <a href="${qrWaUrl}" target="_blank" rel="noopener" class="wa-open-link" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: var(--text-main, #f8fafc); font-size: 0.825rem; text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border-color, #334155);">
                   <span>📱</span> Open WhatsApp
                 </a>
                 <button type="button" class="wa-generate-msg-btn" data-place-id="${placeId}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: #38bdf8; font-size: 0.825rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; font-weight: 700;">

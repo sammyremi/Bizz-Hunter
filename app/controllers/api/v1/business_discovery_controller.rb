@@ -19,6 +19,13 @@ module Api
       end
 
       def search
+        if business_discovery_params[:business_type].blank?
+          return render json: {
+            success: false,
+            message: 'Business type is required. Please input a business type to search.'
+          }, status: :unprocessable_entity
+        end
+
         quota_result = SearchQuotaTracker.check_and_increment!(
           user: current_user,
           ip: request.remote_ip
@@ -71,6 +78,19 @@ module Api
           )
         end
 
+        # Generate ONE reusable QR message template for the search.
+        # Wrapped in rescue — a Gemini failure must never cause the search to return HTTP 500.
+        qr_template = begin
+          result = Ai::QrMessageGenerator.call(
+            prospecting_profile: selected_profile,
+            business_type: business_discovery_params[:business_type]
+          )
+          result[:template].presence || ''
+        rescue StandardError => e
+          Rails.logger.warn("[BusinessDiscovery] QR template generation failed: #{e.message}")
+          ''
+        end
+
         saved_search = GooglePlaces::SearchPersistence.call(
           user:                current_user,
           search_params:       business_discovery_params.to_h,
@@ -89,6 +109,7 @@ module Api
           message:             'Businesses retrieved successfully',
           data:                scored_result,
           search_id:           saved_search&.id,
+          qr_message_template: qr_template,
           prospecting_profile: profile_summary,
           quota:               quota_result[:quota]
         }, status: :ok

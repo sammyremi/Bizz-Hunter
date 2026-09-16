@@ -23,7 +23,7 @@
   }
 
   // WhatsApp Phone Number Sanitizer & Link Formatter
-  function buildWhatsAppUrl(b) {
+  function buildWhatsAppUrl(b, customMessage = '') {
     const rawIntl = b.phone || b.phone_number || '';
     const rawNat = b.national_phone || b.international_phone_number || '';
     const phoneStr = rawIntl || rawNat || '';
@@ -41,6 +41,11 @@
     }
 
     if (digits.length < 7) return null;
+
+    if (customMessage) {
+      const encodedMsg = encodeURIComponent(customMessage);
+      return `https://wa.me/${digits}?text=${encodedMsg}`;
+    }
 
     // Format: https://wa.me/<FULL_INTERNATIONAL_PHONE_NUMBER>
     return `https://wa.me/${digits}`;

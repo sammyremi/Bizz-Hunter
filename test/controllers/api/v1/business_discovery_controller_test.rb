@@ -182,6 +182,32 @@ module Api
           assert_equal profile2.id, search.prospecting_profile_id
         end
       end
+
+      # ------------------------------------------------------------------
+      # Missing business_type validation tests
+      # ------------------------------------------------------------------
+
+      test "search without business_type parameter returns unprocessable_entity 422 with message" do
+        get '/api/v1/business-discovery/search',
+            params: { location_name: 'Lagos' },
+            headers: @auth_headers
+
+        assert_response :unprocessable_entity
+        json = JSON.parse(response.body)
+        assert_equal false, json['success']
+        assert_match /business type is required/i, json['message']
+      end
+
+      test "search with blank business_type returns unprocessable_entity 422 with message" do
+        get '/api/v1/business-discovery/search',
+            params: { business_type: '   ', location_name: 'Lagos' },
+            headers: @auth_headers
+
+        assert_response :unprocessable_entity
+        json = JSON.parse(response.body)
+        assert_equal false, json['success']
+        assert_match /business type is required/i, json['message']
+      end
     end
   end
 end
