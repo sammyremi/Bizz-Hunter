@@ -13,16 +13,15 @@
     const formattedPhone = b.national_phone || b.international_phone_number || b.phone || b.phone_number || 'No Phone Number';
 
     // WhatsApp URL & Direct QR Code SVG Rendering
-    const waUrl = window.buildWhatsAppUrl(b);
+    let qrWaUrl = b.whatsapp_url || window.buildWhatsAppUrl(b);
 
-    // Compute personalized QR WhatsApp URL using search QR message template
-    let qrWaUrl = waUrl;
-    if (hasPhone) {
+    // Fallback: If whatsapp_url was not prebuilt on backend, compute personalized QR WhatsApp URL using search template
+    if (!b.whatsapp_url && hasPhone) {
       const template = window.BizzState ? (window.BizzState.qrMessageTemplate || '') : '';
       if (template) {
         const bName = b.name || b.business_name || 'there';
         const personalizedMsg = template.replace(/\{\{\s*business_name\s*\}\}/g, bName);
-        qrWaUrl = window.buildWhatsAppUrl(b, personalizedMsg) || waUrl;
+        qrWaUrl = window.buildWhatsAppUrl(b, personalizedMsg) || window.buildWhatsAppUrl(b);
       }
     }
 
