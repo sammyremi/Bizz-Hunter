@@ -50,7 +50,7 @@ module Ai
         RULES:
         1. CRITICAL: The template MUST include the exact placeholder {{business_name}} for the target business name (e.g. "Hi {{business_name}},").
         2. If a specific service is specified ("#{service_name}"), offer that service.
-        3. Keep the template concise, professional, warm, and natural for WhatsApp (2-3 sentences).
+        3. Keep the template concise, professional, warm, and natural for WhatsApp (1-2 short sentences, 25-35 words max).
         4. End with a soft conversation-starter question.
         5. Return JSON matching schema: { "template": "string" }.
       TEXT

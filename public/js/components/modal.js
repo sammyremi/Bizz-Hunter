@@ -71,7 +71,7 @@
   function openDetailsModal(b) {
     const dom = window.dom;
     const name = b.name || b.business_name;
-    const waUrl = window.buildWhatsAppUrl(b);
+    const waUrl = b.whatsapp_url || window.buildWhatsAppUrl(b) || null;
     const rawPhone = b.phone || b.phone_number || b.national_phone || b.international_phone_number || '';
 
     dom.detailsModalBody.innerHTML = `

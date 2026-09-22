@@ -651,31 +651,31 @@ body {
   gap: 0.75rem;
 }
 
-/* PERMANENT VISIBLE LARGE SCANNABLE QR CODE CONTAINER */
+/* PERMANENT VISIBLE LARGE SCANNABLE QR CODE CONTAINER (STEP 1: UNSTYLED HIGH-CONTRAST 300x300) */
 .qr-visible-box {
   background: #ffffff !important;
-  padding: 4px;
-  border-radius: var(--radius-md);
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  width: 200px;
-  height: 200px;
+  padding: 16px;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 300px;
+  height: 300px;
+  max-width: 100%;
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0;
+  margin: 0 auto;
   box-sizing: border-box;
   transform: none !important;
   filter: none !important;
-  /* overflow must NOT be hidden — the SVG quiet zone must not be clipped */
-  overflow: visible;
+  overflow: hidden;
 }
 
-/* The SVG is scalable (viewBox only, no fixed px). Let the browser scale it. */
+/* The SVG is scalable (viewBox only, no fixed px). Let the browser scale it cleanly. */
 .qr-visible-box svg {
   width: 100%;
-  height: auto;
+  height: 100%;
   aspect-ratio: 1 / 1;
   display: block;
   shape-rendering: crispEdges;  /* sharp module edges */

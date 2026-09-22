@@ -10,7 +10,7 @@
     const hasWebsite = Boolean(b.website);
     const rawPhone = b.phone || b.phone_number || b.national_phone || b.international_phone_number || '';
     const hasPhone = Boolean(rawPhone);
-    const waUrl = window.buildWhatsAppUrl(b);
+    const waUrl = b.whatsapp_url || window.buildWhatsAppUrl(b) || null;
     const hasWhatsapp = Boolean(waUrl);
 
     const rating = parseFloat(b.rating || 0);
