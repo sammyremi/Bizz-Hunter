@@ -217,7 +217,9 @@
 
     if (dom.profilesEmptyState) dom.profilesEmptyState.style.display = 'none';
     if (dom.profilesGrid) {
-      dom.profilesGrid.style.display = 'grid';
+      dom.profilesGrid.style.display = 'flex';
+      dom.profilesGrid.style.flexDirection = 'column';
+      dom.profilesGrid.style.gap = '1.25rem';
       dom.profilesGrid.innerHTML = profiles.map(profile => createProfileCardHtml(profile)).join('');
       attachCardActionListeners();
     }
@@ -229,64 +231,72 @@
     const contactSignals = Array.isArray(profile.contact_signals) ? profile.contact_signals : [];
 
     return `
-      <div class="profile-card" data-profile-id="${profile.id}">
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-          
-          <!-- Card Top Header -->
+      <div class="profile-card profile-card-horizontal" data-profile-id="${profile.id}">
+        <!-- Left Column: Profile Details & Actions -->
+        <div class="profile-card-left">
           <div class="profile-card-header">
-            <div>
-              <h2 class="profile-title">${window.escapeHtml(profile.name)}</h2>
-              <div class="profile-service">${window.escapeHtml(profile.service)}</div>
+            <div class="profile-title-group">
+              <div class="profile-title-wrapper">
+                <h2 class="profile-title">${window.escapeHtml(profile.name)}</h2>
+                ${profile.is_default ? '<span class="badge-default">Default Profile</span>' : ''}
+              </div>
+              <div class="profile-service">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                <span>${window.escapeHtml(profile.service)}</span>
+              </div>
             </div>
-            ${profile.is_default ? '<span class="badge-default">Default</span>' : ''}
           </div>
 
-          <!-- Description if present -->
           ${profile.service_description ? `
-            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.45;">
-              ${window.escapeHtml(profile.service_description)}
-            </p>
+            <p class="profile-desc">${window.escapeHtml(profile.service_description)}</p>
           ` : ''}
 
-          <!-- Target Businesses -->
-          <div>
-            <div class="profile-section-title">Target Businesses</div>
-            <div class="profile-chips-group">
-              ${targets.length > 0 ? targets.map(t => `<span class="chip-tag">${window.escapeHtml(t)}</span>`).join('') : '<span style="color: var(--text-dim); font-size: 0.8rem;">None specified</span>'}
-            </div>
+          <div class="profile-card-actions">
+            <button type="button" class="btn btn-secondary btn-sm btn-edit-profile" data-id="${profile.id}">
+              ${window.BizzIcons ? window.BizzIcons.settings : ''} <span>Edit</span>
+            </button>
+            ${!profile.is_default ? `
+              <button type="button" class="btn btn-secondary btn-sm btn-default-profile" data-id="${profile.id}">
+                ${window.BizzIcons ? window.BizzIcons.check : ''} <span>Set as Default</span>
+              </button>
+            ` : ''}
+            <button type="button" class="btn btn-secondary btn-sm btn-delete-profile" data-id="${profile.id}" data-name="${window.escapeHtml(profile.name)}" style="color: #ef4444; border-color: rgba(239,68,68,0.3);">
+              <span>Delete</span>
+            </button>
           </div>
-
-          <!-- Opportunity Signals -->
-          <div>
-            <div class="profile-section-title">Opportunity Signals</div>
-            <div class="profile-chips-group">
-              ${oppSignals.length > 0 ? oppSignals.map(s => `<span class="chip-tag" style="border-color: rgba(59,130,246,0.3); color: var(--text-main);">${window.escapeHtml(s)}</span>`).join('') : '<span style="color: var(--text-dim); font-size: 0.8rem;">None specified</span>'}
-            </div>
-          </div>
-
-          <!-- Contact Signals -->
-          <div>
-            <div class="profile-section-title">Contact Signals</div>
-            <div class="profile-chips-group">
-              ${contactSignals.length > 0 ? contactSignals.map(c => `<span class="chip-tag" style="border-color: rgba(37,211,102,0.3); color: var(--text-main);">${window.escapeHtml(c)}</span>`).join('') : '<span style="color: var(--text-dim); font-size: 0.8rem;">None specified</span>'}
-            </div>
-          </div>
-
         </div>
 
-        <!-- Actions Bar -->
-        <div class="profile-card-actions">
-          <button type="button" class="btn btn-secondary btn-sm btn-edit-profile" data-id="${profile.id}">
-            ${window.BizzIcons ? window.BizzIcons.settings : ''} <span>Edit</span>
-          </button>
-          ${!profile.is_default ? `
-            <button type="button" class="btn btn-secondary btn-sm btn-default-profile" data-id="${profile.id}">
-              ${window.BizzIcons ? window.BizzIcons.check : ''} <span>Set as Default</span>
-            </button>
-          ` : ''}
-          <button type="button" class="btn btn-secondary btn-sm btn-delete-profile" data-id="${profile.id}" data-name="${window.escapeHtml(profile.name)}" style="color: #ef4444; border-color: rgba(239,68,68,0.3);">
-            <span>Delete</span>
-          </button>
+        <!-- Right Column: Signals & Targets Matrix -->
+        <div class="profile-card-right">
+          <div class="profile-signal-pillar">
+            <div class="profile-section-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Target Businesses</span>
+            </div>
+            <div class="profile-chips-group">
+              ${targets.length > 0 ? targets.map(t => `<span class="chip-tag chip-target">${window.escapeHtml(t)}</span>`).join('') : '<span class="chip-empty">None specified</span>'}
+            </div>
+          </div>
+
+          <div class="profile-signal-pillar">
+            <div class="profile-section-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Opportunity Signals</span>
+            </div>
+            <div class="profile-chips-group">
+              ${oppSignals.length > 0 ? oppSignals.map(s => `<span class="chip-tag chip-opp">${window.escapeHtml(s)}</span>`).join('') : '<span class="chip-empty">None specified</span>'}
+            </div>
+          </div>
+
+          <div class="profile-signal-pillar">
+            <div class="profile-section-title">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span>Contact Signals</span>
+            </div>
+            <div class="profile-chips-group">
+              ${contactSignals.length > 0 ? contactSignals.map(c => `<span class="chip-tag chip-contact">${window.escapeHtml(c)}</span>`).join('') : '<span class="chip-empty">None specified</span>'}
+            </div>
+          </div>
         </div>
       </div>
     `;
