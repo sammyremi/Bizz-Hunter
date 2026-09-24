@@ -476,8 +476,9 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  display: grid;
-  grid-template-columns: 1fr 310px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   overflow: hidden;
   box-shadow: var(--shadow-md);
   transition: var(--transition);
@@ -488,13 +489,13 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-/* Left Panel */
+/* Card Content Flow */
 .card-left-content {
-  padding: 2rem;
+  padding: 1.5rem 1.75rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  border-right: 1px solid var(--border-color);
+  gap: 1.15rem;
+  border-right: none;
 }
 
 .card-top-tags {
@@ -633,61 +634,54 @@ body {
   font-weight: 600;
 }
 
-.card-actions-left {
+.card-actions-left,
+.card-actions-bar {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-}
-
-/* Right Panel: Permanent Visible QR Code */
-.card-right-panel {
-  background: var(--bg-surface);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
 }
 
-/* PERMANENT VISIBLE LARGE SCANNABLE QR CODE CONTAINER (STEP 1: UNSTYLED HIGH-CONTRAST 300x300) */
-.qr-visible-box {
-  background: #ffffff !important;
-  padding: 16px;
-  border-radius: 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-  width: 300px;
-  height: 300px;
-  max-width: 100%;
-  aspect-ratio: 1 / 1;
+/* Inline AI Prospect Brief Container */
+.inline-brief-container {
+  width: 100%;
+  border-top: 1px solid var(--border-color, #334155);
+  padding: 1.25rem 1.75rem;
+  background: var(--bg-surface, #1e293b);
+  border-bottom-left-radius: var(--radius-xl, 16px);
+  border-bottom-right-radius: var(--radius-xl, 16px);
+  box-sizing: border-box;
+}
+
+/* AI PROSPECT BRIEF COMPONENTS */
+.brief-section-card {
+  background: var(--bg-surface, #1e293b);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: var(--radius-md, 10px);
+  padding: 1rem 1.15rem;
+  margin-bottom: 0.85rem;
+  text-align: left;
+}
+
+.brief-section-title {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  box-sizing: border-box;
-  transform: none !important;
-  filter: none !important;
-  overflow: hidden;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary, #38bdf8);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-/* The SVG is scalable (viewBox only, no fixed px). Let the browser scale it cleanly. */
-.qr-visible-box svg {
-  width: 100%;
-  height: 100%;
-  aspect-ratio: 1 / 1;
-  display: block;
-  shape-rendering: crispEdges;  /* sharp module edges */
-  transform: none !important;
-  filter: none !important;
-}
-
-.qr-caption-subtext {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
+.brief-section-body {
+  font-size: 0.875rem;
+  color: var(--text-muted, #cbd5e1);
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Buttons */

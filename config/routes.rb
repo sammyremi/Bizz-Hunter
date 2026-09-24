@@ -19,6 +19,7 @@ Rails.application.routes.draw do
       get 'searches/:id/analysis', to: 'searches#analysis'
 
       post 'outreach_messages', to: 'outreach_messages#create'
+      post 'prospect_briefs', to: 'prospect_briefs#create'
       get 'settings', to: 'settings#show'
       patch 'settings', to: 'settings#update'
 

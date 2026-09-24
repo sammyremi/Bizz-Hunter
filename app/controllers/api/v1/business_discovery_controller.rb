@@ -65,23 +65,10 @@ module Api
           **business_discovery_params.except(:prospecting_profile_id).to_h.symbolize_keys
         )
 
-        # Generate ONE reusable QR message template for the search.
-        # Wrapped in rescue — a Gemini failure must never cause the search to return HTTP 500.
-        qr_template = begin
-          res = Ai::QrMessageGenerator.call(
-            prospecting_profile: selected_profile,
-            business_type: business_discovery_params[:business_type]
-          )
-          res[:template].presence || ''
-        rescue StandardError => e
-          Rails.logger.warn("[BusinessDiscovery] QR template generation failed: #{e.message}")
-          ''
-        end
-
         # Apply personalized (or generic) opportunity scoring & build direct WhatsApp URL for each business
         scored_result = result.map do |business|
           opp = OpportunityScoreCalculator.call(business: business, profile: selected_profile)
-          wa_url = build_business_whatsapp_url(business, qr_template)
+          wa_url = build_business_whatsapp_url(business)
 
           business.merge(
             opportunity_score:   opp[:score],
@@ -101,6 +88,19 @@ module Api
           prospecting_profile: selected_profile
         )
 
+        if saved_search.present?
+          search_results_by_place = saved_search.search_results.index_by(&:google_place_id)
+          scored_result.each do |b|
+            place_id = b[:id] || b[:google_place_id]
+            sr = search_results_by_place[place_id]
+            if sr
+              b[:search_result_id] = sr.id
+              b[:search_id] = saved_search.id
+              b[:prospecting_profile_id] = selected_profile&.id
+            end
+          end
+        end
+
         profile_summary = selected_profile ? {
           id:      selected_profile.id,
           name:    selected_profile.name,
@@ -112,7 +112,6 @@ module Api
           message:             'Businesses retrieved successfully',
           data:                scored_result,
           search_id:           saved_search&.id,
-          qr_message_template: qr_template,
           prospecting_profile: profile_summary,
           quota:               quota_result[:quota]
         }, status: :ok
@@ -155,7 +154,7 @@ module Api
 
       private
 
-      def build_business_whatsapp_url(business, template)
+      def build_business_whatsapp_url(business)
         raw_phone = business[:phone].presence || business[:national_phone].presence || ''
         digits = raw_phone.to_s.gsub(/\D/, '')
         return nil if digits.blank?
@@ -168,14 +167,7 @@ module Api
 
         return nil if digits.length < 7
 
-        if template.present?
-          b_name = business[:name].presence || 'there'
-          personalized_msg = template.gsub(/\{\{\s*business_name\s*\}\}/, b_name)
-          encoded_msg = ERB::Util.url_encode(personalized_msg)
-          "https://wa.me/#{digits}?text=#{encoded_msg}"
-        else
-          "https://wa.me/#{digits}"
-        end
+        "https://wa.me/#{digits}"
       end
     end
   end

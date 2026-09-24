@@ -213,7 +213,7 @@ module Api
       # WhatsApp direct URL pre-building tests
       # ------------------------------------------------------------------
 
-      test "search response pre-builds direct whatsapp_url with prefilled AI message for businesses with phone" do
+      test "search response pre-builds direct whatsapp_url for businesses with phone" do
         mock_results = [
           { id: 'p1', name: 'Alpha Bistro', phone: '+234 912 489 8083', types: ['restaurant'] },
           { id: 'p2', name: 'Beta Lounge', phone: nil, types: ['restaurant'] }
@@ -228,37 +228,14 @@ module Api
           json = JSON.parse(response.body)
           data = json['data']
 
-          # First business with phone has full wa.me link with encoded text
+          # First business with phone has direct wa.me link
           alpha = data.find { |b| b['name'] == 'Alpha Bistro' }
           assert_not_nil alpha['whatsapp_url']
-          assert_includes alpha['whatsapp_url'], 'https://wa.me/2349124898083?text='
-          assert_includes alpha['whatsapp_url'], 'Alpha%20Bistro'
-          refute_includes alpha['whatsapp_url'], '%2520' # No double encoding
+          assert_equal 'https://wa.me/2349124898083', alpha['whatsapp_url']
 
           # Second business with no phone has nil whatsapp_url
           beta = data.find { |b| b['name'] == 'Beta Lounge' }
           assert_nil beta['whatsapp_url']
-        end
-      end
-
-      test "search remains successful (200 OK) even if AI template generation raises an error" do
-        mock_results = [
-          { id: 'p1', name: 'Gamma Cafe', phone: '+234 801 111 2222', types: ['cafe'] }
-        ]
-
-        with_stub(GooglePlaces::BusinessDiscovery, :call, mock_results) do
-          with_stub(Ai::QrMessageGenerator, :call, ->(*_args) { raise StandardError, 'Gemini 503 Capacity Unavailable' }) do
-            get '/api/v1/business-discovery/search',
-                params: { business_type: 'cafes', location_name: 'Abuja' },
-                headers: @auth_headers
-
-            assert_response :success
-            json = JSON.parse(response.body)
-            assert json['success']
-            assert_equal 1, json['data'].size
-            # Business receives direct plain wa.me link as fallback
-            assert_equal 'https://wa.me/2348011112222', json['data'][0]['whatsapp_url']
-          end
         end
       end
     end

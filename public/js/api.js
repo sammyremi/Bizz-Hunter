@@ -153,7 +153,6 @@
         return {
           data: json.data || [],
           search_id: json.search_id,
-          qr_message_template: json.qr_message_template || '',
           prospecting_profile: json.prospecting_profile || null,
           quota: json.quota
         };
@@ -327,6 +326,20 @@
       const json = await response.json();
       if (!response.ok || !json.success) {
         throw new Error(json.message || 'Failed to generate outreach message');
+      }
+      return json.data;
+    }
+
+    // --- AI Prospect Brief API ---
+    static async generateProspectBrief(payload) {
+      const response = await fetch(`${BASE_API_URL}/prospect_briefs`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload)
+      });
+      const json = await response.json();
+      if (!response.ok || !json.success) {
+        throw new Error(json.message || 'Failed to generate AI Prospect Brief');
       }
       return json.data;
     }

@@ -3,6 +3,18 @@
 (function (window) {
   'use strict';
 
+  // Inline SVG icon constants for clean, professional rendering without emojis
+  const ICONS = {
+    star: '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="color: #f59e0b;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+    pin: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+    globe: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+    sparkles: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg>',
+    bookmark: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
+    copy: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+  };
+
   function createBusinessCardHtml(b, isProspectView = false) {
     const state = window.BizzState;
     const placeId = b.google_place_id || b.id;
@@ -12,27 +24,8 @@
     const hasPhone = Boolean(rawPhone);
     const formattedPhone = b.national_phone || b.international_phone_number || b.phone || b.phone_number || 'No Phone Number';
 
-    // WhatsApp URL & Direct QR Code SVG Rendering
-    let waUrl = b.whatsapp_url || window.buildWhatsAppUrl(b) || null;
-
-    // Fallback: If whatsapp_url was not prebuilt on backend, compute personalized WhatsApp URL using search template
-    if (!b.whatsapp_url && hasPhone) {
-      const template = window.BizzState ? (window.BizzState.qrMessageTemplate || '') : '';
-      if (template) {
-        const bName = b.name || b.business_name || 'there';
-        const personalizedMsg = template.replace(/\{\{\s*business_name\s*\}\}/g, bName);
-        waUrl = window.buildWhatsAppUrl(b, personalizedMsg) || waUrl;
-      }
-    }
-
-    // DIRECT PERMANENT LARGE SCANNABLE SVG QR CODE INJECTION (STEP 1: SIMPLE WHATSAPP QR WITHOUT MESSAGE)
-    const qrPayload = window.buildWhatsAppUrl(b); // Plain https://wa.me/<digits> with NO ?text=
-    let qrSvgHtml = '';
-    if (qrPayload && window.QRCodeGenerator) {
-      console.log("QR TEST PAYLOAD:", qrPayload);
-      console.log("QR TEST PAYLOAD TYPE:", typeof qrPayload);
-      qrSvgHtml = window.QRCodeGenerator(qrPayload);
-    }
+    // WhatsApp URL Link
+    const waUrl = b.whatsapp_url || (window.buildWhatsAppUrl ? window.buildWhatsAppUrl(b) : null);
 
     // Opportunity Score & Tier (from backend)
     const oppLevel = b.opportunity_level || (b.opportunity_tier ? b.opportunity_tier.toUpperCase() : (!hasWebsite ? 'HIGH' : 'STANDARD'));
@@ -46,7 +39,7 @@
     return `
       <div class="business-card" data-id="${placeId}" data-db-id="${b.id || ''}">
         
-        <!-- Left Panel: Details, Badges, Tags, Actions -->
+        <!-- Main Card Content Flow -->
         <div class="card-left-content">
           <div>
             <div class="card-top-tags">
@@ -58,8 +51,8 @@
                   ${isPersonalized ? '<span class="opp-personalized-dot" title="Personalized score">●</span>' : ''}
                 </span>
               </div>
-              <div class="card-rating-badge">
-                <span>★</span> ${ratingVal} <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">${reviewCountText}</span>
+              <div class="card-rating-badge" style="display: flex; align-items: center; gap: 0.35rem;">
+                ${ICONS.star} <span>${ratingVal}</span> <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">${reviewCountText}</span>
               </div>
             </div>
 
@@ -67,16 +60,16 @@
 
             <div class="card-info-rows">
               <div class="info-row">
-                <span>📍</span>
+                <span style="display: inline-flex; align-items: center; color: var(--text-muted);">${ICONS.pin}</span>
                 <span>${window.escapeHtml(b.address || 'Address unavailable')}</span>
               </div>
               <div class="info-row">
-                <span>📞</span>
+                <span style="display: inline-flex; align-items: center; color: var(--text-muted);">${ICONS.phone}</span>
                 <span>${window.escapeHtml(formattedPhone)}</span>
-                ${hasPhone ? `<button class="copy-icon-btn" title="Copy Phone Number" data-phone="${window.escapeHtml(formattedPhone)}">📋</button>` : ''}
+                ${hasPhone ? `<button class="copy-icon-btn" title="Copy Phone Number" data-phone="${window.escapeHtml(formattedPhone)}" style="background: transparent; border: none; cursor: pointer; color: var(--text-muted); padding: 0 4px;">${ICONS.copy}</button>` : ''}
               </div>
               <div class="info-row">
-                <span>🌐</span>
+                <span style="display: inline-flex; align-items: center; color: var(--text-muted);">${ICONS.globe}</span>
                 ${hasWebsite ? `
                   <a href="${b.website}" target="_blank" rel="noopener" style="color: var(--primary); text-decoration: underline;">${window.escapeHtml(b.website)}</a>
                 ` : `
@@ -104,11 +97,11 @@
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
                   <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Status:</label>
                   <select class="form-select prospect-status-select" data-id="${b.id}" style="padding: 0.25rem 0.5rem; font-size: 0.825rem; width: auto;">
-                    <option value="NEW" ${b.status === 'NEW' ? 'selected' : ''}>🆕 New</option>
-                    <option value="CONTACTED" ${b.status === 'CONTACTED' ? 'selected' : ''}>💬 Contacted</option>
-                    <option value="INTERESTED" ${b.status === 'INTERESTED' ? 'selected' : ''}>🔥 Interested</option>
-                    <option value="CONVERTED" ${b.status === 'CONVERTED' ? 'selected' : ''}>🎉 Converted</option>
-                    <option value="NOT_INTERESTED" ${b.status === 'NOT_INTERESTED' ? 'selected' : ''}>🚫 Not Interested</option>
+                    <option value="NEW" ${b.status === 'NEW' ? 'selected' : ''}>New</option>
+                    <option value="CONTACTED" ${b.status === 'CONTACTED' ? 'selected' : ''}>Contacted</option>
+                    <option value="INTERESTED" ${b.status === 'INTERESTED' ? 'selected' : ''}>Interested</option>
+                    <option value="CONVERTED" ${b.status === 'CONVERTED' ? 'selected' : ''}>Converted</option>
+                    <option value="NOT_INTERESTED" ${b.status === 'NOT_INTERESTED' ? 'selected' : ''}>Not Interested</option>
                   </select>
                 </div>
 
@@ -120,52 +113,50 @@
             ` : ''}
           </div>
 
-          <div class="card-actions-left">
+          <!-- Unified Action Bar -->
+          <div class="card-actions-bar">
             ${isProspectView ? `
               <button class="btn btn-secondary btn-sm remove-prospect-btn" data-id="${b.id}" style="color: #ef4444;">
-                <span>🗑️</span> Remove
+                ${ICONS.trash} <span>Remove</span>
               </button>
             ` : `
               <button class="btn ${isSaved ? 'btn-secondary' : 'btn-primary'} btn-sm save-btn" data-id="${placeId}">
-                <span>${isSaved ? '❤️ Saved' : '🔖 Save prospect'}</span>
+                ${ICONS.bookmark} <span>${isSaved ? 'Saved' : 'Save prospect'}</span>
               </button>
             `}
 
             <button class="btn btn-secondary btn-sm details-btn" data-id="${placeId}">
-              <span>📞</span> Call / Details
+              ${ICONS.phone} <span>Call / Details</span>
             </button>
+
+            <!-- Primary Action: AI Prospect Brief -->
+            <button type="button" class="btn btn-primary btn-sm brief-btn" data-id="${placeId}" style="font-weight: 700;">
+              ${ICONS.sparkles} <span>${(window.hasCachedBrief && window.hasCachedBrief(b)) ? 'Show Brief' : 'AI Prospect Brief'}</span>
+            </button>
+
+            <!-- WhatsApp Dropdown Trigger -->
+            ${waUrl ? `
+              <div class="whatsapp-dropdown-container" style="position: relative; display: inline-block;">
+                <button type="button" class="btn btn-whatsapp btn-sm whatsapp-dropdown-trigger" data-place-id="${placeId}">
+                  <span>WhatsApp</span> <span style="font-size: 0.7rem; margin-left: 2px;">▼</span>
+                </button>
+                <div class="whatsapp-dropdown-menu" id="wa-menu-${placeId}" style="display: none; position: absolute; bottom: 100%; left: 0; min-width: 170px; background: var(--bg-surface, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: var(--radius-md, 8px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; margin-bottom: 6px; overflow: hidden;">
+                  <a href="${waUrl}" target="_blank" rel="noopener" class="wa-open-link" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: var(--text-main, #f8fafc); font-size: 0.825rem; text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border-color, #334155);">
+                    Open WhatsApp
+                  </a>
+                  <button type="button" class="wa-generate-msg-btn" data-place-id="${placeId}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: #38bdf8; font-size: 0.825rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; font-weight: 700;">
+                    Generate Message
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.6;">No Phone Line</button>
+            `}
           </div>
         </div>
 
-        <!-- Right Panel: PERMANENT VISIBLE LARGE SCANNABLE QR CODE -->
-        <div class="card-right-panel" style="justify-content: center; gap: 0.75rem;">
-          ${waUrl ? `
-            <div class="qr-visible-box">
-              ${qrSvgHtml}
-            </div>
-            <div class="qr-caption-subtext">Scan to WhatsApp</div>
-
-            <div class="whatsapp-dropdown-container" style="position: relative; width: 100%;">
-              <button type="button" class="btn btn-whatsapp btn-sm btn-block whatsapp-dropdown-trigger" data-place-id="${placeId}">
-                <span>💬</span> WhatsApp <span style="font-size: 0.75rem; margin-left: 2px;">▼</span>
-              </button>
-              <div class="whatsapp-dropdown-menu" id="wa-menu-${placeId}" style="display: none; position: absolute; bottom: 100%; left: 0; width: 100%; background: var(--bg-surface, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: var(--radius-md, 8px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 100; margin-bottom: 6px; overflow: hidden;">
-                <a href="${waUrl}" target="_blank" rel="noopener" class="wa-open-link" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: var(--text-main, #f8fafc); font-size: 0.825rem; text-decoration: none; font-weight: 600; border-bottom: 1px solid var(--border-color, #334155);">
-                  <span>📱</span> Open WhatsApp
-                </a>
-                <button type="button" class="wa-generate-msg-btn" data-place-id="${placeId}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 0.8rem; color: #38bdf8; font-size: 0.825rem; background: transparent; border: none; width: 100%; text-align: left; cursor: pointer; font-weight: 700;">
-                  <span>✨</span> Generate Message
-                </button>
-              </div>
-            </div>
-          ` : `
-            <div style="padding: 2rem 0; color: var(--text-dim); font-size: 0.85rem;">
-              <div>NO PHONE NUMBER</div>
-              <div style="font-size: 0.75rem; margin-top: 4px;">QR unavailable</div>
-            </div>
-            <button class="btn btn-secondary btn-sm btn-block" disabled>No Phone Line</button>
-          `}
-        </div>
+        <!-- Inline AI Prospect Brief Container (Full Width) -->
+        <div class="inline-brief-container" id="brief-container-${placeId}" style="display: none;"></div>
 
       </div>
     `;
@@ -173,6 +164,25 @@
 
   function attachCardEventListeners() {
     const state = window.BizzState;
+
+    // AI Prospect Brief Button (Inline Toggle)
+    document.querySelectorAll('.brief-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-id');
+        const isSavedTab = (state.currentTab === 'saved-businesses');
+        const b = isSavedTab
+          ? (state.savedBusinesses.find(item => String(item.id) === String(id) || item.google_place_id === id) ||
+             state.searchResults.find(item => item.id === id || item.google_place_id === id))
+          : (state.searchResults.find(item => item.id === id || item.google_place_id === id) ||
+             state.savedBusinesses.find(item => item.google_place_id === id || String(item.id) === String(id)));
+        if (b && window.toggleInlineProspectBrief) {
+          window.toggleInlineProspectBrief(b, btn);
+        } else if (b && window.openProspectBriefModal) {
+          window.openProspectBriefModal(b, btn);
+        }
+      });
+    });
 
     // Copy Phone Number Button
     document.querySelectorAll('.copy-icon-btn').forEach(btn => {
@@ -251,6 +261,7 @@
         }
       });
     });
+
     // WhatsApp Dropdown Trigger Toggle
     document.querySelectorAll('.whatsapp-dropdown-trigger').forEach(trigger => {
       trigger.addEventListener('click', (e) => {
@@ -302,7 +313,7 @@
         // Immediate Loading State on dropdown trigger button
         if (triggerBtn) {
           triggerBtn.disabled = true;
-          triggerBtn.innerHTML = '<span>⏳</span> Generating...';
+          triggerBtn.innerHTML = '<span>Generating...</span>';
         }
         btn.disabled = true;
 
@@ -326,7 +337,7 @@
         } finally {
           if (triggerBtn) {
             triggerBtn.disabled = false;
-            triggerBtn.innerHTML = '<span>💬</span> WhatsApp <span style="font-size: 0.75rem; margin-left: 2px;">▼</span>';
+            triggerBtn.innerHTML = '<span>WhatsApp</span> <span style="font-size: 0.7rem; margin-left: 2px;">▼</span>';
           }
           btn.disabled = false;
         }

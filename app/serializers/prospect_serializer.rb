@@ -23,10 +23,14 @@ class ProspectSerializer
       }
     )
 
+    search_result = SearchResult.where(user_id: prospect.user_id, google_place_id: prospect.google_place_id).order(created_at: :desc).first
+    profile_id = search_result&.search&.prospecting_profile_id
+
     {
       id: prospect.id,
       user_id: prospect.user_id,
       google_place_id: prospect.google_place_id,
+      prospecting_profile_id: profile_id,
       business_name: prospect.business_name,
       category: prospect.category,
       address: prospect.address,

@@ -358,7 +358,6 @@
     try {
       const res = await window.BizzApi.searchBusinesses(params);
       state.searchResults = res.data;
-      state.qrMessageTemplate = res.qr_message_template || '';
       state.searchedCount += res.data.length;
       localStorage.setItem('bizz_hunter_searched_count', state.searchedCount.toString());
 
@@ -393,6 +392,10 @@
       }
     } finally {
       state.isSearching = false;
+      if (dom.searchBtn && dom.searchBtn.disabled && dom.loadingState && dom.loadingState.style.display === 'none') {
+        dom.searchBtn.disabled = false;
+        dom.searchBtn.innerHTML = 'Search →';
+      }
     }
   }
 
@@ -405,8 +408,8 @@
     if (dom.loadingState) dom.loadingState.style.display = 'flex';
 
     if (dom.searchBtn) {
-      dom.searchBtn.disabled = false;
-      dom.searchBtn.innerHTML = 'Searching...';
+      dom.searchBtn.disabled = true;
+      dom.searchBtn.innerHTML = 'Finding businesses...';
     }
   }
 
