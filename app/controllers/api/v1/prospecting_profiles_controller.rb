@@ -26,7 +26,13 @@ module Api
       end
 
       def generate
-        result = Ai::ProspectingProfileBuilder.call(description: params[:description])
+        request_id = request.headers['X-Request-Id'].presence || "req_#{SecureRandom.hex(6)}"
+        Rails.logger.info("[ProspectingProfilesController#generate][#{request_id}] Generate profile request received. Description: '#{params[:description].to_s.truncate(100)}'")
+
+        result = Ai::ProspectingProfileBuilder.call(
+          description: params[:description],
+          request_id: request_id
+        )
 
         if result[:success]
           render json: {
@@ -34,6 +40,7 @@ module Api
             data: result[:proposal]
           }, status: :ok
         else
+          Rails.logger.warn("[ProspectingProfilesController#generate][#{request_id}] Profile generation failed: #{result[:message]}")
           render json: {
             success: false,
             message: result[:message]

@@ -66,7 +66,7 @@ module Ai
       with_stub(GeminiClient, :post, fake_resp) do
         result = GeminiClient.call(prompt: 'I build websites for restaurants')
         assert_equal false, result[:success]
-        assert_equal 'Failed to generate profile with AI. Please try again.', result[:error]
+        assert_equal 'Resource exhausted', result[:error]
       end
     end
   end

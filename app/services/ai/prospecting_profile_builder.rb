@@ -37,8 +37,9 @@ module Ai
       required: %w[service service_description target_businesses opportunity_signals contact_signals]
     }.freeze
 
-    def initialize(description:)
+    def initialize(description:, request_id: nil)
       @description = description.to_s.strip
+      @request_id = request_id || "req_#{SecureRandom.hex(6)}"
     end
 
     def call
@@ -49,7 +50,8 @@ module Ai
       result = GeminiClient.call(
         prompt: description,
         system_instruction: SYSTEM_INSTRUCTION,
-        response_schema: RESPONSE_SCHEMA
+        response_schema: RESPONSE_SCHEMA,
+        request_id: request_id
       )
 
       unless result[:success]
@@ -66,7 +68,7 @@ module Ai
 
     private
 
-    attr_reader :description
+    attr_reader :description, :request_id
 
     def validate_and_normalize(data)
       return nil unless data.is_a?(Hash)
