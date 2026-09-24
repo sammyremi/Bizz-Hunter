@@ -108,12 +108,15 @@
 
         switchTab(mapped);
         const authNav = document.getElementById('authenticated-nav');
+        const publicNav = document.getElementById('public-nav');
         if (authNav) authNav.classList.remove('mobile-open');
+        if (publicNav) publicNav.classList.remove('mobile-open');
       });
     });
 
     if (dom && dom.mobileMenuTrigger) {
-      dom.mobileMenuTrigger.addEventListener('click', () => {
+      dom.mobileMenuTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
         const authNav = document.getElementById('authenticated-nav');
         const publicNav = document.getElementById('public-nav');
         if (state.currentUser && authNav) {
@@ -123,6 +126,17 @@
         }
       });
     }
+
+    // Close mobile menu when clicking outside header
+    document.addEventListener('click', (e) => {
+      const header = document.getElementById('main-header');
+      if (header && !header.contains(e.target)) {
+        const authNav = document.getElementById('authenticated-nav');
+        const publicNav = document.getElementById('public-nav');
+        if (authNav) authNav.classList.remove('mobile-open');
+        if (publicNav) publicNav.classList.remove('mobile-open');
+      }
+    });
 
     if (dom && dom.prospectStatusTabs) {
       dom.prospectStatusTabs.querySelectorAll('.status-tab').forEach(tabBtn => {
