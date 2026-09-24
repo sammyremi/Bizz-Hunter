@@ -56,6 +56,7 @@
 
       <!-- PUBLIC TOP NAV ACTIONS (Displayed when unauthenticated) -->
       <div id="public-nav" class="public-nav-actions">
+        <a href="#discovery" id="nav-btn-guest-discovery" class="top-nav-item" data-tab="find-businesses" style="margin-right: 0.25rem;">Discovery</a>
         <a href="#login" id="nav-btn-login" class="btn btn-secondary btn-sm">Sign In</a>
         <a href="#register" id="nav-btn-register" class="btn btn-primary btn-sm">Get Started</a>
       </div>
@@ -116,11 +117,11 @@
 
           <h1 class="landing-hero-title">Find businesses that could become your next customer.</h1>
           <p class="landing-hero-subtitle">
-            Bizz-Hunter helps freelancers, agencies and sales teams discover relevant businesses, understand their opportunities, and start conversations faster.
+            Explore business discovery before creating an account. Bizz-Hunter helps freelancers, agencies and sales teams discover relevant businesses, understand their opportunities, and start conversations faster.
           </p>
 
           <div class="landing-hero-ctas">
-            <button type="button" id="landing-hero-cta" class="btn btn-primary btn-lg">Start Finding Prospects</button>
+            <button type="button" id="landing-hero-cta" class="btn btn-primary btn-lg">Try Bizz-Hunter Free</button>
             <button type="button" id="landing-how-cta" class="btn btn-secondary btn-lg">See How It Works</button>
           </div>
         </div>
@@ -367,9 +368,21 @@
     </div>
   </section>
 
-  <!-- ================= DISCOVERY VIEW (MAIN AUTH WORKSPACE) ================= -->
+  <!-- ================= DISCOVERY VIEW (MAIN WORKSPACE / GUEST DISCOVERY) ================= -->
   <section id="view-find-businesses" class="view-section active">
           
+          <!-- Subtle Guest Free Preview Banner -->
+          <div id="guest-preview-banner" class="guest-preview-banner" style="display: none;">
+            <div class="guest-preview-content">
+              <span class="guest-preview-badge">Free Preview</span>
+              <span class="guest-preview-text">Explore business discovery before creating an account.</span>
+            </div>
+            <div class="guest-preview-actions">
+              <a href="#register" class="btn btn-primary btn-sm">Create Free Account</a>
+              <a href="#login" class="btn btn-secondary btn-sm">Sign In</a>
+            </div>
+          </div>
+
           <!-- Profile Recommendation Prompt Banner -->
           <div id="discovery-profile-banner" class="discovery-profile-banner" style="display: none;">
             <div class="discovery-banner-content">
@@ -1109,6 +1122,28 @@
       <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
         <button type="button" class="btn btn-secondary" id="confirm-delete-cancel-btn">Cancel</button>
         <button type="button" class="btn btn-danger" id="confirm-delete-submit-btn" style="background: #ef4444; color: white; border: none;">Delete Profile</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Unlock / Limit Reached Modal -->
+<div id="feature-unlock-modal" class="modal-overlay">
+  <div class="modal-container" style="max-width: 440px; text-align: center;">
+    <div class="modal-header" style="justify-content: flex-end; border: none; padding: 0.5rem 0.5rem 0 0;">
+      <button type="button" class="modal-close" id="unlock-modal-close">&times;</button>
+    </div>
+    <div style="padding: 0 1.5rem 1.75rem 1.5rem;">
+      <div class="unlock-icon-badge" style="width: 52px; height: 52px; background: rgba(59, 130, 246, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+
+      <h3 id="unlock-modal-title" style="font-size: 1.3rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.01em;">Create a free account to unlock this feature</h3>
+      <p id="unlock-modal-subtitle" style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem;">Create a free account to save prospects, generate AI briefs, and personalize discovery.</p>
+
+      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+        <a href="#register" id="unlock-btn-register" class="btn btn-primary btn-lg btn-block" style="justify-content: center;">Create Free Account</a>
+        <a href="#login" id="unlock-btn-login" class="btn btn-secondary btn-block" style="justify-content: center;">Sign In</a>
       </div>
     </div>
   </div>

@@ -6,7 +6,11 @@
   async function toggleSaveBusiness(business) {
     const state = window.BizzState;
     if (!state.currentUser) {
-      window.openAuthModal('login', 'Sign in or create a free account to save prospects to your list!');
+      if (window.openFeatureUnlockModal) {
+        window.openFeatureUnlockModal('Save this prospect', 'Create a free account to save prospects and access them later.', 'register');
+      } else if (window.openAuthModal) {
+        window.openAuthModal('register', 'Create a free account to save prospects and access them later.');
+      }
       return;
     }
 

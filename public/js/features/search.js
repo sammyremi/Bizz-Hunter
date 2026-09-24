@@ -340,6 +340,19 @@
       return;
     }
 
+    // Guest Limit Check
+    const isGuest = !state.currentUser;
+    if (isGuest && window.GuestLimits && !window.GuestLimits.canSearch()) {
+      if (window.openFeatureUnlockModal) {
+        window.openFeatureUnlockModal(
+          "Free preview limit reached",
+          "Create a free account to continue using Bizz-Hunter.",
+          'register'
+        );
+      }
+      return;
+    }
+
     // Capture Combined Search Criteria (including selected prospecting profile)
     const params = {
       place_id: state.selectedPlaceId,
@@ -360,6 +373,10 @@
       state.searchResults = res.data;
       state.searchedCount += res.data.length;
       localStorage.setItem('bizz_hunter_searched_count', state.searchedCount.toString());
+
+      if (isGuest && window.GuestLimits) {
+        window.GuestLimits.incrementSearch();
+      }
 
       if (res.search_id) {
         state.activeSearchId = res.search_id;
@@ -382,7 +399,11 @@
         if (err.quota) window.updateQuotaUI(err.quota);
         showErrorState(err.message || 'Daily guest search limit reached.');
         if (dom.errorQuotaSignupBtn) dom.errorQuotaSignupBtn.style.display = 'block';
-        window.openAuthModal('register', 'Daily guest search limit reached (5/5). Create a free account for 50 searches per day!');
+        if (window.openFeatureUnlockModal) {
+          window.openFeatureUnlockModal("Free preview limit reached", "Create a free account to continue using Bizz-Hunter.", 'register');
+        } else {
+          window.openAuthModal('register', 'Daily guest search limit reached. Create a free account to continue!');
+        }
       } else {
         showErrorState(err.message || 'Unable to connect to Google Places API backend.');
         if (dom.errorQuotaSignupBtn) dom.errorQuotaSignupBtn.style.display = 'none';
@@ -487,11 +508,32 @@
     }
   }
 
+  function updateDiscoveryBannerVisibility() {
+    const isGuest = !window.BizzState.currentUser;
+    const guestBanner = document.getElementById('guest-preview-banner');
+    const profileBanner = document.getElementById('discovery-profile-banner');
+
+    if (guestBanner) {
+      guestBanner.style.display = isGuest ? 'flex' : 'none';
+    }
+
+    if (profileBanner) {
+      if (isGuest) {
+        profileBanner.style.display = 'none';
+      } else {
+        const hasProfiles = Array.isArray(window.BizzState.prospectingProfiles) && window.BizzState.prospectingProfiles.length > 0;
+        const dismissed = localStorage.getItem('bizz_hunter_dismissed_profile_banner') === 'true';
+        profileBanner.style.display = (!hasProfiles && !dismissed) ? 'flex' : 'none';
+      }
+    }
+  }
+
   window.initBusinessTypeAutocomplete = initBusinessTypeAutocomplete;
   window.initLocationSelectors = initLocationSelectors;
   window.initProfileSelector = initProfileSelector;
   window.initSearchForm = initSearchForm;
   window.executeSearch = executeSearch;
   window.renderResults = renderResults;
+  window.updateDiscoveryBannerVisibility = updateDiscoveryBannerVisibility;
 
 })(window);

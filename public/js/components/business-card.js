@@ -294,8 +294,15 @@
         const menu = document.getElementById(`wa-menu-${placeId}`);
         if (menu) menu.style.display = 'none';
 
-        if (!window.BizzApi.getToken()) {
-          window.openAuthModal('login', 'Please log in or create an account to generate personalized AI outreach messages.');
+        const isGuest = !state.currentUser;
+        if (isGuest && window.GuestLimits && !window.GuestLimits.canGenerateMessage()) {
+          if (window.openFeatureUnlockModal) {
+            window.openFeatureUnlockModal(
+              "Free preview limit reached",
+              "You've used your 1 free preview AI outreach message. Create a free account to continue using Bizz-Hunter.",
+              'register'
+            );
+          }
           return;
         }
 
@@ -321,6 +328,9 @@
           const res = await window.BizzApi.generateOutreachMessage(resultId);
 
           if (res && res.whatsapp_url) {
+            if (isGuest && window.GuestLimits) {
+              window.GuestLimits.incrementMessage();
+            }
             window.showToast('Message generated! Opening WhatsApp...', 'success');
             if (newWindow && !newWindow.closed) {
               newWindow.location.href = res.whatsapp_url;

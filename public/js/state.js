@@ -9,6 +9,48 @@
   const initialHash = window.location.hash ? window.location.hash.replace('#', '') : null;
   const initialSavedTab = localStorage.getItem('bizz_hunter_current_tab');
 
+  // Centralized Guest Preview Limits Configuration
+  window.GuestLimits = {
+    maxSearches: 5,
+    maxProspectBriefs: 1,
+    maxWhatsAppMessages: 1,
+
+    getUsage() {
+      return {
+        searchesCount: parseInt(localStorage.getItem('bizz_guest_searches') || '0', 10),
+        briefsCount: parseInt(localStorage.getItem('bizz_guest_briefs') || '0', 10),
+        messagesCount: parseInt(localStorage.getItem('bizz_guest_messages') || '0', 10)
+      };
+    },
+
+    incrementSearch() {
+      const u = this.getUsage();
+      localStorage.setItem('bizz_guest_searches', String(u.searchesCount + 1));
+    },
+
+    incrementBrief() {
+      const u = this.getUsage();
+      localStorage.setItem('bizz_guest_briefs', String(u.briefsCount + 1));
+    },
+
+    incrementMessage() {
+      const u = this.getUsage();
+      localStorage.setItem('bizz_guest_messages', String(u.messagesCount + 1));
+    },
+
+    canSearch() {
+      return this.getUsage().searchesCount < this.maxSearches;
+    },
+
+    canGenerateBrief() {
+      return this.getUsage().briefsCount < this.maxProspectBriefs;
+    },
+
+    canGenerateMessage() {
+      return this.getUsage().messagesCount < this.maxWhatsAppMessages;
+    }
+  };
+
   // Shared Application State
   window.BizzState = {
     theme: localStorage.getItem('bizz_hunter_theme') || 'dark',
@@ -28,6 +70,7 @@
     activeSearchId: null,
     prospectingProfiles: [],
     selectedProspectingProfileId: null,
+    guestLimits: window.GuestLimits,
     dom: window.dom
   };
 

@@ -102,6 +102,64 @@
     dom.detailsModal.classList.add('active');
   }
 
+  function openFeatureUnlockModal(title, subtitle, mode = 'register') {
+    const modalEl = document.getElementById('feature-unlock-modal');
+    const titleEl = document.getElementById('unlock-modal-title');
+    const subEl = document.getElementById('unlock-modal-subtitle');
+
+    if (titleEl && title) titleEl.textContent = title;
+    if (subEl && subtitle) subEl.textContent = subtitle;
+
+    if (modalEl) {
+      modalEl.classList.add('active');
+    }
+  }
+
+  function closeFeatureUnlockModal() {
+    const modalEl = document.getElementById('feature-unlock-modal');
+    if (modalEl) modalEl.classList.remove('active');
+  }
+
+  function initFeatureUnlockModal() {
+    const unlockModalClose = document.getElementById('unlock-modal-close');
+    const unlockModal = document.getElementById('feature-unlock-modal');
+    
+    if (unlockModalClose) {
+      unlockModalClose.addEventListener('click', closeFeatureUnlockModal);
+    }
+
+    if (unlockModal) {
+      unlockModal.addEventListener('click', (e) => {
+        if (e.target === unlockModal) closeFeatureUnlockModal();
+      });
+    }
+
+    const unlockBtnRegister = document.getElementById('unlock-btn-register');
+    if (unlockBtnRegister) {
+      unlockBtnRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeFeatureUnlockModal();
+        window.switchTab('register');
+      });
+    }
+
+    const unlockBtnLogin = document.getElementById('unlock-btn-login');
+    if (unlockBtnLogin) {
+      unlockBtnLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeFeatureUnlockModal();
+        window.switchTab('login');
+      });
+    }
+  }
+
+  // Hook initFeatureUnlockModal inside DOMContentLoaded or initModals
+  const origInitModals = initModals;
+  initModals = function() {
+    origInitModals();
+    initFeatureUnlockModal();
+  };
+
   window.initModals = initModals;
   window.closeModals = closeModals;
   window.openAuthModal = openAuthModal;
@@ -109,5 +167,7 @@
   window.showAuthModalError = showAuthModalError;
   window.clearAuthModalErrors = clearAuthModalErrors;
   window.openDetailsModal = openDetailsModal;
+  window.openFeatureUnlockModal = openFeatureUnlockModal;
+  window.closeFeatureUnlockModal = closeFeatureUnlockModal;
 
 })(window);

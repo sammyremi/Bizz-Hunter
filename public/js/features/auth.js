@@ -68,9 +68,9 @@
         destTab = 'find-businesses';
       }
     } else {
-      // Unauthenticated user MUST NOT access protected views
-      if (['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings', 'find-businesses'].includes(targetTab)) {
-        destTab = (mappedHash === 'login' || mappedHash === 'register') ? mappedHash : 'landing';
+      // Unauthenticated user: allow landing, login, register, find-businesses (Guest Discovery)
+      if (['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'].includes(targetTab)) {
+        destTab = (mappedHash === 'login' || mappedHash === 'register') ? mappedHash : 'find-businesses';
       }
     }
 
@@ -128,6 +128,10 @@
       if (authNavEl) authNavEl.style.display = 'none';
       if (publicNavEl) publicNavEl.style.display = 'flex';
       if (brandLinkEl) brandLinkEl.setAttribute('href', '#landing');
+    }
+
+    if (typeof window.updateDiscoveryBannerVisibility === 'function') {
+      window.updateDiscoveryBannerVisibility();
     }
   }
 

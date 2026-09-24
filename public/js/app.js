@@ -54,11 +54,6 @@
         switchTab('find-businesses');
         return;
       }
-      if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings', 'find-businesses'].includes(hashTab)) {
-        const dest = (hashTab === 'login' || hashTab === 'register') ? hashTab : 'landing';
-        switchTab(dest);
-        return;
-      }
       switchTab(hashTab);
     }
   });
@@ -101,12 +96,8 @@
         e.preventDefault();
 
         const mapped = mapRouteAlias(tab) || tab;
-        if (!state.currentUser && ['prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings', 'find-businesses'].includes(mapped)) {
-          switchTab('login');
-          return;
-        }
-
         switchTab(mapped);
+
         const authNav = document.getElementById('authenticated-nav');
         const publicNav = document.getElementById('public-nav');
         if (authNav) authNav.classList.remove('mobile-open');
@@ -155,11 +146,40 @@
 
     const isAuthenticated = Boolean(state.currentUser);
 
-    // Strict authentication route guards
-    if (isAuthenticated && ['landing', 'login', 'register'].includes(tabName)) {
-      tabName = 'find-businesses';
-    } else if (!isAuthenticated && ['find-businesses', 'saved-businesses', 'prospecting-profiles', 'dashboard', 'analysis', 'settings'].includes(tabName)) {
-      tabName = (tabName === 'login' || tabName === 'register') ? tabName : 'landing';
+    // Authentication & Guest route guards
+    if (isAuthenticated) {
+      if (['landing', 'login', 'register'].includes(tabName)) {
+        tabName = 'find-businesses';
+      }
+    } else {
+      // Unauthenticated Guest: allow 'landing', 'login', 'register', 'find-businesses' (Guest Discovery)
+      if (['saved-businesses', 'prospecting-profiles', 'dashboard', 'analysis', 'settings'].includes(tabName)) {
+        let promptTitle = 'Create a free account to unlock this feature';
+        let promptSub = 'Sign up to access saved prospects, personalized profiles, analytics, and settings.';
+
+        if (tabName === 'saved-businesses') {
+          promptTitle = 'Save this prospect';
+          promptSub = 'Create a free account to save prospects and access them later.';
+        } else if (tabName === 'prospecting-profiles') {
+          promptTitle = 'Create a Prospecting Profile';
+          promptSub = 'Sign up to personalize your prospect discovery.';
+        } else if (tabName === 'analysis') {
+          promptTitle = 'Analytics are available with a free account.';
+          promptSub = 'Create a free account to view opportunity scoring & discovery analytics.';
+        } else if (tabName === 'settings') {
+          promptTitle = 'Manage Settings';
+          promptSub = 'Create a free account to manage your profile and preferences.';
+        }
+
+        if (window.openFeatureUnlockModal) {
+          window.openFeatureUnlockModal(promptTitle, promptSub, 'register');
+        }
+
+        // Keep current view active or stay on find-businesses if guest was exploring
+        tabName = (state.currentTab && ['landing', 'login', 'register', 'find-businesses'].includes(state.currentTab))
+          ? state.currentTab
+          : 'find-businesses';
+      }
     }
 
     state.currentTab = tabName;

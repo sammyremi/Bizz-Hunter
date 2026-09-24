@@ -59,13 +59,7 @@
   async function toggleInlineProspectBrief(b, triggerBtn) {
     if (!b) return;
 
-    if (!window.BizzApi || !window.BizzApi.getToken()) {
-      if (window.openAuthModal) {
-        window.openAuthModal('login', 'Please log in or create an account to view AI Prospect Briefs.');
-      }
-      return;
-    }
-
+    const isGuest = !(window.BizzState && window.BizzState.currentUser);
     const placeId = b.google_place_id || b.id;
     const containerEl = document.getElementById(`brief-container-${placeId}`);
     if (!containerEl) return;
@@ -92,7 +86,19 @@
       return;
     }
 
-    // Scenario 3: First-time generation request
+    // Scenario 3: Guest Limit check for first-time AI Brief generation
+    if (isGuest && window.GuestLimits && !window.GuestLimits.canGenerateBrief()) {
+      if (window.openFeatureUnlockModal) {
+        window.openFeatureUnlockModal(
+          "Free preview limit reached",
+          "You've used your 1 free preview AI Prospect Brief. Create a free account to continue using Bizz-Hunter.",
+          'register'
+        );
+      }
+      return;
+    }
+
+    // Scenario 4: First-time generation request
     if (inFlight.has(cacheKey)) return;
     inFlight.add(cacheKey);
 
@@ -128,6 +134,9 @@
         const key = `${placeId}:${resolvedProfileId}`;
         briefCache.set(key, briefData);
         b.prospecting_profile_id = resolvedProfileId;
+        if (isGuest && window.GuestLimits) {
+          window.GuestLimits.incrementBrief();
+        }
         renderInlineBriefContent(containerEl, b, briefData, triggerBtn);
         containerEl.setAttribute('data-loaded', 'true');
       }

@@ -150,12 +150,7 @@
   // ─── Navigation helper ───────────────────────────────────────────────────────
 
   function navigateToAppOrRegister() {
-    const state = window.BizzState;
-    if (state && state.currentUser) {
-      window.switchTab('find-businesses');
-    } else {
-      window.switchTab('register');
-    }
+    window.switchTab('find-businesses');
   }
 
   window.initLandingPage = initLandingPage;
