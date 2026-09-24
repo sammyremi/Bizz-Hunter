@@ -85,7 +85,7 @@
 
     const thumb = document.getElementById('theme-switch-thumb');
     if (thumb) {
-      thumb.style.transform = themeName === 'light' ? 'translateX(16px)' : 'translateX(0)';
+      thumb.style.transform = themeName === 'dark' ? 'translateX(16px)' : 'translateX(0)';
     }
   }
 

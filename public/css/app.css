@@ -2232,6 +2232,15 @@ body {
   display: flex;
   align-items: center;
   color: var(--text-muted);
+  transition: color 0.25s ease;
+}
+
+[data-theme="dark"] .theme-icon-moon {
+  color: var(--primary);
+}
+
+[data-theme="light"] .theme-icon-sun {
+  color: #f59e0b;
 }
 
 .theme-switch-track {
@@ -2257,8 +2266,12 @@ body {
   transition: transform 0.25s ease;
 }
 
-[data-theme="light"] .theme-switch-thumb {
+[data-theme="dark"] .theme-switch-thumb {
   transform: translateX(16px);
+}
+
+[data-theme="light"] .theme-switch-thumb {
+  transform: translateX(0);
 }
 
 /* ================= LANDING PAGE STYLES ================= */
@@ -2915,6 +2928,12 @@ body {
 
 .theme-choice-card:hover {
   border-color: var(--primary);
+}
+
+[data-theme="dark"] .theme-choice-card[data-theme-val="dark"],
+[data-theme="light"] .theme-choice-card[data-theme-val="light"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
 }
 
 .theme-preview {

@@ -875,11 +875,11 @@
                   <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">Customize application interface theme.</p>
 
                   <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button type="button" class="theme-choice-card" onclick="window.applyTheme('dark')">
+                    <button type="button" class="theme-choice-card" data-theme-val="dark" onclick="window.applyTheme('dark')">
                       <div class="theme-preview dark-prev"></div>
                       <span>Dark Theme</span>
                     </button>
-                    <button type="button" class="theme-choice-card" onclick="window.applyTheme('light')">
+                    <button type="button" class="theme-choice-card" data-theme-val="light" onclick="window.applyTheme('light')">
                       <div class="theme-preview light-prev"></div>
                       <span>Light Theme</span>
                     </button>
