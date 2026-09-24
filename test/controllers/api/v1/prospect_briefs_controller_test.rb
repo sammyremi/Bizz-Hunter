@@ -6,6 +6,9 @@ require 'test_helper'
 
 class Api::V1::ProspectBriefsControllerTest < ActionDispatch::IntegrationTest
   setup do
+    @orig_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+
     @user = User.create!(
       email: 'brief_ctrl_user@example.com',
       password: 'password123',
@@ -48,9 +51,26 @@ class Api::V1::ProspectBriefsControllerTest < ActionDispatch::IntegrationTest
     @other_token = JsonWebToken.encode(user_id: @other_user.id)
   end
 
-  test 'unauthenticated user cannot generate prospect brief' do
-    post api_v1_prospect_briefs_url, params: { search_result_id: @search_result.id }
-    assert_response :unauthorized
+  teardown do
+    Rails.cache = @orig_cache
+  end
+
+  test 'unauthenticated user can generate 1 AI prospect brief per day but is blocked on second' do
+    business_payload = { name: 'Guest Diner', address: '123 Main St', rating: 4.5 }
+    
+    # First attempt: allowed
+    post api_v1_prospect_briefs_url, params: { business: business_payload }
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert json['success']
+    assert_equal 'Guest Diner', json['data']['business_name']
+
+    # Second attempt: blocked by daily limit (429 Too Many Requests)
+    post api_v1_prospect_briefs_url, params: { business: business_payload }
+    assert_response :too_many_requests
+    json2 = JSON.parse(response.body)
+    assert_equal false, json2['success']
+    assert_equal 'GUEST_LIMIT_REACHED', json2['code']
   end
 
   test 'authenticated user can generate prospect brief for their search result' do

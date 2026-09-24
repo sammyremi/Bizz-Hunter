@@ -346,7 +346,7 @@
       if (window.openFeatureUnlockModal) {
         window.openFeatureUnlockModal(
           "Free preview limit reached",
-          "Create a free account to continue using Bizz-Hunter.",
+          "Create a free account to continue.",
           'register'
         );
       }

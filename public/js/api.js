@@ -104,6 +104,12 @@
         });
         const json = await response.json();
         if (response.ok && json.success) {
+          if (window.GuestLimits && window.GuestLimits.syncFromQuota) {
+            window.GuestLimits.syncFromQuota(json.quota);
+          }
+          if (window.BizzState) {
+            window.BizzState.currentQuota = json.quota;
+          }
           return json.quota;
         }
       } catch (e) {
@@ -144,10 +150,26 @@
         const json = await response.json();
 
         if (!response.ok || !json.success) {
+          if (json.quota && window.GuestLimits && window.GuestLimits.syncFromQuota) {
+            window.GuestLimits.syncFromQuota(json.quota);
+          }
           const err = new Error(json.message || `API error: ${response.statusText}`);
           err.status = response.status;
+          err.code = json.code;
           err.quota = json.quota;
+          if ((response.status === 429 || json.code === 'GUEST_LIMIT_REACHED') && !this.getToken()) {
+            if (window.openFeatureUnlockModal) {
+              window.openFeatureUnlockModal(
+                "Free preview limit reached",
+                "Create a free account to continue."
+              );
+            }
+          }
           throw err;
+        }
+
+        if (json.quota && window.GuestLimits && window.GuestLimits.syncFromQuota) {
+          window.GuestLimits.syncFromQuota(json.quota);
         }
 
         return {
@@ -318,13 +340,22 @@
 
     // --- Outreach Messages API ---
     static async generateOutreachMessage(searchResultId) {
+      const payload = typeof searchResultId === 'object' ? searchResultId : { search_result_id: searchResultId };
       const response = await fetch(`${BASE_API_URL}/outreach_messages`, {
         method: 'POST',
         headers: this.getHeaders(),
-        body: JSON.stringify({ search_result_id: searchResultId })
+        body: JSON.stringify(payload)
       });
       const json = await response.json();
       if (!response.ok || !json.success) {
+        if ((response.status === 429 || json.code === 'GUEST_LIMIT_REACHED') && !this.getToken()) {
+          if (window.openFeatureUnlockModal) {
+            window.openFeatureUnlockModal(
+              "Free preview limit reached",
+              "Create a free account to continue."
+            );
+          }
+        }
         throw new Error(json.message || 'Failed to generate outreach message');
       }
       return json.data;
@@ -339,6 +370,14 @@
       });
       const json = await response.json();
       if (!response.ok || !json.success) {
+        if ((response.status === 429 || json.code === 'GUEST_LIMIT_REACHED') && !this.getToken()) {
+          if (window.openFeatureUnlockModal) {
+            window.openFeatureUnlockModal(
+              "Free preview limit reached",
+              "Create a free account to continue."
+            );
+          }
+        }
         throw new Error(json.message || 'Failed to generate AI Prospect Brief');
       }
       return json.data;

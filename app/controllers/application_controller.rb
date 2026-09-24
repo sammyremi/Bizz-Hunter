@@ -9,7 +9,11 @@ class ApplicationController < ActionController::API
     set_current_user_if_present
     return if @current_user.present?
 
-    render json: { success: false, message: 'Unauthorized. Please log in.' }, status: :unauthorized
+    render json: {
+      success: false,
+      message: 'Free preview limit reached. Create a free account to continue.',
+      code: 'GUEST_LIMIT_REACHED'
+    }, status: :unauthorized
   end
 
   def set_current_user_if_present

@@ -299,7 +299,7 @@
           if (window.openFeatureUnlockModal) {
             window.openFeatureUnlockModal(
               "Free preview limit reached",
-              "You've used your 1 free preview AI outreach message. Create a free account to continue using Bizz-Hunter.",
+              "Create a free account to continue.",
               'register'
             );
           }

@@ -6,6 +6,9 @@ require 'test_helper'
 
 class OutreachMessagesControllerTest < ActionDispatch::IntegrationTest
   setup do
+    @orig_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+
     @user = User.create!(
       email: 'outreach_ctrl_user@example.com',
       password: 'Password123!',
@@ -47,9 +50,26 @@ class OutreachMessagesControllerTest < ActionDispatch::IntegrationTest
     @other_token = JsonWebToken.encode(user_id: @other_user.id)
   end
 
-  test 'POST /api/v1/outreach_messages requires authentication' do
-    post '/api/v1/outreach_messages', params: { search_result_id: @search_result.id }
-    assert_response :unauthorized
+  teardown do
+    Rails.cache = @orig_cache
+  end
+
+  test 'POST /api/v1/outreach_messages allows 1 guest message per day and blocks second' do
+    business_payload = { name: 'Guest Cafe', phone: '+2348012345678', category: 'Cafe' }
+    
+    # First attempt: allowed
+    post '/api/v1/outreach_messages', params: { business: business_payload }
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert json['success']
+    assert_not_nil json['data']['whatsapp_url']
+
+    # Second attempt: blocked
+    post '/api/v1/outreach_messages', params: { business: business_payload }
+    assert_response :too_many_requests
+    json2 = JSON.parse(response.body)
+    refute json2['success']
+    assert_equal 'GUEST_LIMIT_REACHED', json2['code']
   end
 
   test 'POST /api/v1/outreach_messages generates message for owned search result' do

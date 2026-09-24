@@ -26,16 +26,18 @@ module Api
           }, status: :unprocessable_entity
         end
 
-        quota_result = SearchQuotaTracker.check_and_increment!(
+        quota_check = UsageQuotaTracker.check_feature(
           user: current_user,
-          ip: request.remote_ip
+          ip: request.remote_ip,
+          feature: :searches
         )
 
-        unless quota_result[:allowed]
+        unless quota_check[:allowed]
           return render json: {
             success: false,
-            message: quota_result[:message],
-            quota: quota_result[:quota]
+            message: quota_check[:message],
+            code: current_user.present? ? 'LIMIT_REACHED' : 'GUEST_LIMIT_REACHED',
+            quota: quota_check[:quota]
           }, status: :too_many_requests
         end
 
@@ -81,6 +83,12 @@ module Api
           )
         end
 
+        # For Guest Preview: limit results count per search to 10-20 (max 20)
+        if current_user.blank?
+          max_results = UsageQuotaTracker::QUOTAS[:guest][:max_search_results]
+          scored_result = scored_result.take(max_results)
+        end
+
         saved_search = GooglePlaces::SearchPersistence.call(
           user:                current_user,
           search_params:       business_discovery_params.to_h,
@@ -101,6 +109,15 @@ module Api
           end
         end
 
+        # Increment search quota only after successful search execution
+        UsageQuotaTracker.increment_feature!(
+          user: current_user,
+          ip: request.remote_ip,
+          feature: :searches
+        )
+
+        updated_status = UsageQuotaTracker.status(user: current_user, ip: request.remote_ip)
+
         profile_summary = selected_profile ? {
           id:      selected_profile.id,
           name:    selected_profile.name,
@@ -113,7 +130,7 @@ module Api
           data:                scored_result,
           search_id:           saved_search&.id,
           prospecting_profile: profile_summary,
-          quota:               quota_result[:quota]
+          quota:               updated_status[:searches]
         }, status: :ok
       end
 

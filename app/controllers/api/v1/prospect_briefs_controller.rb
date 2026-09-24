@@ -5,33 +5,48 @@
 module Api
   module V1
     class ProspectBriefsController < ApplicationController
-      before_action :authenticate_user!
+      before_action :set_current_user_if_present
 
       def create
+        quota_check = UsageQuotaTracker.check_feature(
+          user: current_user,
+          ip: request.remote_ip,
+          feature: :prospect_briefs
+        )
+
+        unless quota_check[:allowed]
+          return render json: {
+            success: false,
+            message: quota_check[:message],
+            code: current_user.present? ? 'LIMIT_REACHED' : 'GUEST_LIMIT_REACHED',
+            quota: quota_check[:quota]
+          }, status: :too_many_requests
+        end
+
         search_result_id = params[:search_result_id]
         search_id = params[:search_id]
         prospect_id = params[:prospect_id]
         google_place_id = params[:google_place_id]
 
-        # 1. Lookup SearchResult (scoped to current_user)
+        # 1. Lookup SearchResult (scoped to current_user if authenticated)
         search_result = nil
-        if search_result_id.present?
+        if current_user.present? && search_result_id.present?
           search_result = current_user.search_results.find_by(id: search_result_id)
         end
 
-        # 2. Lookup Prospect (scoped to current_user)
+        # 2. Lookup Prospect (scoped to current_user if authenticated)
         prospect = nil
-        if prospect_id.present?
+        if current_user.present? && prospect_id.present?
           prospect = current_user.prospects.find_by(id: prospect_id)
         end
 
         # If prospect is found, try to locate associated search_result for profile resolution
-        if prospect.present? && search_result.nil?
+        if prospect.present? && search_result.nil? && current_user.present?
           search_result = current_user.search_results.where(google_place_id: prospect.google_place_id).order(created_at: :desc).first
         end
 
         # If search_result is still nil, try finding by google_place_id if provided
-        if search_result.nil? && google_place_id.present?
+        if search_result.nil? && google_place_id.present? && current_user.present?
           search_result = current_user.search_results.where(google_place_id: google_place_id).order(created_at: :desc).first
         end
 
@@ -56,29 +71,25 @@ module Api
         # 3. Resolve prospecting profile from the Search (source of truth)
         selected_profile = nil
 
-        if search_result&.search&.prospecting_profile.present?
-          # Primary path: search_result → search → prospecting_profile
-          selected_profile = search_result.search.prospecting_profile
-        elsif search_id.present?
-          # Explicit search_id: search → prospecting_profile
-          search = current_user.searches.find_by(id: search_id)
-          selected_profile = search&.prospecting_profile
-        end
+        if current_user.present?
+          if search_result&.search&.prospecting_profile.present?
+            selected_profile = search_result.search.prospecting_profile
+          elsif search_id.present?
+            search = current_user.searches.find_by(id: search_id)
+            selected_profile = search&.prospecting_profile
+          end
 
-        # Fallback to explicit profile parameter ONLY if search profile is not available
-        if selected_profile.nil? && params[:prospecting_profile_id].present?
-          selected_profile = current_user.prospecting_profiles.find_by(id: params[:prospecting_profile_id])
-        end
+          if selected_profile.nil? && params[:prospecting_profile_id].present?
+            selected_profile = current_user.prospecting_profiles.find_by(id: params[:prospecting_profile_id])
+          end
 
-        # If no profile could be resolved, return a clear error.
-        # Do NOT fall back to an arbitrary user profile — the wrong profile
-        # context would produce misleading AI brief content.
-        if selected_profile.nil?
-          return render json: {
-            success: false,
-            message: 'This search does not have a prospecting profile associated with it. ' \
-                     'Please select a Prospecting Profile before searching to enable AI Prospect Briefs.'
-          }, status: :unprocessable_entity
+          if selected_profile.nil?
+            return render json: {
+              success: false,
+              message: 'This search does not have a prospecting profile associated with it. ' \
+                       'Please select a Prospecting Profile before searching to enable AI Prospect Briefs.'
+            }, status: :unprocessable_entity
+          end
         end
 
         result = Ai::ProspectBriefGenerator.call(
@@ -88,6 +99,12 @@ module Api
         )
 
         if result[:success]
+          UsageQuotaTracker.increment_feature!(
+            user: current_user,
+            ip: request.remote_ip,
+            feature: :prospect_briefs
+          )
+
           render json: {
             success: true,
             data: result[:data]

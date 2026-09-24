@@ -11,7 +11,7 @@
 
   // Centralized Guest Preview Limits Configuration
   window.GuestLimits = {
-    maxSearches: 5,
+    maxSearches: 2,
     maxProspectBriefs: 1,
     maxWhatsAppMessages: 1,
 
@@ -21,6 +21,28 @@
         briefsCount: parseInt(localStorage.getItem('bizz_guest_briefs') || '0', 10),
         messagesCount: parseInt(localStorage.getItem('bizz_guest_messages') || '0', 10)
       };
+    },
+
+    syncFromQuota(quota) {
+      if (!quota) return;
+
+      if (quota.searches) {
+        this.maxSearches = quota.searches.limit || 2;
+        localStorage.setItem('bizz_guest_searches', String(quota.searches.used || 0));
+      } else if (typeof quota.used === 'number') {
+        this.maxSearches = quota.limit || 2;
+        localStorage.setItem('bizz_guest_searches', String(quota.used));
+      }
+
+      if (quota.prospect_briefs) {
+        this.maxProspectBriefs = quota.prospect_briefs.limit || 1;
+        localStorage.setItem('bizz_guest_briefs', String(quota.prospect_briefs.used || 0));
+      }
+
+      if (quota.whatsapp_messages) {
+        this.maxWhatsAppMessages = quota.whatsapp_messages.limit || 1;
+        localStorage.setItem('bizz_guest_messages', String(quota.whatsapp_messages.used || 0));
+      }
     },
 
     incrementSearch() {
