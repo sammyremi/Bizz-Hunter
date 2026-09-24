@@ -8,7 +8,10 @@
     if (!toastContainer) return;
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `<span>${type === 'success' ? '✅' : (type === 'error' ? '⚠️' : 'ℹ️')}</span> <span>${window.escapeHtml(message)}</span>`;
+    const iconSvg = window.BizzIcons ? 
+      (type === 'success' ? window.BizzIcons.check : (type === 'error' ? window.BizzIcons.alert : window.BizzIcons.sparkles)) 
+      : '';
+    toast.innerHTML = `<span style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px;">${iconSvg}</span> <span>${window.escapeHtml(message)}</span>`;
 
     toastContainer.appendChild(toast);
     setTimeout(() => {

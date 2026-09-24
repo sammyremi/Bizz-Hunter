@@ -93,9 +93,9 @@
       </div>
 
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-        ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-block">💬 Contact on WhatsApp</a>` : ''}
-        ${rawPhone ? `<a href="tel:${rawPhone}" class="btn btn-secondary btn-block">📞 Direct Phone Call</a>` : ''}
-        ${b.google_maps_url ? `<a href="${b.google_maps_url}" target="_blank" class="btn btn-secondary btn-block">🗺️ Open in Google Maps</a>` : ''}
+        ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-block">Contact on WhatsApp</a>` : ''}
+        ${rawPhone ? `<a href="tel:${rawPhone}" class="btn btn-secondary btn-block">Direct Phone Call</a>` : ''}
+        ${b.google_maps_url ? `<a href="${b.google_maps_url}" target="_blank" class="btn btn-secondary btn-block">Open in Google Maps</a>` : ''}
       </div>
     `;
 

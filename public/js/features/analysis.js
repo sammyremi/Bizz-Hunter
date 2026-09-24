@@ -213,10 +213,10 @@
         dom.searchHistoryList.innerHTML = searches.map(s => {
           const isSelected = state.activeSearchId === s.id;
           const dateStr = new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          const profileBadge = s.prospecting_profile ? ` • 🎯 ${window.escapeHtml(s.prospecting_profile.name)}` : '';
+          const profileBadge = s.prospecting_profile ? ` • Profile: ${window.escapeHtml(s.prospecting_profile.name)}` : '';
           return `
             <div class="chart-filter-btn ${isSelected ? 'active' : ''}" style="display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;" data-search-id="${s.id}">
-              <span>🏢 ${window.escapeHtml(s.business_type)} (${window.escapeHtml(s.location_name || 'All')})</span>
+              <span>${window.escapeHtml(s.business_type)} (${window.escapeHtml(s.location_name || 'All')})</span>
               <span style="opacity: 0.75; font-size: 0.75rem;">• ${s.results_count} leads${profileBadge} • ${dateStr}</span>
             </div>
           `;
@@ -287,7 +287,7 @@
 
     if (dom.analysisSearchContextLabel) {
       if (searchMeta) {
-        const profInfo = searchMeta.prospecting_profile ? ` • 🎯 Profile: ${searchMeta.prospecting_profile.name}` : '';
+        const profInfo = searchMeta.prospecting_profile ? ` • Profile: ${searchMeta.prospecting_profile.name}` : '';
         dom.analysisSearchContextLabel.textContent = `Search Analysis: ${searchMeta.business_type} in ${searchMeta.location_name || 'All'}${profInfo} • ${summary.total_businesses} businesses analyzed`;
       } else {
         dom.analysisSearchContextLabel.textContent = `Search Analysis: ${summary.total_businesses} businesses analyzed`;
@@ -526,22 +526,22 @@
             </div>
 
             <div class="top-prospect-meta">
-              <span>⭐ ${b.rating ? Number(b.rating).toFixed(1) : 'N/A'} (${b.review_count || 0} reviews)</span>
-              <span>📍 ${window.escapeHtml(b.address || 'Address unavailable')}</span>
+              <span>★ ${b.rating ? Number(b.rating).toFixed(1) : 'N/A'} (${b.review_count || 0} reviews)</span>
+              <span>${window.BizzIcons ? window.BizzIcons.mapPin : ''} ${window.escapeHtml(b.address || 'Address unavailable')}</span>
             </div>
 
             <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-top: 0.25rem;">
               Why contact this business:
             </div>
             <div class="factors-list-box">
-              ${factors.map(f => `<span class="factor-tag">✓ ${window.escapeHtml(f)}</span>`).join('')}
+              ${factors.map(f => `<span class="factor-tag">${window.BizzIcons ? window.BizzIcons.check : '✓'} ${window.escapeHtml(f)}</span>`).join('')}
             </div>
           </div>
 
           <div class="top-prospect-actions">
-            ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-sm btn-block">💬 WhatsApp</a>` : ''}
+            ${waUrl ? `<a href="${waUrl}" target="_blank" class="btn btn-whatsapp btn-sm btn-block">${window.BizzIcons ? window.BizzIcons.whatsapp : ''} WhatsApp</a>` : ''}
             <button class="btn btn-secondary btn-sm btn-block save-prospect-btn" data-place-id="${placeId}">
-              ${isSaved ? '📌 Saved' : '➕ Save'}
+              ${isSaved ? 'Saved' : 'Save'}
             </button>
           </div>
         </div>

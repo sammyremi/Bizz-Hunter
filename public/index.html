@@ -3,640 +3,911 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bizz-Hunter — Find Businesses & Prospecting Opportunities</title>
-  <meta name="description" content="Discover, evaluate, and contact high-value business prospects lacking websites or needing your services.">
-  <link rel="stylesheet" href="/css/app.css">
+  <title>Bizz-Hunter — SaaS Business Discovery & Opportunity Prospecting</title>
+  <meta name="description" content="Discover relevant business prospects, evaluate opportunity signals, generate AI briefs, and initiate direct outreach.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css?v=20260924_v2">
 </head>
 <body>
 
-<div id="app">
+<div id="app" class="app-layout">
 
-  <!-- ================= TOP NAVIGATION BAR ================= -->
-  <nav class="navbar-top">
-    <a href="#" class="nav-brand">
-      <span class="nav-brand-title">Bizz-Hunter</span>
-    </a>
-
-    <!-- Centered Navigation Links -->
-    <div class="nav-center-links">
-      <a href="#" class="top-nav-item active" data-tab="find-businesses">Discovery</a>
-      <a href="#" class="top-nav-item" data-tab="prospecting-profiles">Profiles</a>
-      <a href="#" class="top-nav-item" data-tab="dashboard">Dashboard</a>
-      <a href="#" class="top-nav-item" data-tab="saved-businesses">My Prospects</a>
-      <a href="#" class="top-nav-item" data-tab="analysis">Analytics</a>
-    </div>
-
-    <!-- Right Actions & Quota Progress Widget -->
-    <div class="nav-right-actions">
-      <div class="quota-progress-widget" id="quota-widget-container">
-        <span id="quota-label-text">GUEST USAGE: 0/5</span>
-        <div class="progress-track">
-          <div class="progress-fill" id="quota-progress-fill" style="width: 0%;"></div>
-        </div>
-      </div>
-
-      <!-- Theme Switcher Button -->
-      <button id="theme-toggle-btn" class="nav-icon-btn" title="Toggle Light / Dark Mode">
-        <span id="theme-icon">🌙</span>
-      </button>
-
-      <!-- Profile & Settings Icons -->
-      <button id="nav-profile-btn" class="nav-icon-btn" title="User Account / Log In">
-        <span>👤</span>
-      </button>
-      <button id="nav-settings-btn" class="nav-icon-btn" title="Settings">
-        <span>⚙️</span>
-      </button>
-    </div>
-  </nav>
-
-  <!-- ================= MAIN CONTENT WRAPPER ================= -->
-  <div class="main-wrapper">
-    <main class="content-body">
-
-      <!-- ================= SECTION 1: DISCOVERY ================= -->
-      <section id="view-find-businesses" class="view-section active">
-        
-        <!-- Discovery Prospecting Profile Prompt Banner (Shown if user skipped profile creation) -->
-        <div id="discovery-profile-banner" class="discovery-profile-banner" style="display: none;">
-          <div class="discovery-banner-content">
-            <span class="discovery-banner-icon">🎯</span>
-            <div>
-              <strong>Want more relevant prospect recommendations?</strong>
-              <p>Create a Prospecting Profile so Bizz-Hunter can understand what you're selling and target the best leads.</p>
-            </div>
-          </div>
-          <div class="discovery-banner-actions">
-            <button type="button" id="discovery-banner-create-btn" class="btn btn-primary btn-sm">Create Profile</button>
-            <button type="button" id="discovery-banner-dismiss-btn" class="btn-dismiss-banner" title="Dismiss prompt">&times;</button>
-          </div>
-        </div>
-
-        <!-- Centered Hero Title -->
-        <div class="discovery-hero">
-          <h1 class="hero-main-title">Find businesses worth<br>contacting.</h1>
-          <p class="hero-sub-text">High-precision business discovery for professionals. Uncover hidden opportunities, analyze signals, and build your prospect pipeline instantly.</p>
-
-          <!-- Floating Pill Location Search Bar -->
-          <form id="search-form" style="position: relative; max-width: 780px; margin: 0 auto;">
-            <div class="search-pill-box">
-              <span class="search-icon-lg">📍</span>
-              <input type="text" id="location-search-input" class="search-input-field" placeholder="Search location (e.g. Wuse 2, Lagos, London, Tokyo)..." autocomplete="off">
-              <div id="location-suggestions-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
-              <button type="submit" id="search-btn" class="btn-search-pill">Search →</button>
-            </div>
-            <div id="selected-location-badge" class="selected-location-badge" style="display: none; margin-top: 0.75rem;"></div>
-          </form>
-
-          <!-- Filter Panel & Searchable Business Type -->
-          <div class="filter-panel-box" style="max-width: 1000px; margin: 1.25rem auto 0 auto;">
-            <div class="filter-grid">
-
-              <!-- PROSPECTING PROFILE SELECTOR -->
-              <div class="form-group" id="profile-selector-group">
-                <label class="form-label" for="profile-selector-select">🎯 Prospecting Profile</label>
-                <select id="profile-selector-select" class="form-select">
-                  <option value="">Loading profiles...</option>
-                </select>
-              </div>
-
-              <!-- UNIFIED SEARCHABLE BUSINESS TYPE DROPDOWN + CUSTOM INPUT -->
-              <div class="form-group" style="position: relative;">
-                <label class="form-label" for="business-type-input">🏢 Business Type</label>
-                <input type="text" id="business-type-input" class="form-control" placeholder="Search business type..." autocomplete="off" value="">
-                <div id="business-type-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
-              </div>
-
-              <!-- Rating Filter -->
-              <div class="form-group">
-                <label class="form-label" for="min-rating-select">⭐ Minimum Rating</label>
-                <select id="min-rating-select" class="form-select">
-                  <option value="">Any Rating</option>
-                  <option value="4.5">4.5+ Stars</option>
-                  <option value="4.0">4.0+ Stars</option>
-                  <option value="3.5">3.5+ Stars</option>
-                </select>
-              </div>
-
-              <!-- Website Filter -->
-              <div class="form-group">
-                <label class="form-label" for="website-filter-select">🌐 Website Filter</label>
-                <select id="website-filter-select" class="form-select">
-                  <option value="" selected>Any (All Businesses)</option>
-                  <option value="false">🚨 No Website (Opportunity Target)</option>
-                  <option value="true">Has Website</option>
-                </select>
-              </div>
-
-              <!-- Phone Filter -->
-              <div class="form-group">
-                <label class="form-label" for="phone-filter-select">📞 Phone Filter</label>
-                <select id="phone-filter-select" class="form-select">
-                  <option value="" selected>Any (All Phones)</option>
-                  <option value="true">Has Phone Number</option>
-                  <option value="false">No Phone</option>
-                </select>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        <!-- Discovered Prospects Results Header -->
-        <div class="results-panel">
-          <div id="results-header" class="results-header-bar" style="display: none;">
-            <div>
-              <h2 class="results-main-title">Discovered prospects (<span id="results-count" style="color: var(--primary);">0</span>)</h2>
-              <div id="results-context" class="results-sub-context"></div>
-              <div id="search-profile-context" style="display: none; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;"></div>
-            </div>
-
-            <div class="results-stats-group">
-              <div class="stat-metric-box">
-                <span class="stat-metric-label">MISSING A WEBSITE</span>
-                <span id="stat-missing-website" class="stat-metric-value" style="color: #ef4444;">0</span>
-              </div>
-              <div class="stat-metric-box">
-                <span class="stat-metric-label">SAVED</span>
-                <span id="stat-saved-count" class="stat-metric-value">0</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Business Cards Grid -->
-          <div id="cards-grid" class="cards-grid"></div>
-
-          <!-- Loading State -->
-          <div id="loading-state" class="cards-grid" style="display: none;">
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-          </div>
-
-          <!-- Empty State -->
-          <div id="empty-state" class="empty-state" style="display: none;">
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Businesses Found</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Try adjusting your location search or Business Type parameters.</p>
-          </div>
-
-          <!-- Error State -->
-          <div id="error-state" class="error-state" style="display: none;">
-            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Search Error</h3>
-            <p id="error-message" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Unable to fetch business data.</p>
-            <button id="error-quota-signup-btn" class="btn btn-primary btn-sm" style="display: none; margin: 0 auto;">Sign Up for 50 Searches/Day</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= SECTION 2: MY PROSPECTS ================= -->
-      <section id="view-saved-businesses" class="view-section">
-        <div style="margin-bottom: 2rem;">
-          <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">My Prospects</h1>
-          <p style="color: var(--text-muted); font-size: 0.95rem;">Your saved business prospects. Track status, add notes, and execute outreach.</p>
-        </div>
-
-        <div class="status-tabs" id="prospect-status-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-          <button class="btn btn-secondary btn-sm status-tab active" data-status="">All Prospects</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="NEW">🆕 New</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="CONTACTED">💬 Contacted</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="INTERESTED">🔥 Interested</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="CONVERTED">🎉 Converted</button>
-          <button class="btn btn-secondary btn-sm status-tab" data-status="NOT_INTERESTED">🚫 Not Interested</button>
-        </div>
-
-        <div id="saved-grid" class="cards-grid"></div>
-
-        <div id="saved-empty-state" class="empty-state">
-          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Saved Prospects Found</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">When discovering businesses, click "Save prospect" on any card to track it here.</p>
-        </div>
-      </section>
-
-      <!-- ================= SECTION 3: DASHBOARD ================= -->
-      <section id="view-dashboard" class="view-section">
-        <div style="margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">Dashboard Overview</h1>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">High-level overview & lead opportunity analytics.</p>
-          </div>
-          <div style="display: flex; gap: 0.75rem;">
-            <button id="dash-btn-view-analysis" class="btn btn-primary">📊 View Full Analysis</button>
-            <button id="dash-btn-view-high-opps" class="btn btn-secondary">🔥 High Opportunities</button>
-            <button id="dash-btn-view-saved" class="btn btn-secondary">📌 Saved Prospects</button>
-          </div>
-        </div>
-
-        <!-- 5 KPI CARDS -->
-        <div class="kpi-grid-5">
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">Businesses Found</span>
-              <div class="kpi-card-icon">🏢</div>
-            </div>
-            <div class="kpi-metric-val" id="dash-kpi-found" style="color: var(--primary);">0</div>
-            <div class="kpi-subtext">Discovered from active search</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">High Opportunity</span>
-              <div class="kpi-card-icon">🔥</div>
-            </div>
-            <div class="kpi-metric-val" id="dash-kpi-high-opp" style="color: #10b981;">0</div>
-            <div class="kpi-subtext">Score 80–100 top prospects</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">No Website</span>
-              <div class="kpi-card-icon">🚨</div>
-            </div>
-            <div class="kpi-metric-val" id="dash-kpi-no-website" style="color: #ef4444;">0</div>
-            <div class="kpi-subtext">Digital design opportunities</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">WhatsApp Available</span>
-              <div class="kpi-card-icon">💬</div>
-            </div>
-            <div class="kpi-metric-val" id="dash-kpi-whatsapp" style="color: #25d366;">0</div>
-            <div class="kpi-subtext">Direct outreach channels</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">Saved Prospects</span>
-              <div class="kpi-card-icon">📌</div>
-            </div>
-            <div class="kpi-metric-val" id="dash-kpi-saved" style="color: #ec4899;">0</div>
-            <div class="kpi-subtext">Pipeline prospects</div>
-          </div>
-        </div>
-
-        <!-- DASHBOARD SUMMARY CHARTS -->
-        <div class="charts-grid-2">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Opportunity Breakdown</div>
-                <div class="chart-desc">Proportion of high, medium, and low opportunity tier leads.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="dash-chart-opportunity" height="220"></canvas>
-            </div>
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Top Business Types</div>
-                <div class="chart-desc">Most frequent business types from active discovery results.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="dash-chart-types" height="220"></canvas>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= SECTION 4: DEDICATED ANALYSIS WORKSPACE ================= -->
-      <section id="view-analysis" class="view-section">
-        
-        <!-- Header Bar -->
-        <div class="analytics-header-bar">
-          <div class="analysis-header-info">
-            <div class="analysis-header-title">Business Analysis Workspace</div>
-            <div id="analysis-search-context-label" class="analysis-header-sub">Search: Active discovery results • 0 businesses analyzed</div>
-          </div>
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <button id="analysis-btn-back-results" class="btn btn-secondary btn-sm">← Back to Results</button>
-            <button id="analysis-btn-export-csv" class="btn btn-primary btn-sm">📥 Export Analysis (CSV)</button>
-          </div>
-        </div>
-
-        <!-- SEARCH HISTORY / PREVIOUS SEARCHES ROW -->
-        <div id="search-history-container" class="chart-card" style="margin-bottom: 1.75rem; display: none;">
-          <div class="chart-card-header">
-            <div>
-              <div class="chart-title">🕒 Search History</div>
-              <div class="chart-desc">Reopen any previously saved search analysis workspace.</div>
-            </div>
-          </div>
-          <div id="search-history-list" style="display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem;"></div>
-        </div>
-
-        <!-- ANALYSIS KPI CARDS ROW -->
-        <div class="kpi-grid-5">
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">Businesses Found</span>
-              <div class="kpi-card-icon">🏢</div>
-            </div>
-            <div class="kpi-metric-val" id="analysis-kpi-found" style="color: var(--primary);">0</div>
-            <div class="kpi-subtext">Total analyzed businesses</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">No Website</span>
-              <div class="kpi-card-icon">🚨</div>
-            </div>
-            <div class="kpi-metric-val" id="analysis-kpi-no-website" style="color: #ef4444;">0</div>
-            <div class="kpi-subtext">Digital gap prospects</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">Phone Available</span>
-              <div class="kpi-card-icon">📞</div>
-            </div>
-            <div class="kpi-metric-val" id="analysis-kpi-phone" style="color: #3b82f6;">0</div>
-            <div class="kpi-subtext">Direct phone line</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">WhatsApp Available</span>
-              <div class="kpi-card-icon">💬</div>
-            </div>
-            <div class="kpi-metric-val" id="analysis-kpi-whatsapp" style="color: #25d366;">0</div>
-            <div class="kpi-subtext">Instant messaging line</div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-card-top">
-              <span class="kpi-metric-label">High Opportunity</span>
-              <div class="kpi-card-icon">🔥</div>
-            </div>
-            <div class="kpi-metric-val" id="analysis-kpi-high-opp" style="color: #10b981;">0</div>
-            <div class="kpi-subtext">Score 80–100 priority</div>
-          </div>
-        </div>
-
-        <!-- OPPORTUNITY OVERVIEW & WEBSITE OPPORTUNITY -->
-        <div class="charts-grid-2">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Opportunity Overview</div>
-                <div class="chart-desc">Score distribution into High (80-100), Medium (50-79), and Low (0-49) tiers.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="analysis-chart-opportunity" height="230"></canvas>
-            </div>
-            <div class="chart-filter-actions">
-              <button class="chart-filter-btn" id="filter-btn-high-opp">🔥 View High Opportunities</button>
-              <button class="chart-filter-btn" id="filter-btn-med-opp">⚡ View Medium Opportunities</button>
-              <button class="chart-filter-btn" id="filter-btn-low-opp">⚪ View Low Opportunities</button>
-            </div>
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Website Opportunity</div>
-                <div class="chart-desc">Breakdown of businesses lacking digital website presence.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="analysis-chart-website" height="230"></canvas>
-            </div>
-            <div class="chart-filter-actions">
-              <button class="chart-filter-btn" id="filter-btn-no-website">🚨 View Businesses Without Websites</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- CONTACTABILITY & RATING DISTRIBUTION -->
-        <div class="charts-grid-2">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Contactability Breakdown</div>
-                <div class="chart-desc">Direct outreach readiness across phone & WhatsApp channels.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="analysis-chart-contactability" height="230"></canvas>
-            </div>
-            <div class="chart-filter-actions">
-              <button class="chart-filter-btn" id="filter-btn-whatsapp-only">💬 View WhatsApp Prospects</button>
-            </div>
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Rating Distribution</div>
-                <div class="chart-desc">Reputation rating distribution of discovered businesses.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="analysis-chart-ratings" height="230"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- BUSINESS TYPES & LOCATION DISTRIBUTION -->
-        <div class="charts-grid-2">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Business Type Distribution</div>
-                <div class="chart-desc">Top business types returned from search results.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="analysis-chart-business-types" height="250"></canvas>
-            </div>
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div>
-                <div class="chart-title">Location Distribution</div>
-                <div class="chart-desc">Concentration of discovered businesses across neighborhoods & cities.</div>
-              </div>
-            </div>
-            <div class="chart-container-box">
-              <canvas id="analysis-chart-locations" height="250"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <!-- TOP OPPORTUNITIES RANKED WORKSPACE -->
-        <div class="top-prospects-section">
-          <div style="margin-bottom: 1.25rem;">
-            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">Top Opportunities</h3>
-            <p style="color: var(--text-muted); font-size: 0.88rem;">Ranked list of highest-value prospecting targets based on Bizz-Hunter Opportunity Score.</p>
-          </div>
-          <div id="top-prospects-list"></div>
-        </div>
-
-        <!-- Analysis Empty State -->
-        <div id="analysis-empty-state" class="empty-state" style="display: none;">
-          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Business Data Available for Analysis Yet</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Perform a search in Discovery to calculate intelligence metrics and score targets.</p>
-          <button id="analysis-empty-search-btn" class="btn btn-primary">Go to Business Discovery →</button>
-        </div>
-
-        <!-- Analysis Auth Gate State -->
-        <div id="analysis-auth-gate" class="empty-state" style="display: none;">
-          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">🔐 Account Required for Analysis Workspace</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Log in or create a free account to unlock deep prospecting analysis, Opportunity Scoring, and export features.</p>
-          <button id="analysis-login-btn" class="btn btn-primary">Log In / Sign Up →</button>
-        </div>
-      </section>
-
-      <section id="view-settings" class="view-section">
-        <div style="margin-bottom: 2rem;">
-          <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem;">Settings</h1>
-          <p style="color: var(--text-muted); font-size: 0.95rem;">Configure your account and AI outreach preferences.</p>
-        </div>
-
-        <div class="filter-panel-box" style="margin-bottom: 1.5rem;">
-          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span>🤖</span> AI Outreach Preferences
-          </h3>
-          <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">
-            Configure your default message style for AI-generated WhatsApp outreach messages.
-          </p>
-
-          <form id="settings-form" style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 480px;">
-            <div class="form-group">
-              <label style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.4rem; display: block;">Message Tone</label>
-              <select id="settings-ai-tone" class="form-select">
-                <option value="Professional">Professional (Default)</option>
-                <option value="Friendly">Friendly</option>
-                <option value="Casual">Casual</option>
-                <option value="Direct">Direct</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.4rem; display: block;">Message Length</label>
-              <select id="settings-ai-length" class="form-select">
-                <option value="Short">Short (2–3 sentences, default)</option>
-                <option value="Medium">Medium (3–4 sentences)</option>
-              </select>
-            </div>
-
-            <div>
-              <button type="submit" id="save-settings-btn" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                <span>💾 Save Preferences</span>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <div class="filter-panel-box">
-          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">System Settings</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">Connected to Rails 8.1 API & Google Places API.</p>
-        </div>
-      </section>
-
-      <!-- ================= SECTION: PROSPECTING PROFILES ================= -->
-      <section id="view-prospecting-profiles" class="view-section">
-        
-        <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem;">Prospecting Profiles</h1>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Define what you offer and what makes a business worth contacting.</p>
-          </div>
-          <button id="create-profile-btn" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-            <span>+ Create Profile</span>
-          </button>
-        </div>
-
-        <!-- Loading State -->
-        <div id="profiles-loading-state" class="loading-container" style="display: none; text-align: center; padding: 4rem 1rem;">
-          <div class="spinner" style="margin: 0 auto 1rem auto;"></div>
-          <p style="color: var(--text-muted); font-size: 0.95rem;">Loading your prospecting profiles...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div id="profiles-empty-state" class="empty-state-box" style="display: none; text-align: center; padding: 4rem 2rem; background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); max-width: 600px; margin: 2rem auto;">
-          <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-          <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Create your first Prospecting Profile</h2>
-          <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Tell Bizz-Hunter what you sell and which businesses you want to target.</p>
-          <button id="profiles-empty-create-btn" class="btn btn-primary btn-lg">+ Create Your First Profile</button>
-        </div>
-
-        <!-- Error State -->
-        <div id="profiles-error-state" class="error-state-box" style="display: none; text-align: center; padding: 3rem 2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); max-width: 600px; margin: 2rem auto;">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">⚠️</div>
-          <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Unable to load your prospecting profiles</h3>
-          <p id="profiles-error-message" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Please check your internet connection or try again.</p>
-          <button id="profiles-retry-btn" class="btn btn-secondary">Try Again</button>
-        </div>
-
-        <!-- Profile Cards Grid -->
-        <div id="profiles-grid" class="cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;"></div>
-
-      </section>
-
-    </main>
+  <!-- INITIAL AUTH CHECK LOADING OVERLAY -->
+  <div id="app-auth-loading" class="auth-loading-overlay">
+    <div class="auth-loading-spinner"></div>
+    <div class="auth-loading-text">Loading Bizz-Hunter...</div>
   </div>
 
+  <!-- ================= TOP NAVBAR HEADER ================= -->
+  <header id="main-header" class="main-header">
+    <div class="header-container">
+      
+      <!-- Brand Logo -->
+      <a href="#discovery" id="brand-link" class="brand-link">
+        <span class="brand-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+        <span class="brand-title">BIZZ-HUNTER</span>
+      </a>
+
+      <!-- AUTHENTICATED TOP NAV LINKS (Displayed when authenticated) -->
+      <nav id="authenticated-nav" class="top-nav-links" style="display: none;">
+        <a href="#discovery" class="top-nav-item active" data-tab="find-businesses">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          <span>Discovery</span>
+        </a>
+        <a href="#prospects" class="top-nav-item" data-tab="saved-businesses">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <span>Prospects</span>
+        </a>
+        <a href="#profiles" class="top-nav-item" data-tab="prospecting-profiles">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          <span>Profiles</span>
+        </a>
+        <a href="#analytics" class="top-nav-item" data-tab="analysis">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Analytics</span>
+        </a>
+        <a href="#settings" class="top-nav-item" data-tab="settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <!-- PUBLIC TOP NAV ACTIONS (Displayed when unauthenticated) -->
+      <div id="public-nav" class="public-nav-actions">
+        <a href="#login" id="nav-btn-login" class="btn btn-secondary btn-sm">Sign In</a>
+        <a href="#register" id="nav-btn-register" class="btn btn-primary btn-sm">Get Started</a>
+      </div>
+
+      <!-- RIGHT SIDE: USER PROFILE + THEME SWITCH + MOBILE MENU -->
+      <div class="header-right-controls">
+        
+
+
+        <!-- Theme Switcher Toggle -->
+        <div class="theme-switch-wrapper" title="Toggle Light / Dark Mode">
+          <span class="theme-icon-sun"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
+          <button type="button" id="theme-toggle-btn" class="theme-switch-track" aria-label="Toggle Theme">
+            <span class="theme-switch-thumb" id="theme-switch-thumb"></span>
+          </button>
+          <span class="theme-icon-moon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+        </div>
+
+        <!-- AUTHENTICATED USER PILL -->
+        <a href="#settings" id="user-profile-pill" class="user-profile-pill" style="display: none;" title="Account Settings">
+          <span id="user-avatar" class="user-avatar">US</span>
+          <span id="user-name" class="user-name">User Account</span>
+        </a>
+
+        <!-- Mobile Menu Trigger -->
+        <button type="button" id="mobile-menu-trigger" class="mobile-menu-trigger" aria-label="Toggle navigation menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP VIEWPORT -->
+  <main id="main-content" class="app-viewport">
+
+  <!-- ================= PUBLIC LANDING PAGE ================= -->
+  <section id="view-landing" class="view-section landing-page-view">
+    
+    <!-- Landing Header (Simplified sub-header / hero banner) -->
+    <header class="landing-header" style="display: none;">
+      <div class="landing-container landing-header-inner">
+        <a href="#landing" class="landing-brand">
+          <span class="brand-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+          <span class="brand-title">Bizz-Hunter</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Landing Hero Section -->
+    <section class="landing-hero-section">
+      <div class="landing-container">
+        <div class="landing-hero-content">
+          <div class="hero-badge">
+            <span class="badge-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg></span>
+            <span>AI-POWERED PROSPECTING SAAS</span>
+          </div>
+
+          <h1 class="landing-hero-title">Find businesses that could become your next customer.</h1>
+          <p class="landing-hero-subtitle">
+            Bizz-Hunter helps freelancers, agencies and sales teams discover relevant businesses, understand their opportunities, and start conversations faster.
+          </p>
+
+          <div class="landing-hero-ctas">
+            <button type="button" id="landing-hero-cta" class="btn btn-primary btn-lg">Start Finding Prospects</button>
+            <button type="button" id="landing-how-cta" class="btn btn-secondary btn-lg">See How It Works</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- How It Works Section -->
+    <section id="landing-how-it-works" class="landing-section">
+      <div class="landing-container">
+        <div class="section-header">
+          <span class="section-tag">WORKFLOW</span>
+          <h2>How Bizz-Hunter Works</h2>
+          <p>Go from defining your target market to closing deals in three straightforward steps.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">01</div>
+            <h3>Define your ideal customer</h3>
+            <p>Create Prospecting Profiles to specify what services you sell, who you target, and key opportunity signals.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">02</div>
+            <h3>Discover relevant businesses</h3>
+            <p>Search locations and industries to uncover high-opportunity businesses with real-time scoring.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">03</div>
+            <h3>Turn opportunities into conversations</h3>
+            <p>Generate AI Prospect Briefs and personalized WhatsApp messages to initiate outreach immediately.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Prospecting Profiles Section -->
+    <section id="landing-profiles" class="landing-section alt-bg">
+      <div class="landing-container grid-2-col">
+        <div class="section-text">
+          <span class="section-tag">TARGETING ENGINE</span>
+          <h2>Personalized Prospecting Profiles</h2>
+          <p>Bizz-Hunter doesn't just return generic directory listings. It evaluates businesses against your specific offer and target customer criteria.</p>
+          <ul class="feature-bullets">
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> Define target industries and services</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> Configure opportunity signals (e.g. no website, low rating)</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> Automatically calculate personalized relevance scores</li>
+          </ul>
+        </div>
+        <div class="section-graphic-card">
+          <div class="mini-profile-card">
+            <div class="profile-card-header">
+              <span class="profile-badge">DEFAULT PROFILE</span>
+              <h4>Website Development for Restaurants</h4>
+            </div>
+            <p class="profile-desc">Targeting top restaurants lacking an online presence to pitch custom web design.</p>
+            <div class="profile-signals">
+              <span class="signal-tag">No Website</span>
+              <span class="signal-tag">WhatsApp Available</span>
+              <span class="signal-tag">High Rating</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Prospect Briefs Section -->
+    <section id="landing-briefs" class="landing-section">
+      <div class="landing-container grid-2-col reverse-mobile">
+        <div class="section-graphic-card">
+          <div class="brief-preview-box">
+            <div class="brief-header">
+              <span class="brief-badge">PROSPECT BRIEF • WEBSITE DEVELOPMENT</span>
+              <h5>Strong Opportunity Match</h5>
+            </div>
+            <div class="brief-body">
+              <strong>Why This Business Is a Prospect</strong>
+              <p>Luminary Studios has 300+ five-star reviews and a loyal client base but has no website, forcing potential clients to contact them only through social DMs — a major booking bottleneck.</p>
+              <strong>Recommended Approach</strong>
+              <p>Lead with an online portfolio and booking page that lets clients reserve sessions directly, reducing their reliance on manual back-and-forth.</p>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <span class="section-tag">AI INTELLIGENCE</span>
+          <h2>AI Prospect Briefs</h2>
+          <p>Instantly generate factual, profile-aware briefs that explain why a business is worth contacting and how to approach them.</p>
+          <ul class="feature-bullets">
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> Grounded strictly in available business signals</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> Cached in memory — hide/show without regenerating</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span> Available across Discovery and saved Prospects</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Outreach Section -->
+    <section id="landing-outreach" class="landing-section alt-bg">
+      <div class="landing-container">
+        <div class="section-header">
+          <span class="section-tag">DIRECT OUTREACH</span>
+          <h2>Seamless WhatsApp Conversation Flow</h2>
+          <p>Convert leads directly into conversations without copy-pasting numbers or writing manual openers.</p>
+        </div>
+
+        <div class="outreach-flow-bar">
+          <div class="flow-step">
+            <div class="flow-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/></svg></div>
+            <span>Business Discovered</span>
+          </div>
+          <div class="flow-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          <div class="flow-step">
+            <div class="flow-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8L12 2z"/></svg></div>
+            <span>AI Prospect Brief</span>
+          </div>
+          <div class="flow-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+          <div class="flow-step">
+            <div class="flow-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+            <span>Personalized WhatsApp Message</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Landing Final CTA & Footer -->
+    <section class="landing-cta-section">
+      <div class="landing-container">
+        <h2>Turn business discovery into your next opportunity.</h2>
+        <p>Start finding and evaluating high-value prospects today.</p>
+        <button type="button" id="landing-final-cta" class="btn btn-primary btn-lg">Start Finding Prospects</button>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      <div class="landing-container footer-inner">
+        <div class="footer-left">
+          <span class="footer-logo">Bizz-Hunter</span>
+          <span class="footer-copy">&copy; 2026 Bizz-Hunter SaaS. All rights reserved.</span>
+        </div>
+        <div class="footer-links">
+          <a href="#landing-how-it-works">How It Works</a>
+          <a href="#landing-profiles">Profiles</a>
+          <a href="#landing-briefs">Briefs</a>
+        </div>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ================= DEDICATED LOGIN PAGE ================= -->
+  <section id="view-login" class="view-section auth-page-view">
+    <div class="auth-page-container">
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <a href="#landing" class="auth-brand">
+            <span class="brand-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+            <span class="brand-title">Bizz-Hunter</span>
+          </a>
+          <h2>Welcome back</h2>
+          <p>Sign in to access your business discovery workspace and prospect pipeline.</p>
+        </div>
+
+        <form id="dedicated-login-form" class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required autocomplete="email">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+
+          <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block btn-lg">Sign In</button>
+        </form>
+
+        <div class="auth-divider"><span>OR</span></div>
+
+        <button type="button" id="google-oauth-login-btn" class="btn btn-oauth btn-block">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+
+        <div id="login-error-box" class="auth-error-box" style="display: none;"></div>
+
+        <div class="auth-footer-link">
+          Don't have an account? <a href="#register" id="login-go-to-register">Create an account</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DEDICATED REGISTER PAGE ================= -->
+  <section id="view-register" class="view-section auth-page-view">
+    <div class="auth-page-container">
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <a href="#landing" class="auth-brand">
+            <span class="brand-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+            <span class="brand-title">Bizz-Hunter</span>
+          </a>
+          <h2>Create your account</h2>
+          <p>Start finding businesses and discovering revenue opportunities today.</p>
+        </div>
+
+        <form id="dedicated-register-form" class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="register-name">Full Name</label>
+            <input type="text" id="register-name" class="form-control" placeholder="Samuel Adebayo" required autocomplete="name">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-email">Email Address</label>
+            <input type="email" id="register-email" class="form-control" placeholder="you@example.com" required autocomplete="email">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-password">Password</label>
+            <input type="password" id="register-password" class="form-control" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-confirm-password">Confirm Password</label>
+            <input type="password" id="register-confirm-password" class="form-control" placeholder="Confirm password" required minlength="6" autocomplete="new-password">
+          </div>
+
+          <button type="submit" id="register-submit-btn" class="btn btn-primary btn-block btn-lg">Create Account</button>
+        </form>
+
+        <div class="auth-divider"><span>OR</span></div>
+
+        <button type="button" id="google-oauth-register-btn" class="btn btn-oauth btn-block">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+
+        <div id="register-error-box" class="auth-error-box" style="display: none;"></div>
+
+        <div class="auth-footer-link">
+          Already have an account? <a href="#login" id="register-go-to-login">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DISCOVERY VIEW (MAIN AUTH WORKSPACE) ================= -->
+  <section id="view-find-businesses" class="view-section active">
+          
+          <!-- Profile Recommendation Prompt Banner -->
+          <div id="discovery-profile-banner" class="discovery-profile-banner" style="display: none;">
+            <div class="discovery-banner-content">
+              <span class="discovery-banner-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
+              <div>
+                <strong>Want more relevant prospect recommendations?</strong>
+                <p>Create a Prospecting Profile so Bizz-Hunter can understand what you offer and target the highest-opportunity leads.</p>
+              </div>
+            </div>
+            <div class="discovery-banner-actions">
+              <button type="button" id="discovery-banner-create-btn" class="btn btn-primary btn-sm">Create Profile</button>
+              <button type="button" id="discovery-banner-dismiss-btn" class="btn-dismiss-banner" title="Dismiss prompt">&times;</button>
+            </div>
+          </div>
+
+          <!-- Hero & Search Filters -->
+          <div class="discovery-hero">
+            <h1 class="hero-main-title">Find businesses worth contacting.</h1>
+            <p class="hero-sub-text">Search businesses by industry and location. Evaluate digital opportunity signals, score relevance, and execute outreach.</p>
+
+            <!-- Unified Search + Filter Card -->
+            <form id="search-form">
+            <div class="filter-panel-box search-filter-card">
+
+              <!-- Location + Business Type Search Row -->
+              <div class="search-location-row">
+                <!-- Location half -->
+                <div class="search-half search-half-location">
+                  <span class="search-icon-lg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+                  <div style="flex:1; position:relative;">
+                    <label class="search-inline-label">Location</label>
+                    <input type="text" id="location-search-input" class="search-input-inline" placeholder="e.g. Wuse 2, Lagos, London..." autocomplete="off">
+                    <div id="location-suggestions-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
+                  </div>
+                </div>
+
+                <!-- Pipe divider -->
+                <span class="search-pipe"></span>
+
+                <!-- Business Type half -->
+                <div class="search-half search-half-biz" style="position:relative;">
+                  <span class="search-icon-lg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
+                  <div style="flex:1; position:relative;">
+                    <label class="search-inline-label">Business Type</label>
+                    <input type="text" id="business-type-input" class="search-input-inline" placeholder="e.g. Restaurant, Hotel..." autocomplete="off" value="">
+                    <div id="business-type-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="selected-location-badge" class="selected-location-badge" style="display: none; margin-top: 0.5rem;"></div>
+
+              <!-- Divider -->
+              <hr class="filter-divider">
+
+              <!-- 4 Equal Filters Row -->
+              <div class="filter-grid">
+
+                <!-- Prospecting Profile -->
+                <div class="form-group" id="profile-selector-group">
+                  <label class="form-label" for="profile-selector-select">Prospecting Profile</label>
+                  <select id="profile-selector-select" class="form-select">
+                    <option value="">Loading profiles...</option>
+                  </select>
+                </div>
+
+                <!-- Minimum Rating -->
+                <div class="form-group">
+                  <label class="form-label" for="min-rating-select">Minimum Rating</label>
+                  <select id="min-rating-select" class="form-select">
+                    <option value="">Any Rating</option>
+                    <option value="4.5">4.5+ Stars</option>
+                    <option value="4.0">4.0+ Stars</option>
+                    <option value="3.5">3.5+ Stars</option>
+                  </select>
+                </div>
+
+                <!-- Website Filter -->
+                <div class="form-group">
+                  <label class="form-label" for="website-filter-select">Website Filter</label>
+                  <select id="website-filter-select" class="form-select">
+                    <option value="" selected>Any (All Businesses)</option>
+                    <option value="false">No Website (Opportunity)</option>
+                    <option value="true">Has Website</option>
+                  </select>
+                </div>
+
+                <!-- Phone Filter -->
+                <div class="form-group">
+                  <label class="form-label" for="phone-filter-select">Phone Filter</label>
+                  <select id="phone-filter-select" class="form-select">
+                    <option value="" selected>Any (All Phones)</option>
+                    <option value="true">Has Phone Number</option>
+                    <option value="false">No Phone</option>
+                  </select>
+                </div>
+
+              </div>
+
+              <!-- Search Button -->
+              <button type="submit" id="search-btn" class="btn btn-primary btn-search-main">Search Businesses &rarr;</button>
+
+            </div>
+            </form>
+
+          </div>
+
+          <!-- Results Header & Cards Grid -->
+          <div class="results-panel">
+            <div id="results-header" class="results-header-bar" style="display: none;">
+              <div>
+                <h2 class="results-main-title">Discovered prospects (<span id="results-count" style="color: var(--primary);">0</span>)</h2>
+                <div id="results-context" class="results-sub-context"></div>
+                <div id="search-profile-context" style="display: none; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;"></div>
+              </div>
+
+              <div class="results-stats-group">
+                <div class="stat-metric-box">
+                  <span class="stat-metric-label">MISSING A WEBSITE</span>
+                  <span id="stat-missing-website" class="stat-metric-value" style="color: #ef4444;">0</span>
+                </div>
+                <div class="stat-metric-box">
+                  <span class="stat-metric-label">SAVED PROSPECTS</span>
+                  <span id="stat-saved-count" class="stat-metric-value">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Business Cards Grid -->
+            <div id="cards-grid" class="cards-grid"></div>
+
+            <!-- Skeleton Loading State -->
+            <div id="loading-state" class="cards-grid" style="display: none;">
+              <div class="skeleton-card"></div>
+              <div class="skeleton-card"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+              <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Businesses Found</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem;">Try adjusting your location search or Business Type parameters.</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="error-state" style="display: none;">
+              <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Search Error</h3>
+              <p id="error-message" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Unable to fetch business data.</p>
+              <button id="error-quota-signup-btn" class="btn btn-primary btn-sm" style="display: none; margin: 0 auto;">Sign Up for 50 Searches/Day</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 2: PROSPECTS ================= -->
+        <section id="view-saved-businesses" class="view-section">
+          <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem;">My Prospects</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Track saved prospects, review AI briefs, update statuses, and execute direct outreach.</p>
+          </div>
+
+          <div class="status-tabs" id="prospect-status-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm status-tab active" data-status="">All Prospects</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="NEW">New</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="CONTACTED">Contacted</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="INTERESTED">Interested</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="CONVERTED">Converted</button>
+            <button class="btn btn-secondary btn-sm status-tab" data-status="NOT_INTERESTED">Not Interested</button>
+          </div>
+
+          <div id="saved-grid" class="cards-grid"></div>
+
+          <div id="saved-empty-state" class="empty-state">
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Saved Prospects Found</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">When discovering businesses, click "Save prospect" on any card to track it here.</p>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 3: PROFILES ================= -->
+        <section id="view-prospecting-profiles" class="view-section">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem;">Prospecting Profiles</h1>
+              <p style="color: var(--text-muted); font-size: 0.95rem;">Define what you offer and what makes a business worth contacting.</p>
+            </div>
+            <button id="create-profile-btn" class="btn btn-primary btn-lg" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+              <span>+ Create Profile</span>
+            </button>
+          </div>
+
+          <div id="profiles-loading-state" class="loading-container" style="display: none; text-align: center; padding: 4rem 1rem;">
+            <div class="spinner" style="margin: 0 auto 1rem auto;"></div>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Loading your prospecting profiles...</p>
+          </div>
+
+          <div id="profiles-empty-state" class="empty-state-box" style="display: none; text-align: center; padding: 4rem 2rem; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-lg); max-width: 600px; margin: 2rem auto;">
+            <h2 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Create your first Prospecting Profile</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Tell Bizz-Hunter what you sell and which businesses you want to target.</p>
+            <button id="profiles-empty-create-btn" class="btn btn-primary btn-lg">+ Create Your First Profile</button>
+          </div>
+
+          <div id="profiles-error-state" class="error-state-box" style="display: none; text-align: center; padding: 3rem 2rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); max-width: 600px; margin: 2rem auto;">
+            <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Unable to load your prospecting profiles</h3>
+            <p id="profiles-error-message" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Please check your internet connection or try again.</p>
+            <button id="profiles-retry-btn" class="btn btn-secondary">Try Again</button>
+          </div>
+
+          <div id="profiles-grid" class="cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;"></div>
+        </section>
+
+        <!-- ================= SECTION 4: ANALYTICS ================= -->
+        <section id="view-analysis" class="view-section">
+          <div class="analytics-header-bar">
+            <div class="analysis-header-info">
+              <div class="analysis-header-title">Business Intelligence & Analytics</div>
+              <div id="analysis-search-context-label" class="analysis-header-sub">Search: Active discovery results • 0 businesses analyzed</div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+              <button id="analysis-btn-back-results" class="btn btn-secondary btn-sm">Back to Discovery</button>
+              <button id="analysis-btn-export-csv" class="btn btn-primary btn-sm">Export Analysis (CSV)</button>
+            </div>
+          </div>
+
+          <div id="search-history-container" class="chart-card" style="margin-bottom: 1.75rem; display: none;">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-title">Search History</div>
+                <div class="chart-desc">Reopen any previously saved search analysis workspace.</div>
+              </div>
+            </div>
+            <div id="search-history-list" style="display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem;"></div>
+          </div>
+
+          <div class="kpi-grid-5">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-metric-label">Businesses Found</span>
+              </div>
+              <div class="kpi-metric-val" id="analysis-kpi-found" style="color: var(--primary);">0</div>
+              <div class="kpi-subtext">Total analyzed businesses</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-metric-label">No Website</span>
+              </div>
+              <div class="kpi-metric-val" id="analysis-kpi-no-website" style="color: #ef4444;">0</div>
+              <div class="kpi-subtext">Digital gap prospects</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-metric-label">Phone Available</span>
+              </div>
+              <div class="kpi-metric-val" id="analysis-kpi-phone" style="color: #3b82f6;">0</div>
+              <div class="kpi-subtext">Direct phone line</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-metric-label">WhatsApp Available</span>
+              </div>
+              <div class="kpi-metric-val" id="analysis-kpi-whatsapp" style="color: #25d366;">0</div>
+              <div class="kpi-subtext">Instant messaging line</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-metric-label">High Opportunity</span>
+              </div>
+              <div class="kpi-metric-val" id="analysis-kpi-high-opp" style="color: #10b981;">0</div>
+              <div class="kpi-subtext">Score 80–100 priority</div>
+            </div>
+          </div>
+
+          <div class="charts-grid-2">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="chart-title">Opportunity Overview</div>
+                  <div class="chart-desc">Score distribution into High (80-100), Medium (50-79), and Low (0-49) tiers.</div>
+                </div>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="analysis-chart-opportunity" height="230"></canvas>
+              </div>
+              <div class="chart-filter-actions">
+                <button class="chart-filter-btn" id="filter-btn-high-opp">High Opportunities</button>
+                <button class="chart-filter-btn" id="filter-btn-med-opp">Medium Opportunities</button>
+                <button class="chart-filter-btn" id="filter-btn-low-opp">Low Opportunities</button>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="chart-title">Website Opportunity</div>
+                  <div class="chart-desc">Breakdown of businesses lacking digital website presence.</div>
+                </div>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="analysis-chart-website" height="230"></canvas>
+              </div>
+              <div class="chart-filter-actions">
+                <button class="chart-filter-btn" id="filter-btn-no-website">Businesses Without Websites</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-grid-2">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="chart-title">Contactability Breakdown</div>
+                  <div class="chart-desc">Direct outreach readiness across phone & WhatsApp channels.</div>
+                </div>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="analysis-chart-contactability" height="230"></canvas>
+              </div>
+              <div class="chart-filter-actions">
+                <button class="chart-filter-btn" id="filter-btn-whatsapp-only">WhatsApp Prospects</button>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="chart-title">Rating Distribution</div>
+                  <div class="chart-desc">Reputation rating distribution of discovered businesses.</div>
+                </div>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="analysis-chart-ratings" height="230"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="charts-grid-2">
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="chart-title">Business Type Distribution</div>
+                  <div class="chart-desc">Top business types returned from search results.</div>
+                </div>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="analysis-chart-business-types" height="250"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <div class="chart-title">Location Distribution</div>
+                  <div class="chart-desc">Concentration of discovered businesses across neighborhoods & cities.</div>
+                </div>
+              </div>
+              <div class="chart-container-box">
+                <canvas id="analysis-chart-locations" height="250"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="top-prospects-section">
+            <div style="margin-bottom: 1.25rem;">
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">Top Opportunities</h3>
+              <p style="color: var(--text-muted); font-size: 0.88rem;">Ranked list of highest-value prospecting targets based on Opportunity Score.</p>
+            </div>
+            <div id="top-prospects-list"></div>
+          </div>
+
+          <div id="analysis-empty-state" class="empty-state" style="display: none;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">No Business Data Available for Analysis Yet</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Perform a search in Discovery to calculate intelligence metrics and score targets.</p>
+            <button id="analysis-empty-search-btn" class="btn btn-primary">Go to Discovery →</button>
+          </div>
+
+          <div id="analysis-auth-gate" class="empty-state" style="display: none;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">Account Required for Analysis Workspace</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">Log in or create a free account to unlock deep prospecting analysis, Opportunity Scoring, and export features.</p>
+            <button id="analysis-login-btn" class="btn btn-primary">Log In / Sign Up →</button>
+          </div>
+        </section>
+
+        <!-- ================= SECTION 5: SETTINGS ================= -->
+        <section id="view-settings" class="view-section">
+          <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem;">Settings</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Manage your account details, AI outreach preferences, appearance, and security.</p>
+          </div>
+
+          <div class="settings-layout">
+            <!-- Settings Navigation Sub-tabs -->
+            <div class="settings-sidebar">
+              <button type="button" class="settings-nav-item active" data-settings-section="account">Account</button>
+              <button type="button" class="settings-nav-item" data-settings-section="ai">AI Preferences</button>
+              <button type="button" class="settings-nav-item" data-settings-section="appearance">Appearance</button>
+              <button type="button" class="settings-nav-item danger" data-settings-section="signout">Sign Out</button>
+            </div>
+
+            <!-- Settings Content Panels -->
+            <div class="settings-content">
+              
+              <!-- Panel 1: Account -->
+              <div class="settings-panel active" id="settings-panel-account">
+                <div class="filter-panel-box">
+                  <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Account Information</h3>
+                  <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">Details for your active Bizz-Hunter user session.</p>
+                  
+                  <div class="form-group" style="margin-bottom: 1rem;">
+                    <label class="form-label">Full Name</label>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);" id="settings-acc-name">User</div>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label">Email Address</label>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);" id="settings-acc-email">user@example.com</div>
+                  </div>
+
+                  <div class="form-group" style="margin-top: 0.5rem;">
+                    <label class="form-label">Search Quota</label>
+                    <div class="settings-quota-widget" id="quota-widget-container">
+                      <div class="settings-quota-header">
+                        <span id="quota-label-text" class="settings-quota-label">PRO USAGE: 0/50</span>
+                        <span class="settings-quota-hint">Resets daily</span>
+                      </div>
+                      <div class="settings-quota-track">
+                        <div class="settings-quota-fill" id="quota-progress-fill" style="width: 0%;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 2: AI Preferences -->
+              <div class="settings-panel" id="settings-panel-ai">
+                <!-- WhatsApp AI Settings -->
+                <div class="filter-panel-box" style="margin-bottom: 1.5rem;">
+                  <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">WhatsApp AI Message Preferences</h3>
+                  <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">Configure default message style for AI-generated WhatsApp outreach.</p>
+
+                  <form id="settings-wa-form" style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 480px;">
+                    <div class="form-group">
+                      <label class="form-label" for="settings-ai-tone">Message Tone</label>
+                      <select id="settings-ai-tone" class="form-select">
+                        <option value="Professional">Professional (Default)</option>
+                        <option value="Friendly">Friendly</option>
+                        <option value="Casual">Casual</option>
+                        <option value="Direct">Direct</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="settings-ai-length">Message Length</label>
+                      <select id="settings-ai-length" class="form-select">
+                        <option value="Short">Short (2–3 sentences, default)</option>
+                        <option value="Medium">Medium (3–4 sentences)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <button type="submit" id="save-wa-settings-btn" class="btn btn-primary">Save Preferences</button>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- Prospect Brief AI Settings -->
+                <div class="filter-panel-box">
+                  <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">AI Prospect Brief Preferences</h3>
+                  <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">Control the interpretation style and focus for newly generated prospect briefs.</p>
+
+                  <form id="settings-brief-form" style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 480px;">
+                    <div class="form-group">
+                      <label class="form-label" for="settings-brief-style">Brief Style</label>
+                      <select id="settings-brief-style" class="form-select">
+                        <option value="Professional">Professional (Analytical)</option>
+                        <option value="Friendly">Friendly (Consultative)</option>
+                        <option value="Sales-focused">Sales-focused (High impact)</option>
+                        <option value="Concise">Concise (Bullet-first)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="settings-brief-focus">Brief Focus</label>
+                      <select id="settings-brief-focus" class="form-select">
+                        <option value="Why this business may be relevant">Why this business may be relevant</option>
+                        <option value="Potential opportunity">Potential opportunity</option>
+                        <option value="Business/contact signals">Business & contact signals</option>
+                        <option value="Suggested approach">Suggested approach & angle</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <button type="submit" id="save-brief-settings-btn" class="btn btn-primary">Save Brief Preferences</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Panel 3: Appearance -->
+              <div class="settings-panel" id="settings-panel-appearance">
+                <div class="filter-panel-box">
+                  <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Appearance & Theme</h3>
+                  <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">Customize application interface theme.</p>
+
+                  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button type="button" class="theme-choice-card" onclick="window.applyTheme('dark')">
+                      <div class="theme-preview dark-prev"></div>
+                      <span>Dark Theme</span>
+                    </button>
+                    <button type="button" class="theme-choice-card" onclick="window.applyTheme('light')">
+                      <div class="theme-preview light-prev"></div>
+                      <span>Light Theme</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Panel 4: Sign Out -->
+              <div class="settings-panel" id="settings-panel-signout">
+                <div class="filter-panel-box" style="border: 1px solid rgba(239, 68, 68, 0.3);">
+                  <h3 style="font-size: 1.1rem; font-weight: 700; color: #ef4444; margin-bottom: 0.5rem;">Sign Out</h3>
+                  <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">End your current Bizz-Hunter active user session.</p>
+
+                  <button type="button" id="settings-logout-btn" class="btn btn-danger" style="background: #ef4444; color: white; border: none; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Sign Out of Bizz-Hunter</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+  </main>
 </div>
 
 <!-- ================= MODALS ================= -->
-
-<!-- Auth Modal -->
-<div id="auth-modal" class="modal-overlay">
-  <div class="modal-container" style="max-width: 420px;">
-    <div class="modal-header">
-      <h3 class="modal-title" id="auth-modal-title">Sign Up / Log In</h3>
-      <button class="modal-close">&times;</button>
-    </div>
-    <div class="modal-body" style="padding: 1.5rem;">
-      <div id="auth-modal-banner" style="display: none; background: var(--primary-light); border: 1px solid var(--primary); padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; margin-bottom: 1.25rem; color: var(--text-main);">
-        🔑 Account required to save prospects and track follow-ups.
-      </div>
-
-      <div class="auth-card-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; background: var(--bg-surface); padding: 4px; border-radius: var(--radius-md);">
-        <button id="auth-tab-register" class="btn btn-secondary btn-sm active" style="flex: 1;">Sign-Up</button>
-        <button id="auth-tab-login" class="btn btn-secondary btn-sm" style="flex: 1;">Log In</button>
-      </div>
-
-      <!-- Register Form -->
-      <form id="modal-register-form">
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" for="modal-register-name">Full Name</label>
-          <input type="text" id="modal-register-name" class="form-control" placeholder="Samuel Adebayo" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" for="modal-register-email">Email Address</label>
-          <input type="email" id="modal-register-email" class="form-control" placeholder="you@example.com" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label class="form-label" for="modal-register-password">Password</label>
-          <input type="password" id="modal-register-password" class="form-control" placeholder="At least 6 characters" required minlength="6">
-        </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg" id="modal-register-btn">Create Free Account</button>
-      </form>
-
-      <!-- Login Form -->
-      <form id="modal-login-form" style="display: none;">
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" for="modal-login-email">Email Address</label>
-          <input type="email" id="modal-login-email" class="form-control" placeholder="you@example.com" required>
-        </div>
-        <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label class="form-label" for="modal-login-password">Password</label>
-          <input type="password" id="modal-login-password" class="form-control" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg" id="modal-login-btn">Log In to Bizz-Hunter</button>
-      </form>
-
-      <div id="modal-auth-error" class="auth-error-box" style="display: none; margin-top: 1rem;"></div>
-    </div>
-  </div>
-</div>
 
 <!-- Business Details Modal -->
 <div id="details-modal" class="modal-overlay">
@@ -659,28 +930,26 @@
     <form id="profile-form" style="padding: 1.5rem;">
       <input type="hidden" id="profile-form-id" value="">
 
-      <!-- AI Profile Builder Assistant Card -->
       <div id="ai-generator-card" class="ai-generator-card">
         <div class="ai-card-header">
-          <div class="ai-badge">✨ GEMINI AI BUILDER</div>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Describe what you sell to auto-generate this profile</span>
+          <div class="ai-badge">GEMINI AI BUILDER</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Describe what you offer to auto-generate profile fields</span>
         </div>
         
         <div class="ai-card-body">
-          <textarea id="ai-description-input" class="form-control" rows="2" placeholder="e.g. I build modern websites for restaurants and hotels that don't have a good online presence..."></textarea>
+          <textarea id="ai-description-input" class="form-control" rows="2" placeholder="e.g. I build modern websites for restaurants and hotels that don't have an online presence..."></textarea>
           
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
             <button type="button" id="btn-generate-ai-profile" class="btn btn-primary btn-sm btn-ai-sparkle">
-              ✨ Generate Profile with AI
+              Generate Profile with AI
             </button>
             <span id="ai-status-msg" style="font-size: 0.8rem; color: var(--text-muted); display: none;"></span>
           </div>
         </div>
 
-        <!-- AI Loading State -->
         <div id="ai-generator-loading" class="ai-loading-box" style="display: none; margin-top: 0.75rem;">
           <div class="ai-spinner"></div>
-          <span id="ai-loading-text" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">✨ Understanding your service & building profile...</span>
+          <span id="ai-loading-text" style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">Understanding your service & building profile...</span>
         </div>
       </div>
 
@@ -774,13 +1043,12 @@
   <div class="modal-container onboarding-modal-container">
     <div class="onboarding-header">
       <div class="onboarding-badge">PERSONALIZATION</div>
-      <h2 class="onboarding-title">Let's personalize your Bizz-Hunter experience</h2>
+      <h2 class="onboarding-title">Personalize your Bizz-Hunter experience</h2>
       <p class="onboarding-subtitle">Tell us what you sell and who you want to reach. Your Prospecting Profile helps Bizz-Hunter identify businesses that are more relevant to you.</p>
     </div>
 
     <div class="onboarding-benefits-grid">
       <div class="onboarding-benefit-card">
-        <div class="benefit-icon">🎯</div>
         <div class="benefit-content">
           <h4>Find better prospects</h4>
           <p>Identify businesses that match what you offer.</p>
@@ -788,7 +1056,6 @@
       </div>
 
       <div class="onboarding-benefit-card">
-        <div class="benefit-icon">📊</div>
         <div class="benefit-content">
           <h4>Prioritize opportunities</h4>
           <p>Understand which businesses may be worth contacting.</p>
@@ -796,7 +1063,6 @@
       </div>
 
       <div class="onboarding-benefit-card">
-        <div class="benefit-icon">💬</div>
         <div class="benefit-content">
           <h4>Reach out faster</h4>
           <p>Get relevant contact information and outreach opportunities.</p>
@@ -814,7 +1080,6 @@
 <!-- Prospecting Profile Creation Success Modal -->
 <div id="profile-success-modal" class="modal-overlay">
   <div class="modal-container onboarding-modal-container" style="max-width: 480px; text-align: center;">
-    <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">🎯</div>
     <h2 class="onboarding-title" style="margin-bottom: 0.5rem;">Your profile is ready</h2>
     <p class="onboarding-subtitle" style="margin-bottom: 1.5rem;">
       Bizz-Hunter can now use your prospecting preferences to help you find better opportunities.
@@ -849,27 +1114,39 @@
   </div>
 </div>
 
-<!-- Toast Container -->
+<!-- Legacy Auth Modal Container (for explicit modal fallback calls) -->
+<div id="auth-modal" class="modal-overlay" style="display: none;"></div>
+
+<!-- Toast Notifications Container -->
 <div id="toast-container"></div>
 
-<!-- Scripts -->
+<!-- JS Core & Utilities -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/js/api.js?v=20260923_v1"></script>
-<script src="/js/state.js?v=20260923_v1"></script>
-<script src="/js/utils/formatters.js?v=20260923_v1"></script>
-<script src="/js/utils/toast.js?v=20260923_v1"></script>
-<script src="/js/components/modal.js?v=20260923_v1"></script>
-<script src="/js/components/business-card.js?v=20260923_v1"></script>
-<script src="/js/components/charts.js?v=20260923_v1"></script>
-<script src="/js/features/auth.js?v=20260923_v1"></script>
-<script src="/js/features/search.js?v=20260923_v1"></script>
-<script src="/js/features/prospect-brief.js?v=20260923_v1"></script>
-<script src="/js/features/prospects.js?v=20260923_v1"></script>
-<script src="/js/features/dashboard.js?v=20260923_v1"></script>
-<script src="/js/features/analysis.js?v=20260923_v1"></script>
-<script src="/js/features/profiles.js?v=20260923_v1"></script>
-<script src="/js/features/onboarding.js?v=20260923_v1"></script>
-<script src="/js/app.js?v=20260923_v1"></script>
+<script src="/js/utils/icons.js?v=20260924_v2"></script>
+<script src="/js/api.js?v=20260924_v2"></script>
+<script src="/js/state.js?v=20260924_v2"></script>
+<script src="/js/utils/formatters.js?v=20260924_v2"></script>
+<script src="/js/utils/toast.js?v=20260924_v2"></script>
+
+<!-- UI Components -->
+<script src="/js/components/modal.js?v=20260924_v2"></script>
+<script src="/js/components/business-card.js?v=20260924_v2"></script>
+<script src="/js/components/charts.js?v=20260924_v2"></script>
+
+<!-- Feature Controllers -->
+<script src="/js/features/auth.js?v=20260924_v2"></script>
+<script src="/js/features/landing.js?v=20260924_v2"></script>
+<script src="/js/features/search.js?v=20260924_v2"></script>
+<script src="/js/features/prospect-brief.js?v=20260924_v2"></script>
+<script src="/js/features/prospects.js?v=20260924_v2"></script>
+<script src="/js/features/dashboard.js?v=20260924_v2"></script>
+<script src="/js/features/analysis.js?v=20260924_v2"></script>
+<script src="/js/features/profiles.js?v=20260924_v2"></script>
+<script src="/js/features/settings.js?v=20260924_v2"></script>
+<script src="/js/features/onboarding.js?v=20260924_v2"></script>
+
+<!-- App Orchestrator -->
+<script src="/js/app.js?v=20260924_v2"></script>
 
 </body>
 </html>

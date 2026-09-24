@@ -225,7 +225,7 @@
 
     if (dom.selectedLocationBadge) {
       dom.selectedLocationBadge.innerHTML = `
-        <span>📍 ${window.escapeHtml(formattedAddress)}</span>
+        <span style="display: inline-flex; align-items: center; gap: 4px;">${window.BizzIcons ? window.BizzIcons.mapPin : ''} ${window.escapeHtml(formattedAddress)}</span>
         <button type="button" class="remove-loc-btn" title="Clear Location" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer;">&times;</button>
       `;
       dom.selectedLocationBadge.style.display = 'inline-flex';
@@ -435,7 +435,7 @@
     const profileContextEl = dom.searchProfileContext || document.getElementById('search-profile-context');
     if (profileContextEl) {
       if (activeProfile && activeProfile.name) {
-        profileContextEl.textContent = `🎯 Prospecting as: ${activeProfile.name}${activeProfile.service ? ' • ' + activeProfile.service : ''}`;
+        profileContextEl.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 4px;">${window.BizzIcons ? window.BizzIcons.profiles : ''} Prospecting as: <strong>${window.escapeHtml(activeProfile.name)}</strong>${activeProfile.service ? ' • ' + window.escapeHtml(activeProfile.service) : ''}</span>`;
         profileContextEl.style.display = 'block';
       } else {
         profileContextEl.style.display = 'none';

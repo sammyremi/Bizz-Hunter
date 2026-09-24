@@ -277,15 +277,15 @@
         <!-- Actions Bar -->
         <div class="profile-card-actions">
           <button type="button" class="btn btn-secondary btn-sm btn-edit-profile" data-id="${profile.id}">
-            ✏️ Edit
+            ${window.BizzIcons ? window.BizzIcons.settings : ''} <span>Edit</span>
           </button>
           ${!profile.is_default ? `
             <button type="button" class="btn btn-secondary btn-sm btn-default-profile" data-id="${profile.id}">
-              ⭐ Set as Default
+              ${window.BizzIcons ? window.BizzIcons.check : ''} <span>Set as Default</span>
             </button>
           ` : ''}
           <button type="button" class="btn btn-secondary btn-sm btn-delete-profile" data-id="${profile.id}" data-name="${window.escapeHtml(profile.name)}" style="color: #ef4444; border-color: rgba(239,68,68,0.3);">
-            🗑️ Delete
+            <span>Delete</span>
           </button>
         </div>
       </div>
@@ -342,7 +342,7 @@
 
     const aiDescInput = document.getElementById('ai-description-input');
     const aiBtn = document.getElementById('btn-generate-ai-profile');
-    if (aiBtn) aiBtn.innerHTML = '✨ Generate Profile with AI';
+    if (aiBtn) aiBtn.innerHTML = `${window.BizzIcons ? window.BizzIcons.sparkles : ''} <span>Generate Profile with AI</span>`;
 
     if (profileToEdit) {
       if (titleEl) titleEl.textContent = 'Edit Prospecting Profile';
@@ -556,9 +556,9 @@
       renderTagChips('opportunity-signals');
       renderTagChips('contact-signals');
 
-      if (aiBtn) aiBtn.innerHTML = '✨ Regenerate with AI';
+      if (aiBtn) aiBtn.innerHTML = `${window.BizzIcons ? window.BizzIcons.sparkles : ''} <span>Regenerate with AI</span>`;
       if (window.showToast) {
-        window.showToast('✨ AI generated candidate profile! Review fields below and click Save Profile.', 'success');
+        window.showToast('AI candidate profile generated! Review fields below and click Save Profile.', 'success');
       }
     } catch (err) {
       console.error('Error generating AI profile:', err);
