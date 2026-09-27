@@ -28,23 +28,102 @@
     const googleLoginBtn = document.getElementById('google-oauth-login-btn');
     if (googleLoginBtn && !googleLoginBtn.dataset.bound) {
       googleLoginBtn.dataset.bound = 'true';
-      googleLoginBtn.addEventListener('click', () => {
-        window.showToast('Google OAuth backend integration ready! Connect callback endpoint to complete.', 'info');
-      });
+      googleLoginBtn.addEventListener('click', () => handleGoogleSignIn(googleLoginBtn));
     }
 
     const googleRegisterBtn = document.getElementById('google-oauth-register-btn');
     if (googleRegisterBtn && !googleRegisterBtn.dataset.bound) {
       googleRegisterBtn.dataset.bound = 'true';
-      googleRegisterBtn.addEventListener('click', () => {
-        window.showToast('Google OAuth backend integration ready! Connect callback endpoint to complete.', 'info');
-      });
+      googleRegisterBtn.addEventListener('click', () => handleGoogleSignIn(googleRegisterBtn));
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Google Sign-In — redirect browser to Rails OAuth initiation endpoint
+  // ---------------------------------------------------------------------------
+  function handleGoogleSignIn(btn) {
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span style="opacity:0.7">Redirecting to Google…</span>';
+    }
+    // Full-page redirect; Rails handles the OAuth dance and redirects back
+    window.location.href = '/api/v1/auth/google';
+  }
+
+  function dismissLoadingOverlay() {
+    const loadingEl = document.getElementById('app-auth-loading');
+    if (loadingEl) {
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 150);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Google OAuth callback handler — called on every page load.
+  // Rails redirects back to /#oauth_token=<JWT> or /#oauth_error=<message>
+  // ---------------------------------------------------------------------------
+  async function handleGoogleOAuthCallback() {
+    const hash = window.location.hash;
+    if (!hash) return false;
+
+    // --- Error path ---
+    if (hash.startsWith('#oauth_error=')) {
+      const errorMsg = decodeURIComponent(hash.replace('#oauth_error=', ''));
+      window.history.replaceState(null, '', window.location.pathname);
+      window.showToast(errorMsg || 'Google sign-in failed. Please try again.', 'error');
+      window.switchTab('login');
+      dismissLoadingOverlay();
+      return true;
+    }
+
+    // --- Success path ---
+    if (hash.startsWith('#oauth_token=')) {
+      const token = decodeURIComponent(hash.replace('#oauth_token=', ''));
+      // Clean the token from the URL immediately so it's not bookmarked or shared
+      window.history.replaceState(null, '', window.location.pathname);
+
+      if (!token) {
+        window.showToast('Google sign-in failed: no token received.', 'error');
+        window.switchTab('login');
+        dismissLoadingOverlay();
+        return true;
+      }
+
+      // Store the JWT exactly as email/password login does
+      window.BizzApi.setToken(token);
+
+      // Fetch the current user to validate the token and populate state
+      try {
+        const user = await window.BizzApi.getMe();
+        if (user) {
+          setCurrentUser(user);
+          window.showToast(`Welcome, ${user.name}!`, 'success');
+          await fetchAndUpdateQuota();
+          await window.loadUserProspects();
+          if (typeof window.loadProfiles === 'function') await window.loadProfiles();
+          if (typeof window.initProfileSelector === 'function') await window.initProfileSelector();
+          window.switchTab('find-businesses');
+          if (typeof window.checkAndRunOnboarding === 'function') await window.checkAndRunOnboarding();
+        } else {
+          window.BizzApi.removeToken();
+          window.showToast('Google sign-in failed. Please try again.', 'error');
+          window.switchTab('login');
+        }
+      } catch (err) {
+        window.BizzApi.removeToken();
+        window.showToast('Google sign-in failed. Please try again.', 'error');
+        window.switchTab('login');
+      } finally {
+        dismissLoadingOverlay();
+      }
+      return true;
+    }
+
+    return false;
   }
 
   async function checkAuthSession() {
     const state = window.BizzState;
-    const loadingEl = document.getElementById('app-auth-loading');
 
     let user = null;
     try {
@@ -77,10 +156,7 @@
     window.switchTab(destTab || (user ? 'find-businesses' : 'landing'));
 
     // Dismiss loading overlay immediately so UI is responsive
-    if (loadingEl) {
-      loadingEl.style.opacity = '0';
-      setTimeout(() => { loadingEl.style.display = 'none'; }, 150);
-    }
+    dismissLoadingOverlay();
 
     // Secondary background data loading (does not block initial view render)
     if (user) {
@@ -277,6 +353,7 @@
 
   window.initAuth = initAuth;
   window.checkAuthSession = checkAuthSession;
+  window.handleGoogleOAuthCallback = handleGoogleOAuthCallback;
   window.setCurrentUser = setCurrentUser;
   window.fetchAndUpdateQuota = fetchAndUpdateQuota;
   window.updateQuotaUI = updateQuotaUI;

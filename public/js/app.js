@@ -22,13 +22,24 @@
     if (typeof window.initProfileSelector === 'function') window.initProfileSelector();
     if (typeof window.initSettingsPage === 'function') window.initSettingsPage();
 
-    // Check Auth Session first to determine auth state & destination view
-    if (typeof window.checkAuthSession === 'function') {
-      await window.checkAuthSession();
-    } else {
-      const rawHash = window.location.hash ? window.location.hash.replace('#', '') : null;
-      const initialTab = mapRouteAlias(rawHash) || 'landing';
-      switchTab(initialTab);
+    // Handle Google OAuth callback FIRST (before normal session check).
+    // When Rails redirects back from Google, the URL contains #oauth_token=...
+    // or #oauth_error=... — handleGoogleOAuthCallback processes these and
+    // returns true so we can skip the normal session check.
+    let oauthHandled = false;
+    if (typeof window.handleGoogleOAuthCallback === 'function') {
+      oauthHandled = await window.handleGoogleOAuthCallback();
+    }
+
+    if (!oauthHandled) {
+      // Normal session check — determines auth state & destination view
+      if (typeof window.checkAuthSession === 'function') {
+        await window.checkAuthSession();
+      } else {
+        const rawHash = window.location.hash ? window.location.hash.replace('#', '') : null;
+        const initialTab = mapRouteAlias(rawHash) || 'landing';
+        switchTab(initialTab);
+      }
     }
 
     if (typeof window.fetchAndUpdateQuota === 'function') await window.fetchAndUpdateQuota();
@@ -45,6 +56,11 @@
 
   window.addEventListener('hashchange', () => {
     const rawHash = window.location.hash ? window.location.hash.replace('#', '') : null;
+    if (!rawHash) return;
+
+    // Ignore OAuth callback fragments — they are handled by handleGoogleOAuthCallback on load
+    if (rawHash.startsWith('oauth_token=') || rawHash.startsWith('oauth_error=')) return;
+
     const hashTab = mapRouteAlias(rawHash);
     if (!hashTab) return;
 

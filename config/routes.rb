@@ -8,6 +8,11 @@ Rails.application.routes.draw do
       get 'auth/me', to: 'auth#me'
       post 'auth/logout', to: 'auth#logout'
 
+      # Google OAuth 2.0
+      get 'auth/google', to: 'google_oauth#redirect_to_google'
+      get 'auth/google/callback', to: 'google_oauth#callback'
+      get 'auth/google_oauth2/callback', to: 'google_oauth#callback'
+
       get 'business-discovery/search', to: 'business_discovery#search'
       get 'business-discovery/quota', to: 'business_discovery#quota'
       get 'business-discovery/analysis', to: 'business_discovery#analysis'
@@ -31,6 +36,9 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  # Root-level Google OAuth 2.0 callback route matching Google OAuth client config
+  get 'auth/google_oauth2/callback', to: 'api/v1/google_oauth#callback'
 
   get 'up' => 'rails/health#show', as: :rails_health_check
 
