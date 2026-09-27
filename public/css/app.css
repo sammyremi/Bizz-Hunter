@@ -164,6 +164,11 @@ body {
   gap: 1rem;
 }
 
+.user-profile-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .user-profile-pill {
   display: inline-flex;
   align-items: center;
@@ -175,11 +180,103 @@ body {
   text-decoration: none;
   color: var(--text-main);
   transition: var(--transition);
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .user-profile-pill:hover {
   border-color: var(--primary);
   background: var(--bg-surface-elevated);
+}
+
+.user-pill-chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.user-profile-pill[aria-expanded="true"] .user-pill-chevron {
+  transform: rotate(180deg);
+}
+
+.user-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 210px;
+  background: var(--bg-surface-elevated, var(--bg-surface));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  z-index: 1000;
+  transform-origin: top right;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dropdown-user-header {
+  padding: 0.4rem 0.65rem 0.35rem 0.65rem;
+}
+
+.dropdown-user-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-user-email {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.4rem 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+}
+
+.dropdown-logout-btn {
+  color: #ef4444;
+}
+
+.dropdown-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
 }
 
 .user-avatar {
@@ -3077,7 +3174,8 @@ img, video, canvas, svg {
 }
 
 @media (max-width: 540px) {
-  .user-name {
+  .user-name,
+  .user-pill-chevron {
     display: none !important;
   }
   .user-profile-pill {

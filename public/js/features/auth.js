@@ -36,6 +36,47 @@
       googleRegisterBtn.dataset.bound = 'true';
       googleRegisterBtn.addEventListener('click', () => handleGoogleSignIn(googleRegisterBtn));
     }
+
+    // User Profile Dropdown Menu Handlers
+    const userPill = document.getElementById('user-profile-pill');
+    const userDropdown = document.getElementById('user-profile-dropdown');
+    const logoutBtn = document.getElementById('dropdown-logout-btn');
+
+    if (userPill && !userPill.dataset.bound) {
+      userPill.dataset.bound = 'true';
+      userPill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = !userDropdown || userDropdown.style.display === 'none';
+        if (userDropdown) {
+          userDropdown.style.display = isHidden ? 'block' : 'none';
+          userPill.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+        }
+      });
+    }
+
+    if (logoutBtn && !logoutBtn.dataset.bound) {
+      logoutBtn.dataset.bound = 'true';
+      logoutBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (userDropdown) userDropdown.style.display = 'none';
+        if (userPill) userPill.setAttribute('aria-expanded', 'false');
+        await logoutUser();
+      });
+    }
+
+    // Close user dropdown when clicking outside
+    if (!document.dataset || !document.dataset.userDropdownBound) {
+      if (document.dataset) document.dataset.userDropdownBound = 'true';
+      document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('user-profile-wrapper');
+        const dropdown = document.getElementById('user-profile-dropdown');
+        const pill = document.getElementById('user-profile-pill');
+        if (wrapper && !wrapper.contains(e.target) && dropdown) {
+          dropdown.style.display = 'none';
+          if (pill) pill.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -181,16 +222,25 @@
     const userAvatarEl = document.getElementById('user-avatar');
     const userNameEl = document.getElementById('user-name');
     const userPillEl = document.getElementById('user-profile-pill');
+    const dropdownUserNameEl = document.getElementById('dropdown-user-name');
+    const dropdownUserEmailEl = document.getElementById('dropdown-user-email');
+    const userDropdownEl = document.getElementById('user-profile-dropdown');
     const authNavEl = document.getElementById('authenticated-nav');
     const publicNavEl = document.getElementById('public-nav');
     const brandLinkEl = document.getElementById('brand-link');
 
     if (user) {
       const name = user.name || 'User Account';
+      const email = user.email || '';
       const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'US';
 
       if (userNameEl) userNameEl.textContent = name;
       if (userAvatarEl) userAvatarEl.textContent = initials;
+      if (dropdownUserNameEl) dropdownUserNameEl.textContent = name;
+      if (dropdownUserEmailEl) {
+        dropdownUserEmailEl.textContent = email;
+        dropdownUserEmailEl.style.display = email ? 'block' : 'none';
+      }
 
       if (userPillEl) userPillEl.style.display = 'inline-flex';
       if (authNavEl) authNavEl.style.display = 'flex';
@@ -200,7 +250,11 @@
       if (userNameEl) userNameEl.textContent = 'Guest';
       if (userAvatarEl) userAvatarEl.textContent = 'GU';
 
-      if (userPillEl) userPillEl.style.display = 'none';
+      if (userPillEl) {
+        userPillEl.style.display = 'none';
+        userPillEl.setAttribute('aria-expanded', 'false');
+      }
+      if (userDropdownEl) userDropdownEl.style.display = 'none';
       if (authNavEl) authNavEl.style.display = 'none';
       if (publicNavEl) publicNavEl.style.display = 'flex';
       if (brandLinkEl) brandLinkEl.setAttribute('href', '#landing');

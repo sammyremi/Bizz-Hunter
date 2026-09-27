@@ -75,11 +75,27 @@
           <span class="theme-icon-moon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
         </div>
 
-        <!-- AUTHENTICATED USER PILL -->
-        <a href="#settings" id="user-profile-pill" class="user-profile-pill" style="display: none;" title="Account Settings">
-          <span id="user-avatar" class="user-avatar">US</span>
-          <span id="user-name" class="user-name">User Account</span>
-        </a>
+        <!-- AUTHENTICATED USER DROPDOWN WRAPPER -->
+        <div class="user-profile-wrapper" id="user-profile-wrapper">
+          <button type="button" id="user-profile-pill" class="user-profile-pill" style="display: none;" title="User Account Menu" aria-haspopup="true" aria-expanded="false">
+            <span id="user-avatar" class="user-avatar">US</span>
+            <span id="user-name" class="user-name">User Account</span>
+            <svg class="user-pill-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+
+          <!-- USER DROPDOWN MENU -->
+          <div id="user-profile-dropdown" class="user-profile-dropdown" style="display: none;">
+            <div class="dropdown-user-header">
+              <div id="dropdown-user-name" class="dropdown-user-name">User Account</div>
+              <div id="dropdown-user-email" class="dropdown-user-email">user@example.com</div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button type="button" id="dropdown-logout-btn" class="dropdown-item dropdown-logout-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span>Log out</span>
+            </button>
+          </div>
+        </div>
 
         <!-- Mobile Menu Trigger -->
         <button type="button" id="mobile-menu-trigger" class="mobile-menu-trigger" aria-label="Toggle navigation menu">
