@@ -159,7 +159,7 @@
       resultsCount: document.getElementById('results-count'),
       resultsContext: document.getElementById('results-context'),
       statMissingWebsite: document.getElementById('stat-missing-website'),
-      statSavedCount: document.getElementById('stat-saved-count'),
+      statMissingPhone: document.getElementById('stat-missing-phone'),
       cardsGrid: document.getElementById('cards-grid'),
       loadingState: document.getElementById('loading-state'),
       emptyState: document.getElementById('empty-state'),

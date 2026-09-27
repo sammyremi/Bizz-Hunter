@@ -464,8 +464,9 @@
     }
 
     const noWebsiteCount = businesses.filter(b => !b.website).length;
+    const noPhoneCount = businesses.filter(b => !(b.phone || b.phone_number || b.national_phone || b.international_phone_number)).length;
     if (dom.statMissingWebsite) dom.statMissingWebsite.textContent = noWebsiteCount;
-    if (dom.statSavedCount) dom.statSavedCount.textContent = state.savedBusinesses.length;
+    if (dom.statMissingPhone) dom.statMissingPhone.textContent = noPhoneCount;
 
     // Render Business Cards with PERMANENT VISIBLE LARGE SCANNABLE QR CODES
     if (dom.cardsGrid) {
