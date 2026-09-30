@@ -7,8 +7,8 @@ require 'test_helper'
 module ProspectingProfiles
   class UpdateTest < ActiveSupport::TestCase
     setup do
-      @user_a = User.create!(name: 'User A', email: 'update_a@example.com', password: 'password123')
-      @user_b = User.create!(name: 'User B', email: 'update_b@example.com', password: 'password123')
+      @user_a = User.create!(name: 'User A', email: 'update_a@example.com', password: 'Password123')
+      @user_b = User.create!(name: 'User B', email: 'update_b@example.com', password: 'Password123')
 
       @profile_a1 = @user_a.prospecting_profiles.create!(
         name: 'Profile A1',

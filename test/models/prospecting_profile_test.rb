@@ -9,7 +9,7 @@ class ProspectingProfileTest < ActiveSupport::TestCase
     @user = User.create!(
       name: 'Profile Tester',
       email: 'profile_test@example.com',
-      password: 'password123'
+      password: 'Password123'
     )
   end
 

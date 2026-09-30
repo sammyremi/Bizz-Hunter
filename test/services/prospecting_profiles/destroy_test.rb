@@ -7,7 +7,7 @@ require 'test_helper'
 module ProspectingProfiles
   class DestroyTest < ActiveSupport::TestCase
     setup do
-      @user = User.create!(name: 'User Destroy', email: 'destroy_test@example.com', password: 'password123')
+      @user = User.create!(name: 'User Destroy', email: 'destroy_test@example.com', password: 'Password123')
       @profile = @user.prospecting_profiles.create!(
         name: 'Profile To Destroy',
         service: 'Web Dev',

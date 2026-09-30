@@ -18,6 +18,9 @@ class UserSerializer
       id: user.id,
       name: user.name,
       email: user.email,
+      provider: user.provider,
+      avatar_url: user.avatar_url,
+      verified: user.verified_at.present?,
       created_at: user.created_at
     }
   end

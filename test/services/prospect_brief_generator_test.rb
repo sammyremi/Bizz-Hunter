@@ -8,7 +8,7 @@ class ProspectBriefGeneratorTest < ActiveSupport::TestCase
   setup do
     @user = User.create!(
       email: 'brief_test_user@example.com',
-      password: 'password123',
+      password: 'Password123',
       name: 'Brief Test User'
     )
 

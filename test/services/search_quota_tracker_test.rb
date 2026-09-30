@@ -36,7 +36,7 @@ class SearchQuotaTrackerTest < ActiveSupport::TestCase
   end
 
   test "returns higher limit for authenticated users" do
-    user = User.create!(name: 'Quota User', email: "quota_legacy_#{SecureRandom.hex(4)}@example.com", password: 'password123')
+    user = User.create!(name: 'Quota User', email: "quota_legacy_#{SecureRandom.hex(4)}@example.com", password: 'Password123')
     status = SearchQuotaTracker.status(user: user, ip: '127.0.0.1')
 
     assert_equal 'authenticated', status[:user_type]

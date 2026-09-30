@@ -6,7 +6,7 @@ require 'test_helper'
 
 class ProspectTest < ActiveSupport::TestCase
   setup do
-    @user = User.create!(name: 'Tester', email: 'prospect_test@example.com', password: 'password123')
+    @user = User.create!(name: 'Tester', email: 'prospect_test@example.com', password: 'Password123')
   end
 
   test "valid prospect belongs to user" do
@@ -27,7 +27,7 @@ class ProspectTest < ActiveSupport::TestCase
   end
 
   test "allows same google_place_id for different users" do
-    user_two = User.create!(name: 'Tester 2', email: 'prospect_test2@example.com', password: 'password123')
+    user_two = User.create!(name: 'Tester 2', email: 'prospect_test2@example.com', password: 'Password123')
     @user.prospects.create!(google_place_id: 'ChIJ123', business_name: 'Abuja Cafe', status: 'NEW')
 
     other_prospect = user_two.prospects.build(google_place_id: 'ChIJ123', business_name: 'Abuja Cafe', status: 'NEW')

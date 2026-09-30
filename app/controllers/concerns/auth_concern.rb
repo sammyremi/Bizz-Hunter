@@ -8,10 +8,20 @@ module AuthConcern
   protected
 
   def register_params
-    params.permit(:name, :email, :password)
+    # Rails' ParamsWrapper may wrap JSON body under :auth for AuthController.
+    # Accept params from both the root level and the :auth wrapper.
+    if params.key?(:auth)
+      params.require(:auth).permit(:name, :email, :password)
+    else
+      params.permit(:name, :email, :password)
+    end
   end
 
   def login_params
-    params.permit(:email, :password)
+    if params.key?(:auth)
+      params.require(:auth).permit(:email, :password)
+    else
+      params.permit(:email, :password)
+    end
   end
 end

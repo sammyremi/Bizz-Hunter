@@ -7,6 +7,11 @@ Rails.application.routes.draw do
       post 'auth/login', to: 'auth#login'
       get 'auth/me', to: 'auth#me'
       post 'auth/logout', to: 'auth#logout'
+      post 'auth/verify_email', to: 'auth#verify_email'
+      post 'auth/resend_verification', to: 'auth#resend_verification'
+      post 'auth/forgot_password', to: 'auth#forgot_password'
+      post 'auth/reset_password', to: 'auth#reset_password'
+      post 'auth/change_password', to: 'auth#change_password'
 
       # Google OAuth 2.0
       get 'auth/google', to: 'google_oauth#redirect_to_google'

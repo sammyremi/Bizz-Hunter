@@ -308,7 +308,10 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="login-password">Password</label>
+            <label class="form-label" for="login-password" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>Password</span>
+              <a href="#forgot-password" id="forgot-password-link" style="font-size:0.8rem; font-weight:500; color:var(--primary); text-decoration:none;">Forgot password?</a>
+            </label>
             <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
           </div>
 
@@ -357,12 +360,13 @@
 
           <div class="form-group">
             <label class="form-label" for="register-password">Password</label>
-            <input type="password" id="register-password" class="form-control" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+            <input type="password" id="register-password" class="form-control" placeholder="Min. 8 chars, upper, lower &amp; number" required minlength="8" autocomplete="new-password">
+            <div id="register-password-hint" style="font-size:0.78rem; color:var(--text-muted); margin-top:0.35rem; display:none;">Must be 8+ characters and include uppercase, lowercase, and a number.</div>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="register-confirm-password">Confirm Password</label>
-            <input type="password" id="register-confirm-password" class="form-control" placeholder="Confirm password" required minlength="6" autocomplete="new-password">
+            <input type="password" id="register-confirm-password" class="form-control" placeholder="Confirm password" required minlength="8" autocomplete="new-password">
           </div>
 
           <button type="submit" id="register-submit-btn" class="btn btn-primary btn-block btn-lg">Create Account</button>
@@ -379,6 +383,85 @@
 
         <div class="auth-footer-link">
           Already have an account? <a href="#login" id="register-go-to-login">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FORGOT PASSWORD PAGE ================= -->
+  <section id="view-forgot-password" class="view-section auth-page-view">
+    <div class="auth-page-container">
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <a href="#landing" class="auth-brand">
+            <span class="brand-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+            <span class="brand-title">Bizz-Hunter</span>
+          </a>
+          <h2>Forgot your password?</h2>
+          <p>Enter your email and we'll send a secure reset link if an account exists.</p>
+        </div>
+
+        <!-- Step 1: Email entry form -->
+        <div id="forgot-password-form-wrap">
+          <form id="forgot-password-form" class="auth-form">
+            <div class="form-group">
+              <label class="form-label" for="forgot-password-email">Email Address</label>
+              <input type="email" id="forgot-password-email" class="form-control" placeholder="you@example.com" required autocomplete="email">
+            </div>
+            <button type="submit" id="forgot-password-submit-btn" class="btn btn-primary btn-block btn-lg">Send Reset Link</button>
+          </form>
+          <div id="forgot-password-error-box" class="auth-error-box" style="display: none;"></div>
+        </div>
+
+        <!-- Step 2: Confirmation message (shown after submission) -->
+        <div id="forgot-password-success" style="display:none; text-align:center; padding: 1rem 0;">
+          <div style="width:56px;height:56px;background:rgba(34,197,94,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Check your email</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">If an account exists for that email, a password reset link has been sent. It expires in 2 hours.</p>
+        </div>
+
+        <div class="auth-footer-link" style="margin-top:1.5rem;">
+          <a href="#login" id="forgot-back-to-login">Back to Sign In</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= RESET PASSWORD PAGE ================= -->
+  <section id="view-reset-password" class="view-section auth-page-view">
+    <div class="auth-page-container">
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <a href="#landing" class="auth-brand">
+            <span class="brand-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span>
+            <span class="brand-title">Bizz-Hunter</span>
+          </a>
+          <h2>Set a new password</h2>
+          <p>Create a strong password for your Bizz-Hunter account.</p>
+        </div>
+
+        <form id="reset-password-form" class="auth-form">
+          <input type="hidden" id="reset-password-token" value="">
+          <div class="form-group">
+            <label class="form-label" for="reset-new-password">New Password</label>
+            <input type="password" id="reset-new-password" class="form-control" placeholder="Min. 8 chars, upper, lower &amp; number" required minlength="8" autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reset-confirm-password">Confirm New Password</label>
+            <input type="password" id="reset-confirm-password" class="form-control" placeholder="Confirm new password" required minlength="8" autocomplete="new-password">
+          </div>
+          <button type="submit" id="reset-password-submit-btn" class="btn btn-primary btn-block btn-lg">Reset Password</button>
+        </form>
+
+        <div id="reset-password-error-box" class="auth-error-box" style="display: none;"></div>
+        <div id="reset-password-success" style="display:none; text-align:center; padding: 1rem 0; margin-top:0.75rem;">
+          <p style="color:var(--text-muted); font-size:0.9rem;">Password reset successfully. <a href="#login">Sign in now</a>.</p>
+        </div>
+
+        <div class="auth-footer-link" style="margin-top:1.5rem;">
+          <a href="#login" id="reset-back-to-login">Back to Sign In</a>
         </div>
       </div>
     </div>
@@ -793,6 +876,7 @@
             <!-- Settings Navigation Sub-tabs -->
             <div class="settings-sidebar">
               <button type="button" class="settings-nav-item active" data-settings-section="account">Account</button>
+              <button type="button" class="settings-nav-item" data-settings-section="security">Security</button>
               <button type="button" class="settings-nav-item" data-settings-section="ai">AI Preferences</button>
               <button type="button" class="settings-nav-item" data-settings-section="appearance">Appearance</button>
               <button type="button" class="settings-nav-item danger" data-settings-section="signout">Sign Out</button>
@@ -832,7 +916,34 @@
                 </div>
               </div>
 
-              <!-- Panel 2: AI Preferences -->
+              <!-- Panel 2: Security -->
+              <div class="settings-panel" id="settings-panel-security">
+                <div class="filter-panel-box" style="margin-bottom: 1.5rem;">
+                  <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Change Password</h3>
+                  <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;">Update your Bizz-Hunter account password. Must be 8+ characters with uppercase, lowercase, and a number.</p>
+
+                  <form id="change-password-form" style="display: flex; flex-direction: column; gap: 1.25rem; max-width: 480px;">
+                    <div class="form-group">
+                      <label class="form-label" for="change-current-password">Current Password</label>
+                      <input type="password" id="change-current-password" class="form-control" placeholder="Enter current password" autocomplete="current-password">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="change-new-password">New Password</label>
+                      <input type="password" id="change-new-password" class="form-control" placeholder="Min. 8 chars, upper, lower &amp; number" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="change-confirm-password">Confirm New Password</label>
+                      <input type="password" id="change-confirm-password" class="form-control" placeholder="Confirm new password" autocomplete="new-password">
+                    </div>
+                    <div id="change-password-error" style="display:none; font-size:0.85rem; color:#ef4444; font-weight:500;"></div>
+                    <div>
+                      <button type="submit" id="change-password-btn" class="btn btn-primary">Update Password</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <!-- Panel 3: AI Preferences -->
               <div class="settings-panel" id="settings-panel-ai">
                 <!-- WhatsApp AI Settings -->
                 <div class="filter-panel-box" style="margin-bottom: 1.5rem;">

@@ -11,12 +11,12 @@ module Api
         @user = User.create!(
           name: 'Discovery Tester',
           email: "discovery_#{SecureRandom.hex(4)}@example.com",
-          password: 'password123'
+          password: 'Password123'
         )
         @other_user = User.create!(
           name: 'Other User',
           email: "other_discovery_#{SecureRandom.hex(4)}@example.com",
-          password: 'password123'
+          password: 'Password123'
         )
 
         @token = JsonWebToken.encode(user_id: @user.id)

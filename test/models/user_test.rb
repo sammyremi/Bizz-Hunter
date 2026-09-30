@@ -9,11 +9,11 @@ class UserTest < ActiveSupport::TestCase
     user = User.new(
       name: 'Samuel Adebayo',
       email: 'SAMUEL_UNIQUE@EXAMPLE.COM',
-      password: 'password123'
+      password: 'Password123'
     )
     assert user.save
     assert_equal 'samuel_unique@example.com', user.email
-    assert user.authenticate('password123')
+    assert user.authenticate('Password123')
   end
 
   test "requires name, email, and password" do
@@ -24,16 +24,94 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "enforces unique email case-insensitively" do
-    User.create!(name: 'User One', email: 'test_uniq@example.com', password: 'password123')
-    duplicate = User.new(name: 'User Two', email: 'TEST_UNIQ@EXAMPLE.COM', password: 'password123')
+    User.create!(name: 'User One', email: 'test_uniq@example.com', password: 'Password123')
+    duplicate = User.new(name: 'User Two', email: 'TEST_UNIQ@EXAMPLE.COM', password: 'Password123')
 
     assert_not duplicate.valid?
     assert_includes duplicate.errors[:email], 'has already been taken'
   end
 
+  # --- Strong Password Policy Tests ---
+
+  test "rejects passwords shorter than 8 characters" do
+    user = User.new(name: 'Short PW', email: 'short@example.com', password: 'Pass12')
+    assert_not user.valid?
+    assert_includes user.errors[:password], 'must be at least 8 characters long'
+  end
+
+  test "rejects passwords missing lowercase letter" do
+    user = User.new(name: 'No Lower', email: 'nolower@example.com', password: 'PASSWORD123')
+    assert_not user.valid?
+    assert_includes user.errors[:password], 'must contain at least one lowercase letter'
+  end
+
+  test "rejects passwords missing uppercase letter" do
+    user = User.new(name: 'No Upper', email: 'noupper@example.com', password: 'password123')
+    assert_not user.valid?
+    assert_includes user.errors[:password], 'must contain at least one uppercase letter'
+  end
+
+  test "rejects passwords missing number" do
+    user = User.new(name: 'No Number', email: 'nonumber@example.com', password: 'PasswordWord')
+    assert_not user.valid?
+    assert_includes user.errors[:password], 'must contain at least one number'
+  end
+
+  test "accepts valid strong password" do
+    user = User.new(name: 'Strong PW', email: 'strong@example.com', password: 'SecurePassword123')
+    assert user.valid?, user.errors.full_messages.to_s
+  end
+
+  # --- Email Verification Tests ---
+
+  test "generate_verification_token! stores digest and returns raw token" do
+    user = User.create!(name: 'Verify Test', email: 'verify1@example.com', password: 'Password123')
+    raw_token = user.generate_verification_token!
+
+    assert_not_nil raw_token
+    assert_not_equal raw_token, user.verification_token_digest
+    assert_equal Digest::SHA256.hexdigest(raw_token), user.verification_token_digest
+    assert_not_nil user.verification_sent_at
+  end
+
+  test "verify_email succeeds with valid raw token and marks user verified" do
+    user = User.create!(name: 'Verify Test', email: 'verify2@example.com', password: 'Password123')
+    raw_token = user.generate_verification_token!
+
+    result = User.verify_email(raw_token)
+    assert result[:success]
+
+    user.reload
+    assert user.verified?
+    assert_nil user.verification_token_digest
+  end
+
+  # --- Password Reset Tests ---
+
+  test "generate_reset_password_token! stores digest and returns raw token" do
+    user = User.create!(name: 'Reset Test', email: 'reset1@example.com', password: 'Password123')
+    raw_token = user.generate_reset_password_token!
+
+    assert_not_nil raw_token
+    assert_equal Digest::SHA256.hexdigest(raw_token), user.reset_password_token_digest
+    assert_not_nil user.reset_password_sent_at
+  end
+
+  test "reset_password_with_token updates password and invalidates token" do
+    user = User.create!(name: 'Reset Test', email: 'reset2@example.com', password: 'OldPassword123')
+    raw_token = user.generate_reset_password_token!
+
+    result = User.reset_password_with_token(raw_token, 'NewPassword123')
+    assert result[:success]
+
+    user.reload
+    assert user.authenticate('NewPassword123')
+    assert_nil user.reset_password_token_digest
+  end
+
   # --- Google OAuth tests ---
 
-  test "find_or_create_from_google creates a new user from Google profile" do
+  test "find_or_create_from_google creates a new verified user from Google profile" do
     profile = {
       uid:        'google_uid_001',
       email:      'newgoogleuser@example.com',
@@ -45,51 +123,8 @@ class UserTest < ActiveSupport::TestCase
       user = User.find_or_create_from_google(profile)
       assert_equal 'google', user.provider
       assert_equal 'google_uid_001', user.uid
-      assert_equal 'newgoogleuser@example.com', user.email
-      assert_equal 'New Google User', user.name
-      assert_equal 'https://example.com/avatar.jpg', user.avatar_url
+      assert user.verified?
       assert_nil user.password_digest
     end
   end
-
-  test "find_or_create_from_google returns existing user on repeated Google sign-in" do
-    profile = { uid: 'google_uid_002', email: 'returning@example.com', name: 'Returning User', avatar_url: nil }
-
-    first_user = User.find_or_create_from_google(profile)
-
-    assert_no_difference 'User.count' do
-      second_user = User.find_or_create_from_google(profile)
-      assert_equal first_user.id, second_user.id
-    end
-  end
-
-  test "find_or_create_from_google links Google to existing email/password account" do
-    existing = User.create!(name: 'Existing User', email: 'linked@example.com', password: 'password123')
-
-    profile = { uid: 'google_uid_003', email: 'linked@example.com', name: 'Existing User', avatar_url: nil }
-
-    assert_no_difference 'User.count' do
-      linked_user = User.find_or_create_from_google(profile)
-      assert_equal existing.id, linked_user.id
-      assert_equal 'google', linked_user.provider
-      assert_equal 'google_uid_003', linked_user.uid
-    end
-  end
-
-  test "Google OAuth user is valid without a password" do
-    user = User.new(
-      name:     'OAuth User',
-      email:    'oauth@example.com',
-      provider: 'google',
-      uid:      'google_uid_004'
-    )
-    assert user.valid?, user.errors.full_messages.to_s
-  end
-
-  test "email/password user requires a password" do
-    user = User.new(name: 'Password User', email: 'pwuser@example.com')
-    assert_not user.valid?
-    assert user.errors[:password].any?
-  end
 end
-

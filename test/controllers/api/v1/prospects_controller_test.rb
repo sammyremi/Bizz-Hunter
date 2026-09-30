@@ -8,8 +8,8 @@ module Api
   module V1
     class ProspectsControllerTest < ActionDispatch::IntegrationTest
       setup do
-        @user_a = User.create!(name: 'User A', email: 'usera@example.com', password: 'password123')
-        @user_b = User.create!(name: 'User B', email: 'userb@example.com', password: 'password123')
+        @user_a = User.create!(name: 'User A', email: 'usera@example.com', password: 'Password123')
+        @user_b = User.create!(name: 'User B', email: 'userb@example.com', password: 'Password123')
 
         @token_a = JsonWebToken.encode(user_id: @user_a.id)
         @token_b = JsonWebToken.encode(user_id: @user_b.id)

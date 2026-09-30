@@ -9,7 +9,7 @@ class AnalyticsControllerTest < ActionDispatch::IntegrationTest
     @user = User.create!(
       name: 'Samuel Adebayo',
       email: 'samuel@example.com',
-      password: 'password123'
+      password: 'Password123'
     )
     @token = JsonWebToken.encode(user_id: @user.id)
     @headers = { 'Authorization' => "Bearer #{@token}" }

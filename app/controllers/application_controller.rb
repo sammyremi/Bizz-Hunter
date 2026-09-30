@@ -16,6 +16,19 @@ class ApplicationController < ActionController::API
     }, status: :unauthorized
   end
 
+  def require_verification!
+    authenticate_user!
+    return if performed?
+
+    unless current_user.verified_at.present?
+      render json: {
+        success: false,
+        message: 'Please verify your email address to access this feature.',
+        code: 'EMAIL_VERIFICATION_REQUIRED'
+      }, status: :forbidden
+    end
+  end
+
   def set_current_user_if_present
     token = extract_token_from_header
     decoded = token ? JsonWebToken.decode(token) : nil

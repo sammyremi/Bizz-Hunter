@@ -1,0 +1,17 @@
+<!-- app/views/user_mailer/verification_email.html.erb -->
+<h2>Hello <%= @user.name %>,</h2>
+
+<p>Thank you for signing up for Bizz-Hunter! Please verify your email address to unlock all features.</p>
+
+<p>
+  <a href="<%= @verify_url %>" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+    Verify Email Address
+  </a>
+</p>
+
+<p>Or copy and paste this link into your browser:</p>
+<p><code><%= @verify_url %></code></p>
+
+<p>This verification link will expire in 24 hours.</p>
+
+<p>Best regards,<br>The Bizz-Hunter Team</p>

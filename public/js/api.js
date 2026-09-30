@@ -95,6 +95,54 @@
       }
     }
 
+    static async verifyEmail(token) {
+      const response = await fetch(`${BASE_API_URL}/auth/verify_email`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ token })
+      });
+      return await response.json();
+    }
+
+    static async resendVerification() {
+      const response = await fetch(`${BASE_API_URL}/auth/resend_verification`, {
+        method: 'POST',
+        headers: this.getHeaders()
+      });
+      return await response.json();
+    }
+
+    static async forgotPassword(email) {
+      const response = await fetch(`${BASE_API_URL}/auth/forgot_password`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ email })
+      });
+      return await response.json();
+    }
+
+    static async resetPassword(token, password) {
+      const response = await fetch(`${BASE_API_URL}/auth/reset_password`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ token, password })
+      });
+      const json = await response.json();
+      if (response.ok && json.success && json.token) {
+        this.setToken(json.token);
+      }
+      return json;
+    }
+
+    static async changePassword(currentPassword, newPassword) {
+      const response = await fetch(`${BASE_API_URL}/auth/change_password`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ current_password: currentPassword, password: newPassword })
+      });
+      return await response.json();
+    }
+
     // --- Business Discovery API ---
     static async getSearchQuota() {
       try {
@@ -493,6 +541,7 @@
   }
 
   window.BizzApi = ApiClient;
+  window.BizzApi.changePassword = ApiClient.changePassword.bind(ApiClient);
   window.BizzApi.generateProspectingProfile = ApiClient.generateProspectingProfile.bind(ApiClient);
   console.log('BIZZ-HUNTER API CLIENT LOADED v20260907_v1', Object.getOwnPropertyNames(ApiClient));
 

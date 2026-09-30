@@ -9,7 +9,7 @@ class SearchTest < ActiveSupport::TestCase
     @user = User.create!(
       name: 'Search Tester',
       email: "search_test_#{SecureRandom.hex(4)}@example.com",
-      password: 'password123'
+      password: 'Password123'
     )
 
     @profile = @user.prospecting_profiles.create!(
@@ -95,7 +95,7 @@ class SearchTest < ActiveSupport::TestCase
     other_user = User.create!(
       name: 'Other User',
       email: "other_#{SecureRandom.hex(4)}@example.com",
-      password: 'password123'
+      password: 'Password123'
     )
 
     s_mine = @user.searches.create!(

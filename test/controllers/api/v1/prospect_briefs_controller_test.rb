@@ -11,13 +11,13 @@ class Api::V1::ProspectBriefsControllerTest < ActionDispatch::IntegrationTest
 
     @user = User.create!(
       email: 'brief_ctrl_user@example.com',
-      password: 'password123',
+      password: 'Password123',
       name: 'Brief Controller User'
     )
 
     @other_user = User.create!(
       email: 'other_brief_user@example.com',
-      password: 'password123',
+      password: 'Password123',
       name: 'Other User'
     )
 

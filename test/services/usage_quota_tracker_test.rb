@@ -8,7 +8,7 @@ class UsageQuotaTrackerTest < ActiveSupport::TestCase
   setup do
     @orig_cache = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
-    @user = User.create!(name: 'Quota User', email: "quota_#{SecureRandom.hex(4)}@example.com", password: 'password123')
+    @user = User.create!(name: 'Quota User', email: "quota_#{SecureRandom.hex(4)}@example.com", password: 'Password123')
     @ip = '192.168.1.50'
   end
 

@@ -7,8 +7,8 @@ require 'test_helper'
 module ProspectingProfiles
   class CreateTest < ActiveSupport::TestCase
     setup do
-      @user_a = User.create!(name: 'User A', email: 'service_a@example.com', password: 'password123')
-      @user_b = User.create!(name: 'User B', email: 'service_b@example.com', password: 'password123')
+      @user_a = User.create!(name: 'User A', email: 'service_a@example.com', password: 'Password123')
+      @user_b = User.create!(name: 'User B', email: 'service_b@example.com', password: 'Password123')
     end
 
     test "creates a profile associated with user" do

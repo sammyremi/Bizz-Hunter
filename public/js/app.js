@@ -23,16 +23,36 @@
     if (typeof window.initSettingsPage === 'function') window.initSettingsPage();
 
     // Handle Google OAuth callback FIRST (before normal session check).
-    // When Rails redirects back from Google, the URL contains #oauth_token=...
-    // or #oauth_error=... — handleGoogleOAuthCallback processes these and
-    // returns true so we can skip the normal session check.
     let oauthHandled = false;
     if (typeof window.handleGoogleOAuthCallback === 'function') {
       oauthHandled = await window.handleGoogleOAuthCallback();
     }
 
+    // Handle email verification token in URL (e.g., from email link)
+    const rawHashInit = window.location.hash ? window.location.hash.replace('#', '') : '';
+    if (!oauthHandled && rawHashInit.startsWith('verify_email=')) {
+      const vToken = decodeURIComponent(rawHashInit.replace('verify_email=', ''));
+      if (typeof window.handleEmailVerificationToken === 'function') {
+        await window.handleEmailVerificationToken(vToken);
+      }
+      if (typeof window.fetchAndUpdateQuota === 'function') await window.fetchAndUpdateQuota();
+      return;
+    }
+
+    // Handle password reset token in URL (e.g., from email link)
+    if (!oauthHandled && rawHashInit.startsWith('reset_password_token=')) {
+      const rToken = decodeURIComponent(rawHashInit.replace('reset_password_token=', ''));
+      if (typeof window.handleResetPasswordToken === 'function') {
+        window.handleResetPasswordToken(rToken);
+      }
+      // Dismiss the loading overlay — handleResetPasswordToken is synchronous
+      const loadingEl = document.getElementById('app-auth-loading');
+      if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => { loadingEl.style.display = 'none'; }, 150); }
+      if (typeof window.fetchAndUpdateQuota === 'function') await window.fetchAndUpdateQuota();
+      return;
+    }
+
     if (!oauthHandled) {
-      // Normal session check — determines auth state & destination view
       if (typeof window.checkAuthSession === 'function') {
         await window.checkAuthSession();
       } else {
@@ -51,6 +71,9 @@
     if (route === 'prospects') return 'saved-businesses';
     if (route === 'profiles') return 'prospecting-profiles';
     if (route === 'analytics') return 'analysis';
+    // Token-based routes — the token is stripped before routing
+    if (route.startsWith('reset_password_token=')) return 'reset-password';
+    if (route.startsWith('verify_email=')) return 'verify-email-result';
     return route;
   }
 
@@ -58,15 +81,33 @@
     const rawHash = window.location.hash ? window.location.hash.replace('#', '') : null;
     if (!rawHash) return;
 
-    // Ignore OAuth callback fragments — they are handled by handleGoogleOAuthCallback on load
+    // Ignore OAuth callback fragments
     if (rawHash.startsWith('oauth_token=') || rawHash.startsWith('oauth_error=')) return;
+
+    // Handle email verification token fragments
+    if (rawHash.startsWith('verify_email=')) {
+      const token = decodeURIComponent(rawHash.replace('verify_email=', ''));
+      if (typeof window.handleEmailVerificationToken === 'function') {
+        window.handleEmailVerificationToken(token);
+      }
+      return;
+    }
+
+    // Handle password reset token fragments
+    if (rawHash.startsWith('reset_password_token=')) {
+      const token = decodeURIComponent(rawHash.replace('reset_password_token=', ''));
+      if (typeof window.handleResetPasswordToken === 'function') {
+        window.handleResetPasswordToken(token);
+      }
+      return;
+    }
 
     const hashTab = mapRouteAlias(rawHash);
     if (!hashTab) return;
 
-    const validTabs = ['landing', 'login', 'register', 'find-businesses', 'prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'];
+    const validTabs = ['landing', 'login', 'register', 'forgot-password', 'reset-password', 'find-businesses', 'prospecting-profiles', 'dashboard', 'saved-businesses', 'analysis', 'settings'];
     if (validTabs.includes(hashTab)) {
-      if (state.currentUser && ['landing', 'login', 'register'].includes(hashTab)) {
+      if (state.currentUser && ['landing', 'login', 'register', 'forgot-password', 'reset-password'].includes(hashTab)) {
         switchTab('find-businesses');
         return;
       }
@@ -206,6 +247,8 @@
     if (tabName === 'saved-businesses') routeHash = 'prospects';
     if (tabName === 'prospecting-profiles') routeHash = 'profiles';
     if (tabName === 'analysis') routeHash = 'analytics';
+    if (tabName === 'forgot-password') routeHash = 'forgot-password';
+    if (tabName === 'reset-password') routeHash = 'reset-password';
 
     if (window.location.hash !== `#${routeHash}`) {
       try {

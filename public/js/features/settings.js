@@ -31,6 +31,18 @@
       });
     }
 
+    // Bind Change Password form — auth.js may have already bound it; this is a safe no-op if so
+    const changeForm = document.getElementById('change-password-form');
+    if (changeForm && !changeForm.dataset.bound) {
+      changeForm.dataset.bound = 'true';
+      changeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (typeof window.handleChangePassword === 'function') {
+          await window.handleChangePassword();
+        }
+      });
+    }
+
     loadUserSettingsData();
     bindSettingsFormSubmits();
   }

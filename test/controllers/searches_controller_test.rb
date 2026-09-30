@@ -9,12 +9,12 @@ class SearchesControllerTest < ActionDispatch::IntegrationTest
     @user1 = User.create!(
       name: 'User One',
       email: 'user1@example.com',
-      password: 'password123'
+      password: 'Password123'
     )
     @user2 = User.create!(
       name: 'User Two',
       email: 'user2@example.com',
-      password: 'password123'
+      password: 'Password123'
     )
 
     @token1 = JsonWebToken.encode(user_id: @user1.id)

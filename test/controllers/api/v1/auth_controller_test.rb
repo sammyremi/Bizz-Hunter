@@ -11,7 +11,7 @@ module Api
         post api_v1_auth_register_url, params: {
           name: 'Jane Doe',
           email: 'jane@example.com',
-          password: 'password123'
+          password: 'Password123'
         }, as: :json
 
         assert_response :created
@@ -27,11 +27,11 @@ module Api
       end
 
       test "authenticates user with valid credentials" do
-        User.create!(name: 'Jane Doe', email: 'jane@example.com', password: 'password123')
+        User.create!(name: 'Jane Doe', email: 'jane@example.com', password: 'Password123')
 
         post api_v1_auth_login_url, params: {
           email: 'jane@example.com',
-          password: 'password123'
+          password: 'Password123'
         }, as: :json
 
         assert_response :ok
@@ -41,11 +41,11 @@ module Api
       end
 
       test "rejects invalid login credentials" do
-        User.create!(name: 'Jane Doe', email: 'jane@example.com', password: 'password123')
+        User.create!(name: 'Jane Doe', email: 'jane@example.com', password: 'Password123')
 
         post api_v1_auth_login_url, params: {
           email: 'jane@example.com',
-          password: 'wrongpassword'
+          password: 'WrongPassword123'
         }, as: :json
 
         assert_response :unauthorized
@@ -54,7 +54,7 @@ module Api
       end
 
       test "returns profile for authenticated token" do
-        user = User.create!(name: 'Jane Doe', email: 'jane@example.com', password: 'password123')
+        user = User.create!(name: 'Jane Doe', email: 'jane@example.com', password: 'Password123')
         token = JsonWebToken.encode(user_id: user.id)
 
         get api_v1_auth_me_url, headers: { 'Authorization' => "Bearer #{token}" }
