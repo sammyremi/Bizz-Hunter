@@ -6,6 +6,8 @@ class Prospect < ApplicationRecord
   STATUSES = %w[NEW CONTACTED INTERESTED CONVERTED NOT_INTERESTED].freeze
 
   belongs_to :user
+  has_many :job_prospects, dependent: :destroy
+  has_many :jobs, through: :job_prospects
 
   validates :business_name, presence: true
   validates :google_place_id, presence: true,

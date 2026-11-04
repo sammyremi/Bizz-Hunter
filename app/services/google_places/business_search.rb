@@ -15,15 +15,19 @@ module GooglePlaces
       country: nil,
       region: nil,
       city: nil,
-      area: nil
+      area: nil,
+      page_token: nil,
+      page_size: 20
     )
       @business_type = business_type
       @location_name = location_name
-      @place_id = place_id
-      @country = country
-      @region = region
-      @city = city
-      @area = area
+      @place_id      = place_id
+      @country       = country
+      @region        = region
+      @city          = city
+      @area          = area
+      @page_token    = page_token
+      @page_size     = page_size.clamp(1, 20)
     end
 
     def call
@@ -44,13 +48,17 @@ module GooglePlaces
                 :country,
                 :region,
                 :city,
-                :area
+                :area,
+                :page_token,
+                :page_size
 
     def request_body
-      {
+      body = {
         textQuery: build_query,
-        maxResultCount: 20
+        maxResultCount: page_size
       }
+      body[:pageToken] = page_token if page_token.present?
+      body
     end
 
     def build_query
@@ -81,14 +89,29 @@ module GooglePlaces
         'places.internationalPhoneNumber',
         'places.nationalPhoneNumber',
         'places.websiteUri',
-        'places.types'
+        'places.types',
+        'nextPageToken'
       ].join(',')
     end
 
     def handle_response(response)
       return response.parsed_response if response.success?
 
-      raise StandardError, response.parsed_response.dig('error', 'message') || 'Business search failed'
+      error_msg = response.parsed_response.is_a?(Hash) ? response.parsed_response.dig('error', 'message') : nil
+      error_msg ||= response.body.presence || "HTTP #{response.code} error"
+
+      # Attach HTTP code and Retry-After header if present
+      retry_after = response.headers['retry-after'] || response.headers['Retry-After']
+      status_code = response.code.to_i
+
+      ex = StandardError.new("#{status_code}: #{error_msg}")
+      ex.instance_variable_set(:@http_status, status_code)
+      ex.instance_variable_set(:@retry_after, retry_after ? retry_after.to_i : nil)
+
+      def ex.http_status; @http_status; end
+      def ex.retry_after; @retry_after; end
+
+      raise ex
     end
   end
 end

@@ -39,6 +39,20 @@ Rails.application.routes.draw do
           post :generate
         end
       end
+
+      # Geographic catalog lookups
+      get 'countries', to: 'countries#index'
+      get 'countries/:id/cities', to: 'countries#cities'
+
+      # Jobs management and targets
+      resources :jobs, only: %i[index show create update] do
+        member do
+          post :pause
+          post :resume
+          post :archive
+          get  :targets
+        end
+      end
     end
   end
 

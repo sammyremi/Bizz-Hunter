@@ -13,6 +13,8 @@ class User < ApplicationRecord
   has_many :prospecting_profiles, dependent: :destroy
   has_many :searches, dependent: :destroy
   has_many :search_results, dependent: :destroy
+  has_many :jobs, dependent: :restrict_with_error
+  has_many :extension_devices, dependent: :destroy
 
   before_validation :downcase_email
 
